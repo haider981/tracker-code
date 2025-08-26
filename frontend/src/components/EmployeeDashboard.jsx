@@ -14,6 +14,7 @@ const AUTO_SUBMIT_KEY = "lastAutoSubmitDate";
 export default function EmployeeDashboard() {
   const navigate = useNavigate();
   const [user, setUser] = useState(null);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   // Cache/auto-submit UI state
   const [cacheInfo, setCacheInfo] = useState({ count: 0, expiresAt: null, timeLeft: "" });
@@ -238,10 +239,10 @@ export default function EmployeeDashboard() {
       localStorage.removeItem(CACHE_KEY);
       setTodayRows([]);
       updateCacheInfo();
-      setSubmitMsg(`🤖 Auto-submitted ${data.inserted} entr${data.inserted === 1 ? "y" : "ies"} at ${AUTO_SUBMIT_TIME}!`);
+      setSubmitMsg(`Auto-submitted ${data.inserted} entry(s) at ${AUTO_SUBMIT_TIME}!`);
       await fetchPastWorklogs();
     } catch (error) {
-      setSubmitMsg(`❌ Auto-submit failed: ${error?.response?.data?.message || error.message}`);
+      setSubmitMsg(`Auto-submit failed: ${error?.response?.data?.message || error.message}`);
     }
   }, [updateCacheInfo, fetchPastWorklogs]);
 
@@ -508,14 +509,14 @@ export default function EmployeeDashboard() {
       };
 
       const { data } = await axios.post("/worklogs", payload);
-      setSubmitMsg(`✅ Successfully submitted ${data.inserted} entr${data.inserted === 1 ? "y" : "ies"} to database!`);
+      setSubmitMsg(`Successfully submitted ${data.inserted} entry(s) to database!`);
       setTodayRows([]);
       localStorage.removeItem(CACHE_KEY);
       updateCacheInfo();
       await fetchPastWorklogs();
     } catch (e) {
       const msg = e?.response?.data?.message || "Failed to submit. Please try again.";
-      setSubmitMsg(`❌ Error: ${msg}`);
+      setSubmitMsg(`Error: ${msg}`);
     } finally {
       setSubmitting(false);
     }
@@ -524,7 +525,10 @@ export default function EmployeeDashboard() {
   if (!user) {
     return (
       <div className="min-h-screen bg-slate-100 flex items-center justify-center">
-        <div className="text-center">Loading...</div>
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto mb-4"></div>
+          <p className="text-slate-600">Loading dashboard...</p>
+        </div>
       </div>
     );
   }
@@ -534,44 +538,138 @@ export default function EmployeeDashboard() {
      ============================== */
   return (
     <div className="min-h-screen bg-slate-100 text-slate-900 text-sm">
-      {/* Navbar */}
-      <nav className="fixed top-0 left-0 right-0 z-50 bg-slate-900 text-white px-4 sm:px-6 py-4 shadow-lg">
-        <div className="max-w-7xl mx-auto flex items-center justify-between">
-          <div className="flex flex-col">
-            <h1 className="text-lg sm:text-xl font-semibold tracking-tight">Employee Dashboard - Work Log</h1>
-            <p className="text-xs opacity-90 hidden sm:block">Fast, accessible, responsive form for daily entries</p>
+      {/* Enhanced Responsive Navbar */}
+      <nav className="fixed top-0 left-0 right-0 z-50 bg-slate-900 text-white shadow-lg">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6">
+          {/* Main navbar content */}
+          <div className="flex items-center justify-between h-16">
+            {/* Left side - Logo/Title */}
+            <div className="flex items-center">
+              <div className="flex-shrink-0">
+                <h1 className="text-lg sm:text-xl font-semibold tracking-tight">
+                  <span className="block sm:inline">Employee Dashboard</span>
+                  <span className="hidden sm:inline"> - Work Log</span>
+                </h1>
+              </div>
+              {/* Status indicators - visible on medium+ screens */}
+              {/* <div className="hidden md:flex items-center ml-6 space-x-4">
+                {cacheInfo.count > 0 && (
+                  <div className="flex items-center text-xs bg-blue-600 rounded-full px-3 py-1">
+                    <svg className="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                      <path d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V4zM3 10a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H4a1 1 0 01-1-1v-6zM14 9a1 1 0 00-1 1v6a1 1 0 001 1h2a1 1 0 001-1v-6a1 1 0 00-1-1h-2z" />
+                    </svg>
+                    {cacheInfo.count} cached
+                  </div>
+                )}
+                {autoSubmitCountdown && (
+                  <div className="flex items-center text-xs bg-emerald-600 rounded-full px-3 py-1">
+                    <svg className="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clipRule="evenodd" />
+                    </svg>
+                    Auto: {autoSubmitCountdown}
+                  </div>
+                )}
+              </div> */}
+            </div>
+
+            {/* Desktop menu - visible on md+ screens */}
+            <div className="hidden md:flex items-center space-x-4">
+              <div className="flex items-center space-x-3">
+                <img
+                  src={user.picture}
+                  alt={user.name}
+                  className="w-8 h-8 rounded-full border-2 border-slate-600"
+                />
+                <div className="text-right">
+                  <div className="text-sm font-medium">{user.name}</div>
+                  <div className="text-xs text-slate-300">{user.email}</div>
+                </div>
+              </div>
+              <button
+                onClick={handleLogout}
+                className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-200"
+              >
+                Logout
+              </button>
+            </div>
+
+            {/* Mobile menu button */}
+            <div className="md:hidden">
+              <button
+                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                className="inline-flex items-center justify-center p-2 rounded-md text-slate-300 hover:text-white hover:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-white"
+              >
+                <span className="sr-only">Open main menu</span>
+                {!mobileMenuOpen ? (
+                  <svg className="block h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                  </svg>
+                ) : (
+                  <svg className="block h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                )}
+              </button>
+            </div>
           </div>
-          <div className="flex items-center gap-3">
-            <div className="hidden sm:flex items-center gap-3">
-              <img
-                src={user.picture}
-                alt={user.name}
-                className="w-10 h-10 rounded-full border-2 border-slate-600"
-              />
-              <div className="text-right">
-                <div className="text-sm font-medium">Welcome, {user.name}</div>
+
+          {/* Mobile menu - visible when open on small screens */}
+          {mobileMenuOpen && (
+            <div className="md:hidden border-t border-slate-700">
+              <div className="px-2 pt-2 pb-3 space-y-1">
+                {/* User info */}
+                <div className="flex items-center px-3 py-3 bg-slate-800 rounded-lg">
+                  <img
+                    src={user.picture}
+                    alt={user.name}
+                    className="w-10 h-10 rounded-full border-2 border-slate-600"
+                  />
+                  <div className="ml-3">
+                    <div className="text-sm font-medium text-white">{user.name}</div>
+                    <div className="text-xs text-slate-300">{user.email}</div>
+                  </div>
+                </div>
+
+                {/* Status indicators */}
+                {/* <div className="space-y-2 px-3 py-2">
+                  {cacheInfo.count > 0 && (
+                    <div className="flex items-center text-xs bg-blue-600 rounded-full px-3 py-2">
+                      <svg className="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V4zM3 10a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H4a1 1 0 01-1-1v-6zM14 9a1 1 0 00-1 1v6a1 1 0 001 1h2a1 1 0 001-1v-6a1 1 0 00-1-1h-2z" />
+                      </svg>
+                      {cacheInfo.count} entries cached (expires in {cacheInfo.timeLeft})
+                    </div>
+                  )}
+                  {autoSubmitCountdown && (
+                    <div className="flex items-center text-xs bg-emerald-600 rounded-full px-3 py-2">
+                      <svg className="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clipRule="evenodd" />
+                      </svg>
+                      Auto-submit in {autoSubmitCountdown}
+                    </div>
+                  )}
+                </div> */}
+
+                {/* Logout button */}
+                <div className="px-3">
+                  <button
+                    onClick={() => {
+                      handleLogout();
+                      setMobileMenuOpen(false);
+                    }}
+                    className="w-full bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-200"
+                  >
+                    Logout
+                  </button>
+                </div>
               </div>
             </div>
-            <div className="sm:hidden flex items-center gap-2">
-              <img
-                src={user.picture}
-                alt={user.name}
-                className="w-8 h-8 rounded-full border-2 border-slate-600"
-              />
-              <span className="text-sm font-medium">{user.name.split(" ")[0]}</span>
-            </div>
-            <button
-              onClick={handleLogout}
-              className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-200 ml-2"
-            >
-              Logout
-            </button>
-          </div>
+          )}
         </div>
       </nav>
 
       {/* Main */}
-      <main className="pt-24 pb-8">
+      <main className="pt-20 pb-8">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           {/* New Entry */}
           <form onSubmit={onSubmit} className="bg-white rounded-2xl shadow-xl p-4 sm:p-6 border border-slate-200">
@@ -582,7 +680,9 @@ export default function EmployeeDashboard() {
               <div className="text-right">
                 <span className="text-xs text-red-600">* required fields</span>
                 {cacheInfo.count > 0 && (
-                  <div className="text-xs text-blue-600 mt-1">💾 {cacheInfo.count} entries cached (auto-saves)</div>
+                  <div className="text-xs text-blue-600 mt-1 md:hidden">
+                    {cacheInfo.count} entries cached (auto-saves)
+                  </div>
                 )}
               </div>
             </div>
@@ -744,24 +844,24 @@ export default function EmployeeDashboard() {
               </Field>
             </div>
 
-            <div className="mt-4 flex items-center justify-end gap-3">
+            <div className="mt-4 flex flex-col sm:flex-row items-center justify-end gap-3">
               <button
                 type="button"
                 onClick={clearForm}
-                className="px-4 py-1.5 rounded-2xl border-2 border-slate-300 hover:bg-slate-50 transition-colors"
+                className="w-full sm:w-auto px-4 py-1.5 rounded-2xl border-2 border-slate-300 hover:bg-slate-50 transition-colors"
               >
                 Clear
               </button>
               <button
                 type="submit"
                 disabled={!canSubmitRow || !projectId}
-                className={`px-5 py-1.5 rounded-2xl text-white transition-colors ${
+                className={`w-full sm:w-auto px-5 py-1.5 rounded-2xl text-white transition-colors ${
                   canSubmitRow && projectId
                     ? "bg-indigo-700 hover:bg-indigo-800"
                     : "bg-slate-400 cursor-not-allowed"
                 }`}
               >
-                {editSourceIndex !== -1 ? "Update Entry" : "Add this entry in Today's Worklog"}
+                {editSourceIndex !== -1 ? "Update Entry" : "Add to Today's Worklog"}
               </button>
             </div>
           </form>
@@ -779,11 +879,11 @@ export default function EmployeeDashboard() {
                   lists={{ WORK_MODES, TASKS, STATUS, HOURS, UNITS }}
                 />
                 <div className="text-xs text-slate-600 text-center bg-blue-50 border border-blue-200 rounded-2xl px-3 py-2">
-                  ⏰ Your entries will auto-submit at 10:30 PM (in {autoSubmitCountdown})
+                  Your entries will auto-submit at 10:30 PM (in {autoSubmitCountdown})
                 </div>
               </>
             ) : (
-              <Feedback message={submitMsg ?? "No entries for today yet."} />
+              <Feedback message={submitMsg || "No entries for today yet."} />
             )}
 
             <div className="flex items-center justify-center">
@@ -1120,8 +1220,8 @@ function MiniSelect({ value, onChange, options }) {
 }
 
 function Feedback({ message }) {
-  const isError = message && (message.includes("❌") || message.includes("Error") || message.includes("Failed"));
-  const isSuccess = message && (message.includes("✅") || message.includes("Successfully"));
+  const isError = message && (message.includes("Error") || message.includes("Failed"));
+  const isSuccess = message && (message.includes("Successfully") || message.includes("submitted"));
 
   let bgColor = "bg-blue-50 border-blue-200 text-blue-900";
   if (isError) bgColor = "bg-red-50 border-red-200 text-red-900";

@@ -71,7 +71,7 @@ export default function Login() {
         {!user ? (
           <>
             <h1 className="text-3xl font-bold text-white mb-3">
-              Welcome to Work Tracker Management System
+              Welcome to VK's Employee WorkSphere
             </h1>
             <br /><br/>
             <h2 className="text-lg text-gray-400 text-center max-w-xl mx-auto leading-relaxed">
