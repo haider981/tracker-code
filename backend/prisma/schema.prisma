@@ -1,0 +1,53 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  Employee
+  Spoc
+  ADMIN
+}
+
+model Users {
+  id    Int    @id @default(autoincrement())
+  name  String
+  email String @unique
+  spoc_name  String
+  spoc_email String @unique
+  team  String
+  role  Role
+  // optional createdAt for bookkeeping
+  //createdAt DateTime @default(now())
+}
+
+model ProjectRecords {
+  project_id   String   @id
+  project_name String
+  due_date     DateTime
+}
+
+model MasterDatabase {
+  id               Int       @id @default(autoincrement())
+  date             DateTime
+  work_mode        String
+  project_name     String
+  task_name        String
+  book_element     String
+  chapter_number   String
+  hours_spent      Float
+  number_of_units  Int
+  unit_type        String
+  status           String
+  due_on           DateTime
+  details          String
+  name             String
+  team             String
+
+  @@map("MasterDatabase")
+  
+}
