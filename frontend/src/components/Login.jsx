@@ -10,8 +10,9 @@ export default function Login() {
   useEffect(() => {
     /* global google */
     google.accounts.id.initialize({
-      client_id:
-        "523707882385-pmrt07cjsgu6cljlo1l3ufm201onutsb.apps.googleusercontent.com",
+      // client_id:
+      //   "523707882385-pmrt07cjsgu6cljlo1l3ufm201onutsb.apps.googleusercontent.com",
+         client_id:import.meta.env.VITE_GOOGLE_CLIENT_ID,
       callback: handleCredentialResponse,
     });
 
@@ -26,7 +27,8 @@ export default function Login() {
 
   const handleCredentialResponse = async (response) => {
     try {
-      const res = await axios.post("http://localhost:5000/api/auth/google", {
+      // const res = await axios.post("http://localhost:5000/api/auth/google", {
+      const res = await axios.post("https://tracker-9znm.onrender.com/api/auth/google", {
         idToken: response.credential,
       });
 
