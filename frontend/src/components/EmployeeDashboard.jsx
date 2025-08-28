@@ -3,8 +3,8 @@ import { useNavigate } from "react-router-dom";
 import { jwtDecode } from "jwt-decode";
 import axios from "axios";
 
-// const API_BASE = import.meta.env?.VITE_API_BASE || "http://localhost:5000/api";
-const API_BASE = import.meta.env.VITE_API_BASE;
+// const API_BASE = import.meta.env?.VITE_API_BASE;
+const API_BASE = "http://localhost:5000/api";
 
 // Cache configuration
 const CACHE_DURATION = 13.5 * 60 * 60 * 1000; // 13.5 hours
@@ -113,6 +113,7 @@ export default function EmployeeDashboard() {
       if (data?.success && Array.isArray(data.rows)) {
         const mapped = data.rows.map((r) => ({
           id: r.id,
+          date: r.date ? new Date(r.date).toISOString().slice(0, 10) : "",
           workMode: r.work_mode,
           projectId: r.project_id || "",
           projectName: r.project_name,
@@ -125,7 +126,7 @@ export default function EmployeeDashboard() {
           status: r.status,
           dueOn: r.due_on ? new Date(r.due_on).toISOString().slice(0, 10) : "",
           remarks: r.details || "",
-          date: r.date ? new Date(r.date).toISOString().slice(0, 10) : "",
+          auditStatus: r.audit_status || "Pending",
         }));
         setPastRows(mapped);
         if (mapped.length === 0) setPastError("No recent worklogs found.");
@@ -552,25 +553,6 @@ export default function EmployeeDashboard() {
                   <span className="hidden sm:inline"> - Work Log</span>
                 </h1>
               </div>
-              {/* Status indicators - visible on medium+ screens */}
-              {/* <div className="hidden md:flex items-center ml-6 space-x-4">
-                {cacheInfo.count > 0 && (
-                  <div className="flex items-center text-xs bg-blue-600 rounded-full px-3 py-1">
-                    <svg className="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
-                      <path d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V4zM3 10a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H4a1 1 0 01-1-1v-6zM14 9a1 1 0 00-1 1v6a1 1 0 001 1h2a1 1 0 001-1v-6a1 1 0 00-1-1h-2z" />
-                    </svg>
-                    {cacheInfo.count} cached
-                  </div>
-                )}
-                {autoSubmitCountdown && (
-                  <div className="flex items-center text-xs bg-emerald-600 rounded-full px-3 py-1">
-                    <svg className="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
-                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clipRule="evenodd" />
-                    </svg>
-                    Auto: {autoSubmitCountdown}
-                  </div>
-                )}
-              </div> */}
             </div>
 
             {/* Desktop menu - visible on md+ screens */}
@@ -630,26 +612,6 @@ export default function EmployeeDashboard() {
                     <div className="text-xs text-slate-300">{user.email}</div>
                   </div>
                 </div>
-
-                {/* Status indicators */}
-                {/* <div className="space-y-2 px-3 py-2">
-                  {cacheInfo.count > 0 && (
-                    <div className="flex items-center text-xs bg-blue-600 rounded-full px-3 py-2">
-                      <svg className="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
-                        <path d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V4zM3 10a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H4a1 1 0 01-1-1v-6zM14 9a1 1 0 00-1 1v6a1 1 0 001 1h2a1 1 0 001-1v-6a1 1 0 00-1-1h-2z" />
-                      </svg>
-                      {cacheInfo.count} entries cached (expires in {cacheInfo.timeLeft})
-                    </div>
-                  )}
-                  {autoSubmitCountdown && (
-                    <div className="flex items-center text-xs bg-emerald-600 rounded-full px-3 py-2">
-                      <svg className="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
-                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clipRule="evenodd" />
-                      </svg>
-                      Auto-submit in {autoSubmitCountdown}
-                    </div>
-                  )}
-                </div> */}
 
                 {/* Logout button */}
                 <div className="px-3">
@@ -1087,7 +1049,7 @@ function DataBlock({ title, rows, subtle = false, hideEdit = false, onStartEdit 
         <table className="min-w-full text-left text-xs">
           <thead className="bg-slate-100 text-slate-900">
             <tr>
-              {HEADERS.map((h) => (
+              {PAST_HEADERS.map((h) => (
                 <th key={h} className="px-3 py-2 font-semibold sticky top-0 bg-slate-100">
                   {h}
                 </th>
@@ -1098,6 +1060,7 @@ function DataBlock({ title, rows, subtle = false, hideEdit = false, onStartEdit 
           <tbody>
             {rows.map((r, idx) => (
               <tr key={idx} className={idx % 2 === 0 ? "bg-white" : "bg-slate-50"}>
+                <td className="px-3 py-2 whitespace-nowrap">{r.date}</td>
                 <td className="px-3 py-2 whitespace-nowrap">{r.workMode}</td>
                 <td className="px-3 py-2 min-w-[14rem]">{r.projectId || r.projectName}</td>
                 <td className="px-3 py-2">{r.task}</td>
@@ -1109,6 +1072,15 @@ function DataBlock({ title, rows, subtle = false, hideEdit = false, onStartEdit 
                 <td className="px-3 py-2">{r.status}</td>
                 <td className="px-3 py-2">{r.dueOn}</td>
                 <td className="px-3 py-2">{r.remarks}</td>
+                <td className="px-3 py-2">
+                  <span className={`inline-flex px-2 py-1 rounded-full text-xs font-medium ${
+                    r.auditStatus === 'Approved' ? 'bg-green-100 text-green-800' :
+                    r.auditStatus === 'Rejected' ? 'bg-red-100 text-red-800' :
+                    'bg-yellow-100 text-yellow-800'
+                  }`}>
+                    {r.auditStatus}
+                  </span>
+                </td>
                 {!hideEdit && (
                   <td className="px-3 py-2">
                     <button
@@ -1140,7 +1112,7 @@ function EditableBlock({ title, rows, onStartEdit, onDeleteRow, onCopyRow, lists
         <table className="min-w-full text-left text-xs">
           <thead className="bg-slate-100 text-slate-900">
             <tr>
-              {HEADERS.map((h) => (
+              {TODAY_HEADERS.map((h) => (
                 <th key={h} className="px-3 py-2 font-semibold">
                   {h}
                 </th>
@@ -1234,7 +1206,7 @@ function Feedback({ message }) {
 /* ==============================
    Data
    ============================== */
-const HEADERS = [
+const TODAY_HEADERS = [
   "Work Mode",
   "Project Name",
   "Task",
@@ -1246,4 +1218,20 @@ const HEADERS = [
   "Status",
   "Due On",
   "Details",
+];
+
+const PAST_HEADERS = [
+  "Date",
+  "Work Mode",
+  "Project Name",
+  "Task",
+  "Book Element",
+  "Chapter No.",
+  "Hours Spent",
+  "No. of Units",
+  "Unit Type",
+  "Status",
+  "Due On",
+  "Details",
+  "Audit Status",
 ];

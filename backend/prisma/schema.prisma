@@ -45,6 +45,7 @@ model MasterDatabase {
   status           String
   due_on           DateTime
   details          String
+  audit_status     String?
   name             String
   team             String
 
