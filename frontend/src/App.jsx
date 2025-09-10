@@ -5,6 +5,7 @@ import EmployeeDashboard from "./components/EmployeeDashboard";
 import SpocDashboard from "./components/SpocDashboard";
 import SpocAddProject from "./components/SpocAddProject";
 import SpocApproveWorklogs from "./components/SpocApproveWorklogs";
+import MarkNightShift from "./components/MarkNightShift";
 
 export default function App() {
   return (
@@ -15,6 +16,7 @@ export default function App() {
         <Route path="/spoc-dashboard" element={<SpocDashboard />} />
         <Route path="/spoc/add-project" element={<SpocAddProject />} />
         <Route path="/spoc/approve-worklogs" element={<SpocApproveWorklogs />} />
+        <Route path="/spoc/mark-night-shift" element={<MarkNightShift />} />
       </Routes>
     </Router>
   );
