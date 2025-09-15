@@ -10,6 +10,7 @@ const spocRoutes = require('./routes/spocRoutes');
 const spocAddProjectRoutes = require('./routes/spocAddProjectRoutes');
 const markShiftRoutes = require("./routes/markShiftRoutes");
 const scheduledRoutes = require('./routes/scheduledJobRoutes');
+// const worklogDraftRoutes = require('./routes/worklogRoutes');
 
 const { initializeScheduledJobs, stopAllScheduledJobs } = require('./services/schedulerService');
 
@@ -29,6 +30,7 @@ app.use("/api/spoc/projects",spocAddProjectRoutes);
 app.use("/api/shifts", markShiftRoutes);
 
 app.use('/api/admin', scheduledRoutes);
+// app.use('/', worklogDraftRoutes);
 
 
 const scheduledJobs = initializeScheduledJobs();

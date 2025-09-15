@@ -20,7 +20,7 @@ model Users {
   spoc_name  String
   spoc_email String
   team  String
-  role  Role
+  role  Role?
   // optional createdAt for bookkeeping
   //createdAt DateTime @default(now())
 }
@@ -37,18 +37,18 @@ model ProjectRecords {
 
 model MasterDatabase {
   id               Int       @id @default(autoincrement())
-  date             DateTime
-  work_mode        String
-  project_name     String
-  task_name        String
-  book_element     String
-  chapter_number   String
-  hours_spent      Float
-  number_of_units  Int
-  unit_type        String
-  status           String
-  due_on           DateTime
-  details          String
+  date             DateTime?
+  work_mode        String?
+  project_name     String?
+  task_name        String?
+  book_element     String?
+  chapter_number   String?
+  hours_spent      Float?
+  number_of_units  Int?
+  unit_type        String?
+  status           String?
+  due_on           DateTime?
+  details          String?
   audit_status     String?
   name             String
   team             String
@@ -70,4 +70,25 @@ model MarkShift{
 enum ShiftType {
   NIGHT
   SUNDAY
+}
+
+model TodaysWorklog {
+  id              Int      @id @default(autoincrement())
+  date            DateTime 
+  work_mode       String
+  project_name    String?
+  task_name       String
+  book_element    String?
+  chapter_number  String?  
+  hours_spent     Float?  
+  number_of_units Int ?   
+  unit_type       String?   
+  status          String?
+  due_on          DateTime? 
+  details         String?  
+  name            String
+  team            String   
+
+  @@index([name, date])
+  @@map("TodaysWorklog")
 }

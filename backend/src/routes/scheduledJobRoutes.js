@@ -1,10 +1,28 @@
+// const express = require("express");
+// const { manualTriggerAutoLeave } = require("../controllers/scheduledJobController");
+// const authMiddleware = require("../middleware/auth"); 
+
+// const router = express.Router();
+
+// // Manual trigger for testing (optional authentication)
+// router.post("/auto-assign-leave", authMiddleware, manualTriggerAutoLeave);
+
+// module.exports = router;
+
 const express = require("express");
-const { manualTriggerAutoLeave } = require("../controllers/scheduledJobController");
-const authMiddleware = require("../middleware/auth"); // Optional: if you want to protect the manual trigger
+const { 
+  manualTriggerAutoSubmitAndLeave,
+  manualTriggerAutoLeave // Keep for backward compatibility
+} = require("../controllers/scheduledJobController");
+
+const authMiddleware = require("../middleware/auth"); 
 
 const router = express.Router();
 
-// Manual trigger for testing (optional authentication)
+// New endpoint: Manual trigger for auto-submit worklogs and leave assignment
+router.post("/auto-submit-worklogs", authMiddleware, manualTriggerAutoSubmitAndLeave);
+
+// Legacy endpoint: Manual trigger for testing (kept for backward compatibility)
 router.post("/auto-assign-leave", authMiddleware, manualTriggerAutoLeave);
 
 module.exports = router;
