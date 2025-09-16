@@ -18,7 +18,7 @@ const authenticateToken = require("../middleware/auth");
 
 router.post('/worklogs', authenticateToken, SpocController.getWorklogs);
 router.put('/worklogs/update-status', authenticateToken, SpocController.updateWorklogStatus);
-router.put('/worklogs/bulk-update-status', authenticateToken, SpocController.bulkUpdateWorklogStatus); // NEW
+router.put('/worklogs/bulk-update-status', authenticateToken, SpocController.bulkUpdateWorklogStatus);
 router.get('/worklogs/summary', authenticateToken, SpocController.getWorklogSummary);
 router.get('/employees', authenticateToken, SpocController.getEmployeesUnderSpoc);
 
