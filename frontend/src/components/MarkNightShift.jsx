@@ -449,7 +449,7 @@ export default function MarkNightShift() {
                             </button>
                             <h1 className="text-lg sm:text-xl font-semibold tracking-tight">
                                 <span className="block sm:inline">SPOC Dashboard</span>
-                                <span className="hidden sm:inline"> - Mark Night Shifts</span>
+                                <span className="hidden sm:inline"> - Mark Extra Shifts</span>
                             </h1>
                         </div>
 
@@ -572,7 +572,7 @@ export default function MarkNightShift() {
                                             setSidebarOpen(false);
                                         }}
                                     >
-                                        Mark Night Shift
+                                        Mark Extra Shift
                                     </button>
                                 </nav>
                             </div>
@@ -607,7 +607,7 @@ export default function MarkNightShift() {
                                 className="bg-gray-700 p-3 rounded-lg text-left"
                                 onClick={() => navigate("/spoc/mark-night-shift")}
                             >
-                                Mark Night Shift
+                                Mark Extra Shift
                             </button>
                         </nav>
                     </div>
