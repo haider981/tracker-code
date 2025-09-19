@@ -274,8 +274,10 @@
 
 // module.exports = { getProjects };
 
-const { PrismaClient } = require("@prisma/client");
-const prisma = new PrismaClient();
+// const { PrismaClient } = require("@prisma/client");
+// const prisma = new PrismaClient();
+
+const prisma = require("../config/prisma");
 
 // GET /api/projects?search=query
 const getProjects = async (req, res) => {

@@ -25,11 +25,11 @@ export default function EmployeeDashboard() {
   // --- Static options ---
   const WORK_MODES = ["In Office", "WFH", "On Duty", "Half Day", "OT Home", "OT Office", "Night"];
   const STATUS = ["In Progress", "Delayed", "Completed", "Not approved"];
-  const HOURS = ["0.5","1","1.5","2","2.5","3","3.5","4","4.5","5","5.5","6","6.5","7","7.5","8"];
-  const TASKS = ["CMPL-MS","VRF-MS","DRF","TAL","R1","R2","R3","R4","CR","FER","SET","FINAL","MEET","QRY","Coord","GLANCE","Research","Analysis","KT","Interview","PLAN","UPL"];
-  const BASE_BOOK_ELEMENTS = ["Theory","Exercise","Chapter","Full book","Mind Map","Diagram","Solution","Booklet","Full Video","AVLR-VO","DLR","Lesson Plan","Miscellaneous","AVLR-Ideation","Marketing","Development","Recruitment","References","Frames","Papers","Projects","Lesson Plan"];
-  const BASE_CHAPTER_NUMBERS = ["Title","Syllabus","Content","Projects","Papers","Miscellaneous", "Appendix","Full Book",
-    ...Array.from({length:40}, (_, i) => String(i+1))
+  const HOURS = ["0.5", "1", "1.5", "2", "2.5", "3", "3.5", "4", "4.5", "5", "5.5", "6", "6.5", "7", "7.5", "8"];
+  const TASKS = ["CMPL-MS", "VRF-MS", "DRF", "TAL", "R1", "R2", "R3", "R4", "CR", "FER", "SET", "FINAL", "MEET", "QRY", "Coord", "GLANCE", "Research", "Analysis", "KT", "Interview", "PLAN", "UPL"];
+  const BASE_BOOK_ELEMENTS = ["Theory", "Exercise", "Chapter", "Full book", "Mind Map", "Diagram", "Solution", "Booklet", "Full Video", "AVLR-VO", "DLR", "Lesson Plan", "Miscellaneous", "AVLR-Ideation", "Marketing", "Development", "Recruitment", "References", "Frames", "Papers", "Projects", "Lesson Plan"];
+  const BASE_CHAPTER_NUMBERS = ["Title", "Syllabus", "Content", "Projects", "Papers", "Miscellaneous", "Appendix", "Full Book",
+    ...Array.from({ length: 40 }, (_, i) => String(i + 1))
   ];
 
   const UNITS = [
@@ -792,10 +792,16 @@ export default function EmployeeDashboard() {
   return (
     <div className="min-h-screen bg-slate-100 text-slate-900 text-sm">
       {/* Enhanced Responsive Navbar */}
+      {/* Enhanced Responsive Navbar */}
       <nav className="fixed top-0 left-0 right-0 z-50 bg-slate-900 text-white shadow-lg">
         <div className="flex justify-between items-center w-full px-4 sm:px-6 h-16">
           {/* Left side - Logo/Title */}
-          <div className="flex items-center">
+          <div className="flex items-center space-x-2">
+            <img
+              src="https://i.ibb.co/ccMgHZDg/vk-logo.png"
+              alt="Company Logo"
+              className="h-12 w-auto"
+            />
             <h1 className="text-lg sm:text-xl font-semibold tracking-tight">
               <span className="block sm:inline">Employee Dashboard</span>
               <span className="hidden sm:inline"> - Work Log</span>
@@ -894,6 +900,7 @@ export default function EmployeeDashboard() {
           </div>
         )}
       </nav>
+
 
       {/* Main */}
       <main className="pt-20 pb-8">

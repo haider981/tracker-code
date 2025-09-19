@@ -10,9 +10,12 @@ const spocRoutes = require('./routes/spocRoutes');
 const spocAddProjectRoutes = require('./routes/spocAddProjectRoutes');
 const markShiftRoutes = require("./routes/markShiftRoutes");
 const scheduledRoutes = require('./routes/scheduledJobRoutes');
-// const worklogDraftRoutes = require('./routes/worklogRoutes');
+const adminRoutes = require('./routes/adminRoutes');
+const adminEditWorklogRoutes = require('./routes/adminEditWorklogRoutes');
+const adminHandleEmployeeRoutes = require('./routes/adminHandleEmployeeRoutes');
 
 const { initializeScheduledJobs, stopAllScheduledJobs } = require('./services/schedulerService');
+
 
 const app = express();
 
@@ -28,9 +31,10 @@ app.use('/api/spoc', spocRoutes);
 app.use("/api/worklogs", worklogRoutes);
 app.use("/api/spoc/projects",spocAddProjectRoutes);
 app.use("/api/shifts", markShiftRoutes);
-
+app.use('/api/admin', adminRoutes);
+app.use('/api/admin', adminEditWorklogRoutes);
+app.use('/api/admin', adminHandleEmployeeRoutes);
 app.use('/api/admin', scheduledRoutes);
-// app.use('/', worklogDraftRoutes);
 
 
 const scheduledJobs = initializeScheduledJobs();

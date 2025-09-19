@@ -562,8 +562,10 @@
 //   return exports.manualTriggerAutoSubmitAndLeave(req, res);
 // };
 
-const { PrismaClient } = require("@prisma/client");
-const prisma = new PrismaClient();
+// const { PrismaClient } = require("@prisma/client");
+// const prisma = new PrismaClient();
+
+const prisma = require("../config/prisma");
 
 function getUTCDateOnly() {
   const now = new Date();

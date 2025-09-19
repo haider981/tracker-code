@@ -180,10 +180,11 @@
 // };
 
 
-const { PrismaClient } = require('@prisma/client');
-const prisma = new PrismaClient();
+// const { PrismaClient } = require('@prisma/client');
+// const prisma = new PrismaClient();
 
-// Create a new project
+const prisma = require("../config/prisma");
+
 const createProject = async (req, res) => {
     try {
         const { project_id, project_name, due_date } = req.body;
