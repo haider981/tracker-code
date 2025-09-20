@@ -17,12 +17,10 @@ model Users {
   id    Int    @id @default(autoincrement())
   name  String
   email String @unique
-  spoc_name  String
-  spoc_email String
+  spoc_name  String?
+  spoc_email String?
   team  String
   role  Role?
-  // optional createdAt for bookkeeping
-  //createdAt DateTime @default(now())
 }
 
 model ProjectRecords {

@@ -498,6 +498,8 @@ class AdminController {
         _id: user.id,
         name: user.name,
         email: user.email,
+        spoc_name: user.spoc_name,
+        spoc_email: user.spoc_email,
         role: user.role,
         team: user.team,
         initials: getUserInitials(user.name)
@@ -634,64 +636,109 @@ function isSpocRole(role) {
  * Get all employees and SPOCs (not admins) for admin dashboard.
  * Tries multiple role casings and fallbacks.
  */
-async function getAllUsersForAdmin() {
-  // Try to get employees with different casings
-  let allUsers = [];
+// async function getAllUsersForAdmin() {
+//   // Try to get employees with different casings
+//   let allUsers = [];
 
-  // Try uppercase roles
+//   // Try uppercase roles
+//   try {
+//     const employees = await prisma.users.findMany({
+//       where: { role: { in: ["EMPLOYEE", "SPOC"] } },
+//       select: { id: true, name: true, email: true, team: true, role: true },
+//       orderBy: { name: "asc" },
+//     });
+//     if (employees.length) allUsers.push(...employees);
+//   } catch (err) {
+//     console.error("Error fetching uppercase roles:", err);
+//   }
+
+//   // Try lowercase roles if no results
+//   if (allUsers.length === 0) {
+//     try {
+//       const employees = await prisma.users.findMany({
+//         where: { role: { in: ["employee", "spoc"] } },
+//         select: { id: true, name: true, email: true, team: true, role: true },
+//         orderBy: { name: "asc" },
+//       });
+//       if (employees.length) allUsers.push(...employees);
+//     } catch (err) {
+//       console.error("Error fetching lowercase roles:", err);
+//     }
+//   }
+
+//   // Try capitalized roles if still no results
+//   if (allUsers.length === 0) {
+//     try {
+//       const employees = await prisma.users.findMany({
+//         where: { role: { in: ["Employee", "Spoc"] } },
+//         select: { id: true, name: true, email: true, team: true, role: true },
+//         orderBy: { name: "asc" },
+//       });
+//       if (employees.length) allUsers.push(...employees);
+//     } catch (err) {
+//       console.error("Error fetching capitalized roles:", err);
+//     }
+//   }
+
+//   // Raw SQL fallback if still no results
+//   if (allUsers.length === 0) {
+//     try {
+//       const raw = await prisma.$queryRaw`
+//         SELECT id, name, email, team, role
+//         FROM "Users"
+//         WHERE role::text NOT IN ('ADMIN', 'Admin', 'admin')
+//         ORDER BY name ASC
+//       `;
+//       allUsers = raw || [];
+//     } catch (err) {
+//       console.error("Failed to fetch users with raw query:", err);
+//     }
+//   }
+
+//   return allUsers;
+// }
+
+async function getAllUsersForAdmin() {
+  // Uppercase (enum style)
   try {
-    const employees = await prisma.users.findMany({
+    const res = await prisma.users.findMany({
       where: { role: { in: ["EMPLOYEE", "SPOC"] } },
-      select: { id: true, name: true, email: true, team: true, role: true },
+      select: { id: true, name: true, email: true, team: true, spoc_name: true, role: true },
       orderBy: { name: "asc" },
     });
-    if (employees.length) allUsers.push(...employees);
-  } catch (err) {
-    console.error("Error fetching uppercase roles:", err);
-  }
+    if (res.length) return res;
+  } catch {}
 
-  // Try lowercase roles if no results
-  if (allUsers.length === 0) {
-    try {
-      const employees = await prisma.users.findMany({
-        where: { role: { in: ["employee", "spoc"] } },
-        select: { id: true, name: true, email: true, team: true, role: true },
-        orderBy: { name: "asc" },
-      });
-      if (employees.length) allUsers.push(...employees);
-    } catch (err) {
-      console.error("Error fetching lowercase roles:", err);
-    }
-  }
+  // lowercase
+  try {
+    const res = await prisma.users.findMany({
+      where: { role: { in: ["employee", "spoc"] } },
+      select: { id: true, name: true, email: true, team: true, spoc_name: true, role: true },
+      orderBy: { name: "asc" },
+    });
+    if (res.length) return res;
+  } catch {}
 
-  // Try capitalized roles if still no results
-  if (allUsers.length === 0) {
-    try {
-      const employees = await prisma.users.findMany({
-        where: { role: { in: ["Employee", "Spoc"] } },
-        select: { id: true, name: true, email: true, team: true, role: true },
-        orderBy: { name: "asc" },
-      });
-      if (employees.length) allUsers.push(...employees);
-    } catch (err) {
-      console.error("Error fetching capitalized roles:", err);
-    }
-  }
+  // Capitalized
+  try {
+    const res = await prisma.users.findMany({
+      where: { role: { in: ["Employee", "Spoc"] } },
+      select: { id: true, name: true, email: true, team: true, spoc_name: true, role: true },
+      orderBy: { name: "asc" },
+    });
+    if (res.length) return res;
+  } catch {}
 
-  // Raw SQL fallback if still no results
-  if (allUsers.length === 0) {
-    try {
-      const raw = await prisma.$queryRaw`
-        SELECT id, name, email, team, role
-        FROM "Users"
-        WHERE role::text NOT IN ('ADMIN', 'Admin', 'admin')
-        ORDER BY name ASC
-      `;
-      allUsers = raw || [];
-    } catch (err) {
-      console.error("Failed to fetch users with raw query:", err);
-    }
+  // Raw SQL fallback
+  try {
+    const res = await prisma.$queryRaw`
+      SELECT id, name, email, team, spoc_name, role
+      FROM "Users"
+      WHERE role::text IN ('EMPLOYEE','Employee','employee','SPOC','Spoc','spoc')
+      ORDER BY name ASC
+    `;
+    return res || [];
+  } catch {
+    return [];
   }
-
-  return allUsers;
 }

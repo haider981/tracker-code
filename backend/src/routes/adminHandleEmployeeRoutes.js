@@ -4,7 +4,7 @@ const { getUsers, addUser, updateUser, deleteUser } = require("../controllers/ad
 const router = express.Router();
 
 // All routes should start with "/users" to match frontend expectations
-router.get("/users", getUsers);         // GET /api/admin/users
+router.get("/user", getUsers);         // GET /api/admin/users
 router.post("/users", addUser);         // POST /api/admin/users  
 router.put("/users/:id", updateUser);   // PUT /api/admin/users/:id
 router.delete("/users/:id", deleteUser); // DELETE /api/admin/users/:id

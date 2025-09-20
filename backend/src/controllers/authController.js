@@ -63,12 +63,13 @@ exports.googleAuth = async (req, res) => {
 
     // Lookup predefined role in DB
     const userRow = await prisma.users.findUnique({ where: { email } });
-    const role = userRow ? userRow.role : "EMPLOYEE";
+    // const role = userRow ? userRow.role : "EMPLOYEE";
+    const role = userRow ? userRow.role : "Employee";
     const team = userRow ? userRow.team : null;
 
     // Sign JWT with 15-hour expiration
     const token = jwt.sign(
-      { email, name, role, team, picture }, 
+      { email, name, role, team,picture }, 
       process.env.JWT_SECRET, 
       { expiresIn: "12h" } // Changed from "8h" to "12h"
     );
@@ -76,7 +77,7 @@ exports.googleAuth = async (req, res) => {
     return res.json({
       success: true,
       token,
-      user: { email, name, role, team, picture },
+      user: { email, name, role, team,picture },
     });
   } catch (err) {
     console.error("Auth error", err);

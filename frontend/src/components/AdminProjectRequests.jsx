@@ -137,13 +137,15 @@ export default function AdminDashboard() {
         <div className="fixed inset-0 z-40 lg:hidden">
           <div className="fixed inset-0 bg-black bg-opacity-50" onClick={() => setSidebarOpen(false)} />
           <aside className="fixed top-16 left-0 h-[calc(100vh-4rem)] w-80 bg-gray-800 text-white shadow-xl overflow-y-auto">
-            <SidebarLinks navigate={navigate} setSidebarOpen={setSidebarOpen} />
+            <SidebarLinks navigate={navigate} location={useLocation()} close={() => setSidebarOpen(false)} />
+
           </aside>
         </div>
       )}
       <aside className="hidden lg:block fixed top-16 left-0 h-[calc(100vh-4rem)] w-72 bg-gray-800 text-white shadow-xl overflow-y-auto">
-        <SidebarLinks navigate={navigate} />
+        <SidebarLinks navigate={navigate} location={useLocation()} />
       </aside>
+
 
       {/* Main content */}
       <main className="lg:ml-72 pt-20 p-6">
@@ -212,47 +214,61 @@ export default function AdminDashboard() {
 }
 
 /* Collapsible Sidebar Links with auto-open */
-function SidebarLinks({ navigate, setSidebarOpen }) {
-  const close = () => setSidebarOpen && setSidebarOpen(false);
-  const location = useLocation();
+/* =================== SIDEBAR =================== */
+function SidebarLinks({ navigate, location, close }) {
+  const [openWorklogs, setOpenWorklogs] = useState(false);
+  const [openProjects, setOpenProjects] = useState(false);
 
-  const [openWorklogs, setOpenWorklogs] = useState(location.pathname.includes("worklog"));
-  const [openEmployees, setOpenEmployees] = useState(location.pathname.includes("employees"));
-  const [openProjects, setOpenProjects] = useState(location.pathname.includes("project") || location.pathname.includes("abbreviations"));
-
+  // Keep sections open if child page active
   useEffect(() => {
     if (location.pathname.includes("worklog")) setOpenWorklogs(true);
-    if (location.pathname.includes("employees")) setOpenEmployees(true);
-    if (location.pathname.includes("project") || location.pathname.includes("abbreviations")) setOpenProjects(true);
+    if (location.pathname.includes("project") || location.pathname.includes("abbreviations"))
+      setOpenProjects(true);
   }, [location]);
+
+  const handleNavigation = (path) => {
+    navigate(path);
+    if (close) close();
+  };
 
   return (
     <div className="p-6">
       <h2 className="text-xl font-bold text-white mb-6">Menu</h2>
       <nav className="flex flex-col space-y-2">
-        {/* Home */}
+
         <button
-          className={`text-left hover:bg-gray-700 p-3 rounded-lg ${location.pathname === "/admin-dashboard" ? "bg-gray-700" : ""}`}
-          onClick={() => {navigate("/admin-dashboard"); close();}}
+          className={`text-left hover:bg-gray-700 p-3 rounded-lg transition-colors ${location.pathname === "/admin-dashboard" ? "bg-gray-700" : ""
+            }`}
+          onClick={() => handleNavigation("/admin-dashboard")}
         >
           Home
         </button>
 
         {/* Worklogs */}
         <div>
-          <button className="w-full flex justify-between items-center hover:bg-gray-700 p-3 rounded-lg"
-            onClick={() => setOpenWorklogs(!openWorklogs)}>
+          <button
+            className="w-full flex justify-between items-center hover:bg-gray-700 p-3 rounded-lg transition-colors"
+            onClick={() => setOpenWorklogs(!openWorklogs)}
+          >
             <span>Worklogs</span>
-            <span>{openWorklogs ? "▾" : "▸"}</span>
+            <span className="transition-transform duration-200">
+              {openWorklogs ? "▾" : "▸"}
+            </span>
           </button>
           {openWorklogs && (
-            <div className="ml-4 mt-2 flex flex-col space-y-2">
-              <button className={`text-left hover:bg-gray-700 p-2 rounded-lg ${location.pathname.includes("approve-worklogs") ? "bg-gray-700" : ""}`}
-                onClick={() => {navigate("/admin/approve-worklogs"); close();}}>
+            <div className="ml-4 mt-2 flex flex-col space-y-2 animate-fadeIn">
+              <button
+                className={`text-left hover:bg-gray-700 p-2 rounded-lg transition-colors ${location.pathname.includes("approve-worklogs") ? "bg-gray-700" : ""
+                  }`}
+                onClick={() => handleNavigation("/admin/approve-worklogs")}
+              >
                 Approve Worklogs
               </button>
-              <button className={`text-left hover:bg-gray-700 p-2 rounded-lg ${location.pathname.includes("edit-worklog-entries") ? "bg-gray-700" : ""}`}
-                onClick={() => {navigate("/admin/edit-worklog-entries"); close();}}>
+              <button
+                className={`text-left hover:bg-gray-700 p-2 rounded-lg transition-colors ${location.pathname.includes("edit-worklog-entries") ? "bg-gray-700" : ""
+                  }`}
+                onClick={() => handleNavigation("/admin/edit-worklog-entries")}
+              >
                 Edit Worklogs
               </button>
             </div>
@@ -260,58 +276,51 @@ function SidebarLinks({ navigate, setSidebarOpen }) {
         </div>
 
         {/* Employees */}
-        <div>
-          <button className="w-full flex justify-between items-center hover:bg-gray-700 p-3 rounded-lg"
-            onClick={() => setOpenEmployees(!openEmployees)}>
-            <span>Employees</span>
-            <span>{openEmployees ? "▾" : "▸"}</span>
-          </button>
-          {openEmployees && (
-            <div className="ml-4 mt-2 flex flex-col space-y-2">
-              <button className={`text-left hover:bg-gray-700 p-2 rounded-lg ${location.pathname.includes("handle-employees") ? "bg-gray-700" : ""}`}
-                onClick={() => {navigate("/admin/handle-employees"); close();}}>
-                Handle Employees
-              </button>
-              <button className={`text-left hover:bg-gray-700 p-2 rounded-lg ${location.pathname.includes("employees-info") ? "bg-gray-700" : ""}`}
-                onClick={() => {navigate("/admin/employees-info"); close();}}>
-                Employees Info
-              </button>
-            </div>
-          )}
-        </div>
+        <button
+          className={`text-left hover:bg-gray-700 p-3 rounded-lg transition-colors ${location.pathname.includes("handle-employees") ? "bg-gray-700" : ""
+            }`}
+          onClick={() => handleNavigation("/admin/handle-employees")}
+        >
+          Manage Employees
+        </button>
 
         {/* Projects */}
         <div>
-          <button className="w-full flex justify-between items-center hover:bg-gray-700 p-3 rounded-lg"
-            onClick={() => setOpenProjects(!openProjects)}>
+          <button
+            className="w-full flex justify-between items-center hover:bg-gray-700 p-3 rounded-lg transition-colors"
+            onClick={() => setOpenProjects(!openProjects)}
+          >
             <span>Projects</span>
-            <span>{openProjects ? "▾" : "▸"}</span>
+            <span className="transition-transform duration-200">
+              {openProjects ? "▾" : "▸"}
+            </span>
           </button>
           {openProjects && (
-            <div className="ml-4 mt-2 flex flex-col space-y-2">
-              <button className={`text-left hover:bg-gray-700 p-2 rounded-lg ${location.pathname.includes("add-abbreviations") ? "bg-gray-700" : ""}`}
-                onClick={() => {navigate("/admin/add-abbreviations"); close();}}>
+            <div className="ml-4 mt-2 flex flex-col space-y-2 animate-fadeIn">
+              <button
+                className={`text-left hover:bg-gray-700 p-2 rounded-lg transition-colors ${location.pathname.includes("add-abbreviations") ? "bg-gray-700" : ""
+                  }`}
+                onClick={() => handleNavigation("/admin/add-abbreviations")}
+              >
                 Add Abbreviations
               </button>
-              <button className={`text-left hover:bg-gray-700 p-2 rounded-lg ${location.pathname.includes("add-project") ? "bg-gray-700" : ""}`}
-                onClick={() => {navigate("/admin/add-project"); close();}}>
+              <button
+                className={`text-left hover:bg-gray-700 p-2 rounded-lg transition-colors ${location.pathname.includes("add-project") ? "bg-gray-700" : ""
+                  }`}
+                onClick={() => handleNavigation("/admin/add-project")}
+              >
                 Add Project
               </button>
-              <button className={`text-left hover:bg-gray-700 p-2 rounded-lg ${location.pathname.includes("project-requests") ? "bg-gray-700" : ""}`}
-                onClick={() => {navigate("/admin/project-requests"); close();}}>
+              <button
+                className={`text-left hover:bg-gray-700 p-2 rounded-lg transition-colors ${location.pathname.includes("project-requests") ? "bg-gray-700" : ""
+                  }`}
+                onClick={() => handleNavigation("/admin/project-requests")}
+              >
                 Project Requests
               </button>
             </div>
           )}
         </div>
-
-        {/* Defaulters */}
-        <button
-          className={`text-left hover:bg-gray-700 p-3 rounded-lg ${location.pathname.includes("defaulters-list") ? "bg-gray-700" : ""}`}
-          onClick={() => {navigate("/admin/defaulters-list"); close();}}
-        >
-          Defaulters List
-        </button>
       </nav>
     </div>
   );
@@ -373,8 +382,8 @@ function DeadlinesList({ items = [] }) {
     n <= 3
       ? "bg-rose-100 text-rose-700"
       : n <= 7
-      ? "bg-amber-100 text-amber-700"
-      : "bg-emerald-100 text-emerald-700";
+        ? "bg-amber-100 text-amber-700"
+        : "bg-emerald-100 text-emerald-700";
 
   return (
     <div className="rounded-2xl p-6 backdrop-blur-xl bg-white/60 border border-white/40 shadow-xl">
