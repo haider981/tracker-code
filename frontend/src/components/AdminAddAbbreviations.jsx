@@ -1,47 +1,183 @@
-import React, { useState, useEffect } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
+import React, { useEffect, useMemo, useState } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import { jwtDecode } from "jwt-decode";
-import axios from "axios";
+import {
+  Plus,
+  Trash2,
+  Edit3,
+  Save,
+  X as XIcon,
+  AlertCircle,
+  CheckCircle,
+  Filter as FilterIcon,
+  Search,
+} from "lucide-react";
 
-export default function AdminDashboard() {
+/* =========================
+   DUMMY DATA (per TAB)
+   ========================= */
+const UNI_DATA = {
+  "Class/Sem": [
+    { full: "Pre-Primary", abbr: "PrePrim" },
+    { full: "Nursery", abbr: "Nursery" },
+    { full: "LKG", abbr: "LKG" },
+    { full: "UKG", abbr: "UKG" },
+    { full: "1st", abbr: "1st" },
+    { full: "2nd", abbr: "2nd" },
+    { full: "3rd", abbr: "3rd" },
+    { full: "4th", abbr: "4th" },
+    { full: "5th", abbr: "5th" },
+    { full: "6th", abbr: "6th" },
+    { full: "7th", abbr: "7th" },
+    { full: "8th", abbr: "8th" },
+  ],
+  "Board/Uni": [
+    { full: "Assam", abbr: "ABSE" },
+    { full: "Bihar", abbr: "BSEB" },
+    { full: "Central", abbr: "CBSE" },
+    { full: "Haryana", abbr: "HBSE" },
+    { full: "Himachal Pradesh", abbr: "HPBSE" },
+    { full: "Indian (10)", abbr: "ICSE" },
+    { full: "Indian (12)", abbr: "ISC" },
+    { full: "Jammu & Kashmir", abbr: "JKBSE" },
+    { full: "Jharkhand", abbr: "JBSE" },
+    { full: "Manipur", abbr: "MBSE" },
+    { full: "Nagaland", abbr: "NBSE" },
+    { full: "Orissa", abbr: "CHSE" },
+    { full: "Punjab", abbr: "PBSE" },
+    { full: "Ranker Commerce", abbr: "RankCom" },
+    { full: "Tamil Nadu", abbr: "TNSB" },
+    { full: "Kerala", abbr: "KBPE" },
+    { full: "Maharashtra", abbr: "MSB" },
+  ],
+  Subject: [
+    { full: "Art", abbr: "Art" },
+    { full: "Atlas", abbr: "Atlas" },
+    { full: "Assamese", abbr: "Asm" },
+    { full: "Biology", abbr: "Bio" },
+    { full: "Chemistry", abbr: "Chem" },
+    { full: "Computer", abbr: "Comp" },
+    { full: "English", abbr: "Eng" },
+    { full: "Environmental Studies", abbr: "EVS" },
+    { full: "French", abbr: "French" },
+    { full: "Geography", abbr: "Geo" },
+    { full: "German", abbr: "Germ" },
+    { full: "General Awareness", abbr: "GA" },
+    { full: "General Knowledge", abbr: "GK" },
+    { full: "Hindi", abbr: "Hin" },
+    { full: "History", abbr: "Hist" },
+    { full: "History & Civics", abbr: "HistCiv" },
+    { full: "Malayalam", abbr: "Malym" },
+    { full: "Marathi", abbr: "Marathi" },
+    { full: "Mathematics", abbr: "Math" },
+    { full: "Moral Values", abbr: "MV" },
+    { full: "Odia", abbr: "Odia" },
+    { full: "Physics", abbr: "Phys" },
+    { full: "Russian", abbr: "Russ" },
+  ],
+  "Series/Author": [
+    { full: "Art with Angie", abbr: "Angie" },
+    { full: "Colour Me", abbr: "ColourMe" },
+    { full: "Learn to Create", abbr: "LCreate" },
+    { full: "Learn, Draw & Colour", abbr: "LDC" },
+    { full: "Art & Craft", abbr: "Art&Cr(Hyd)" },
+    { full: "Skills in Creative Art", abbr: "SkillCArt" },
+    { full: "Map Workbook", abbr: "MapWB" },
+    { full: "Middle Atlas", abbr: "Mid" },
+    { full: "Primary Atlas", abbr: "Prim" },
+    { full: "Senior Atlas", abbr: "Snr" },
+    { full: "ICSE Innovative Biology", abbr: "InnoBio" },
+    { full: "ICSE Innovative Chemistry", abbr: "InnoChem" },
+    { full: "Artificial Intelligence", abbr: "AI" },
+    { full: "Computer Fun", abbr: "CompFun" },
+    { full: "Future Kids Computers", abbr: "FKComp" },
+    { full: "On Clouds", abbr: "Clouds" },
+    { full: "English with Elmo (Capital)", abbr: "Elmo(cap)" },
+    { full: "English with Elmo (Small)", abbr: "Elmo(small)" },
+    { full: "Go Grammar", abbr: "GGram" },
+    { full: "Know Your Grammar", abbr: "KYGram" },
+    { full: "Pattern with Patsy", abbr: "Patsy" },
+    { full: "Pearls MCB", abbr: "Pearls" },
+    { full: "Read with Roxan", abbr: "Roxan" },
+  ],
+  Medium: [
+    { full: "Eng", abbr: "(Eng)" },
+    { full: "Hin", abbr: "(Hin)" },
+  ],
+  Session: [
+    { full: "2025-2026", abbr: "25-26" },
+    { full: "2026-2027", abbr: "26-27" },
+  ],
+};
+
+// VK / FK tabs just tweak a few entries so each tab looks different
+const VK_DATA = {
+  ...UNI_DATA,
+  Subject: [
+    { full: "English", abbr: "Eng" },
+    { full: "Mathematics", abbr: "Math" },
+    { full: "Science", abbr: "Sci" },
+    { full: "Social Studies", abbr: "SST" },
+    { full: "Computer", abbr: "Comp" },
+    { full: "Hindi", abbr: "Hin" },
+  ],
+  Medium: [
+    { full: "Eng", abbr: "(Eng)" },
+    { full: "Hin", abbr: "(Hin)" },
+    { full: "Marathi", abbr: "(Mar)" },
+  ],
+  Session: [
+    { full: "2024-2025", abbr: "24-25" },
+    { full: "2025-2026", abbr: "25-26" },
+  ],
+};
+
+const FK_DATA = {
+  ...UNI_DATA,
+  "Board/Uni": [
+    { full: "CBSE", abbr: "CBSE" },
+    { full: "ICSE", abbr: "ICSE" },
+    { full: "State (Maharashtra)", abbr: "MSB" },
+    { full: "State (Kerala)", abbr: "KBPE" },
+  ],
+  "Series/Author": [
+    { full: "Future Kids Computers", abbr: "FKComp" },
+    { full: "Future Kids English", abbr: "FKEng" },
+    { full: "Future Kids Math", abbr: "FKMath" },
+  ],
+  Medium: [
+    { full: "Eng", abbr: "(Eng)" },
+    { full: "Hin", abbr: "(Hin)" },
+    { full: "Gujarati", abbr: "(Guj)" },
+  ],
+};
+
+/* =========================
+   MAIN PAGE
+   ========================= */
+export default function AdminAddAbbreviation() {
   const navigate = useNavigate();
+  const location = useLocation();
+
+  // nav + auth (same behavior as your other page)
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [user, setUser] = useState(null);
 
-  // ---- Mock data (replace with API later) ----
-  const attendance = {
-    leave: 8,
-    wfh: 12,
-    halfleave1: 2,
-    halfleave2: 3,
-    wfh1: 4,
-    wfh2: 3,
-  };
+  // tabs
+  const TABS = ["UNI", "VK", "FK"];
+  const [activeTab, setActiveTab] = useState("UNI");
 
-  const recentWorklogs = [
-    { id: 1, date: "2025-08-22", employee: "Rohan K.", project: "UNI_Sem3_GJU_MacEco_BA_(Eng)_25-26", task: "SET", hours: 4, status: "In Progress" },
-    { id: 2, date: "2025-08-22", employee: "Naina S.", project: "UNI_Sem3_KU_MacEco_BA_(Eng)_25-26", task: "COM", hours: 2.5, status: "Completed" },
-    { id: 3, date: "2025-08-21", employee: "Arjun M.", project: "GJU_Micro_BSc_(Eng)_25-26", task: "CR2", hours: 3, status: "Delayed" },
-    { id: 4, date: "2025-08-21", employee: "Isha T.", project: "KU_Eco_BA_(Eng)_25-26", task: "FER", hours: 1.5, status: "In Progress" },
-    { id: 5, date: "2025-08-20", employee: "Ritika P.", project: "StateBoard_Physics_XI", task: "FINAL", hours: 5, status: "Completed" },
-  ];
+  // messages
+  const [banner, setBanner] = useState({ type: "", text: "" });
 
-  const upcoming = [
-    { id: "p1", name: "UNI_Sem3_GJU_MacEco_BA_(Eng)_25-26", due: "2025-09-02" },
-    { id: "p2", name: "UNI_Sem3_KU_MacEco_BA_(Eng)_25-26", due: "2025-09-06" },
-    { id: "p3", name: "StateBoard_Physics_XI", due: "2025-09-12" },
-    { id: "p4", name: "CBSE_Math_X", due: "2025-09-18" },
-  ];
-
-  // 🔑 Check token and set user
+  /* ---------- auth ---------- */
   useEffect(() => {
     const token = localStorage.getItem("authToken");
     if (!token) {
       navigate("/");
       return;
     }
-
     try {
       const decoded = jwtDecode(token);
       setUser({
@@ -54,7 +190,6 @@ export default function AdminDashboard() {
             decoded.name
           )}&background=random&color=fff`,
       });
-      axios.defaults.headers.common.Authorization = `Bearer ${token}`;
     } catch (e) {
       console.error("Invalid token:", e);
       localStorage.removeItem("authToken");
@@ -64,148 +199,134 @@ export default function AdminDashboard() {
 
   const handleLogout = () => {
     localStorage.removeItem("authToken");
-    delete axios.defaults.headers.common.Authorization;
     navigate("/");
+  };
+
+  // local working data for each tab
+  const initialData = useMemo(
+    () => ({
+      UNI: structuredClone(UNI_DATA),
+      VK: structuredClone(VK_DATA),
+      FK: structuredClone(FK_DATA),
+    }),
+    []
+  );
+  const [dataByTab, setDataByTab] = useState(initialData);
+
+  const onChangeList = (tabKey, listTitle, rows) => {
+    setDataByTab((prev) => ({
+      ...prev,
+      [tabKey]: {
+        ...prev[tabKey],
+        [listTitle]: rows,
+      },
+    }));
+  };
+
+  const showOk = (text) => {
+    setBanner({ type: "success", text });
+    setTimeout(() => setBanner({ type: "", text: "" }), 2500);
   };
 
   if (!user) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-slate-100">
-        <p>Loading...</p>
+        <div className="flex items-center gap-2">
+          <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-indigo-600"></div>
+          <p>Loading...</p>
+        </div>
       </div>
     );
   }
 
   return (
     <div className="min-h-screen bg-slate-100">
-      {/* Navbar */}
-      <nav className="fixed top-0 left-0 right-0 z-50 bg-slate-900 text-white shadow-lg">
-        <div className="max-w-full mx-auto px-4 sm:px-6">
-          <div className="flex items-center justify-between h-16">
-            <div className="flex items-center">
-              <button
-                onClick={() => setSidebarOpen(!sidebarOpen)}
-                className="mr-4 p-2 rounded-md text-slate-300 hover:text-white hover:bg-slate-700 lg:hidden"
-              >
-                <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-                </svg>
-              </button>
-              <h1 className="text-lg sm:text-xl font-semibold tracking-tight">
-                Admin Dashboard <span className="hidden sm:inline">- Work Log</span>
-              </h1>
-            </div>
+      {/* Navbar (same look & behavior) */}
+      <Navbar
+        user={user}
+        handleLogout={handleLogout}
+        mobileMenuOpen={mobileMenuOpen}
+        setMobileMenuOpen={setMobileMenuOpen}
+        sidebarOpen={sidebarOpen}
+        setSidebarOpen={setSidebarOpen}
+      />
 
-            <div className="hidden md:flex items-center space-x-4">
-              <div className="flex items-center space-x-3">
-                <img src={user.picture} alt={user.name} className="w-8 h-8 rounded-full border-2 border-slate-600" />
-                <div className="text-right">
-                  <div className="text-sm font-medium">{user.name}</div>
-                  <div className="text-xs text-slate-300">{user.email}</div>
-                </div>
-              </div>
-              <button
-                onClick={handleLogout}
-                className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg text-sm"
-              >
-                Logout
-              </button>
-            </div>
-
-            <div className="md:hidden">
-              <button
-                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                className="p-2 rounded-md text-slate-300 hover:text-white hover:bg-slate-700"
-              >
-                {!mobileMenuOpen ? (
-                  <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-                  </svg>
-                ) : (
-                  <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                  </svg>
-                )}
-              </button>
-            </div>
-          </div>
-        </div>
-      </nav>
-
-      {/* Sidebar */}
+      {/* Sidebar (same) */}
       {sidebarOpen && (
         <div className="fixed inset-0 z-40 lg:hidden">
-          <div className="fixed inset-0 bg-black bg-opacity-50" onClick={() => setSidebarOpen(false)} />
-          <aside className="fixed top-16 left-0 h-[calc(100vh-4rem)] w-80 bg-gray-800 text-white shadow-xl overflow-y-auto">
-            <SidebarLinks navigate={navigate} location={useLocation()} close={() => setSidebarOpen(false)} />
-
+          <div
+            className="fixed inset-0 bg-black bg-opacity-50"
+            onClick={() => setSidebarOpen(false)}
+          />
+          <aside className="fixed top-16 left-0 h-[calc(100vh-4rem)] w-72 bg-gray-800 text-white shadow-xl overflow-y-auto">
+            <SidebarLinks
+              navigate={navigate}
+              location={location}
+              close={() => setSidebarOpen(false)}
+            />
           </aside>
         </div>
       )}
       <aside className="hidden lg:block fixed top-16 left-0 h-[calc(100vh-4rem)] w-72 bg-gray-800 text-white shadow-xl overflow-y-auto">
-        <SidebarLinks navigate={navigate} location={useLocation()} />
+        <SidebarLinks navigate={navigate} location={location} />
       </aside>
 
-
-      {/* Main content */}
+      {/* Content */}
       <main className="lg:ml-72 pt-20 p-6">
-        <div className="relative">
-          <div className="absolute inset-0 bg-gradient-to-br from-indigo-50 via-slate-100 to-rose-50" />
-          <div className="relative max-w-[1700px] mx-auto px-6 py-8 space-y-8">
-            {/* Stat cards */}
-            <section className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-              <StatCard title="Employees" value="120" accent="from-indigo-500/30 to-purple-500/30" />
-              <StatCard title="Worklog Entries" value="20,000" accent="from-emerald-500/30 to-teal-500/30" />
-              <StatCard title="Active Projects" value="150" accent="from-pink-500/30 to-fuchsia-500/30" />
-              <StatCard title="Total Working Hours" value="58,000 hrs" accent="from-amber-500/30 to-orange-500/30" />
-            </section>
+        <div className="space-y-6">
+          {banner.text && (
+            <MessageAlert
+              type={banner.type}
+              message={banner.text}
+              onClose={() => setBanner({ type: "", text: "" })}
+            />
+          )}
 
-            {/* Attendance + Deadlines */}
-            <section className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <AttendanceCard attendance={attendance} />
-              <DeadlinesList items={upcoming} />
-            </section>
+          {/* Page header */}
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+            <div>
+              <h1 className="text-xl font-semibold text-slate-900">
+                Add / Edit Abbreviations
+              </h1>
+              <p className="text-sm text-slate-600">
+                Manage lists for UNI, VK and FK. Edit inline, remove items, or
+                add new rows.
+              </p>
+            </div>
+          </div>
 
-            {/* Recent Worklogs */}
-            <section className="bg-white rounded-2xl border border-slate-200 shadow-xl p-4 sm:p-6">
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="text-lg font-semibold text-slate-800">Recent Worklogs</h2>
-                <button
-                  onClick={() => navigate("/admin/approve-worklogs")}
-                  className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-sm font-semibold bg-indigo-600 text-white hover:bg-indigo-700"
-                >
-                  View all →
-                </button>
+          {/* Tabs */}
+          <div className="bg-white rounded-xl shadow border border-slate-200">
+            <div className="border-b border-slate-200 p-2">
+              <div className="flex gap-2">
+                {TABS.map((t) => (
+                  <button
+                    key={t}
+                    onClick={() => setActiveTab(t)}
+                    className={`px-4 py-2 rounded-lg text-sm font-medium transition ${
+                      activeTab === t
+                        ? "bg-indigo-600 text-white"
+                        : "bg-slate-100 hover:bg-slate-200 text-slate-800"
+                    }`}
+                  >
+                    {t}
+                  </button>
+                ))}
               </div>
-              <div className="overflow-x-auto">
-                <table className="min-w-full text-sm">
-                  <thead>
-                    <tr className="text-left text-slate-500">
-                      <th className="py-2 pr-6">Date</th>
-                      <th className="py-2 pr-6">Employee</th>
-                      <th className="py-2 pr-6">Project</th>
-                      <th className="py-2 pr-6">Task</th>
-                      <th className="py-2 pr-6">Hours</th>
-                      <th className="py-2 pr-6">Status</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {recentWorklogs.map((r, idx) => (
-                      <tr key={r.id} className={`border-t ${idx % 2 === 1 ? "bg-slate-50/60" : ""}`}>
-                        <td className="py-3 pr-6 whitespace-nowrap">{r.date}</td>
-                        <td className="py-3 pr-6 whitespace-nowrap">{r.employee}</td>
-                        <td className="py-3 pr-6">{r.project}</td>
-                        <td className="py-3 pr-6 whitespace-nowrap">{r.task}</td>
-                        <td className="py-3 pr-6 whitespace-nowrap">{r.hours}</td>
-                        <td className="py-3 pr-6 whitespace-nowrap">
-                          <StatusBadge value={r.status} />
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </section>
+            </div>
+
+            {/* Lists grid */}
+            <div className="p-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+              {Object.entries(dataByTab[activeTab]).map(([title, rows]) => (
+                <EditableListCard
+                  key={title}
+                  title={title}
+                  rows={rows}
+                  onChange={(updated) => onChangeList(activeTab, title, updated)}
+                  onSaved={() => showOk(`${title} updated for ${activeTab}`)}
+                />
+              ))}
+            </div>
           </div>
         </div>
       </main>
@@ -213,16 +334,516 @@ export default function AdminDashboard() {
   );
 }
 
-/* Collapsible Sidebar Links with auto-open */
-/* =================== SIDEBAR =================== */
+/* =========================
+   Editable List Card
+   ========================= */
+function EditableListCard({ title, rows, onChange, onSaved }) {
+  const [filter, setFilter] = useState("");
+  const [draft, setDraft] = useState(rows);
+  const [editIndex, setEditIndex] = useState(-1);
+  const [tempRow, setTempRow] = useState({ full: "", abbr: "" });
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    setDraft(rows);
+  }, [rows]);
+
+  const startEdit = (idx) => {
+    setEditIndex(idx);
+    setTempRow(draft[idx]);
+    setError("");
+  };
+  const cancelEdit = () => {
+    setEditIndex(-1);
+    setTempRow({ full: "", abbr: "" });
+  };
+  const saveEdit = () => {
+    if (!tempRow.full?.trim() || !tempRow.abbr?.trim()) {
+      setError("Both fields are required.");
+      return;
+    }
+    const copy = [...draft];
+    copy[editIndex] = { ...tempRow, full: tempRow.full.trim(), abbr: tempRow.abbr.trim() };
+    setDraft(copy);
+    onChange(copy);
+    cancelEdit();
+    onSaved?.();
+  };
+
+  const removeRow = (idx) => {
+    const copy = draft.filter((_, i) => i !== idx);
+    setDraft(copy);
+    onChange(copy);
+  };
+
+  const [newRow, setNewRow] = useState({ full: "", abbr: "" });
+  const addRow = () => {
+    if (!newRow.full.trim() || !newRow.abbr.trim()) {
+      setError("Both fields are required.");
+      return;
+    }
+    const copy = [...draft, { full: newRow.full.trim(), abbr: newRow.abbr.trim() }];
+    setDraft(copy);
+    onChange(copy);
+    setNewRow({ full: "", abbr: "" });
+    setError("");
+    onSaved?.();
+  };
+
+  const filtered = draft.filter(
+    (r) =>
+      r.full.toLowerCase().includes(filter.toLowerCase()) ||
+      r.abbr.toLowerCase().includes(filter.toLowerCase())
+  );
+
+  return (
+    <div className="rounded-xl border border-slate-200 shadow-sm bg-white overflow-hidden">
+      <div className="p-3 border-b border-slate-200 flex items-center justify-between">
+        <h3 className="font-semibold text-slate-900 text-sm">{title}</h3>
+        <div className="hidden md:flex items-center gap-2">
+          <FilterIcon className="w-4 h-4 text-indigo-600" />
+          <div className="flex items-center border rounded-lg px-2 py-1 bg-white">
+            <Search className="w-3.5 h-3.5 text-slate-500 mr-1" />
+            <input
+              value={filter}
+              onChange={(e) => setFilter(e.target.value)}
+              placeholder="Filter…"
+              className="text-xs outline-none"
+            />
+          </div>
+        </div>
+      </div>
+
+      {error && (
+        <div className="mx-3 mt-3 mb-1 p-2 bg-red-50 border border-red-200 rounded">
+          <div className="flex items-center text-sm text-red-700">
+            <AlertCircle className="w-4 h-4 mr-2" /> {error}
+          </div>
+        </div>
+      )}
+
+      {/* Desktop table */}
+      <div className="hidden md:block overflow-x-auto">
+        <table className="w-full text-sm">
+          <thead>
+            <tr className="bg-slate-50 text-slate-700">
+              <th className="px-3 py-2 text-left w-1/2">Full Name</th>
+              <th className="px-3 py-2 text-left w-1/3">Abbreviation</th>
+              <th className="px-3 py-2 text-left">Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            {filtered.map((row, idx) => {
+              const originalIndex = draft.indexOf(row); // map back to real index
+              const isEditing = editIndex === originalIndex;
+              return (
+                <tr key={originalIndex} className="border-t">
+                  <td className="px-3 py-2">
+                    {isEditing ? (
+                      <input
+                        className="w-full border rounded px-2 py-1"
+                        value={tempRow.full}
+                        onChange={(e) =>
+                          setTempRow((p) => ({ ...p, full: e.target.value }))
+                        }
+                      />
+                    ) : (
+                      row.full
+                    )}
+                  </td>
+                  <td className="px-3 py-2">
+                    {isEditing ? (
+                      <input
+                        className="w-full border rounded px-2 py-1"
+                        value={tempRow.abbr}
+                        onChange={(e) =>
+                          setTempRow((p) => ({ ...p, abbr: e.target.value }))
+                        }
+                      />
+                    ) : (
+                      row.abbr
+                    )}
+                  </td>
+                  <td className="px-3 py-2">
+                    <div className="flex items-center gap-2">
+                      {isEditing ? (
+                        <>
+                          <button
+                            className="bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-1 rounded"
+                            onClick={saveEdit}
+                          >
+                            <Save size={16} />
+                          </button>
+                          <button
+                            className="bg-gray-200 hover:bg-gray-300 text-slate-800 px-3 py-1 rounded"
+                            onClick={cancelEdit}
+                          >
+                            <XIcon size={16} />
+                          </button>
+                        </>
+                      ) : (
+                        <>
+                          <button
+                            className="bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-1 rounded"
+                            onClick={() => startEdit(originalIndex)}
+                            title="Edit"
+                          >
+                            <Edit3 size={16} />
+                          </button>
+                          <button
+                            className="bg-rose-600 hover:bg-rose-700 text-white px-3 py-1 rounded"
+                            onClick={() => removeRow(originalIndex)}
+                            title="Delete"
+                          >
+                            <Trash2 size={16} />
+                          </button>
+                        </>
+                      )}
+                    </div>
+                  </td>
+                </tr>
+              );
+            })}
+            {filtered.length === 0 && (
+              <tr>
+                <td colSpan={3} className="px-3 py-6 text-center text-slate-500">
+                  No items found.
+                </td>
+              </tr>
+            )}
+          </tbody>
+          {/* Add new row */}
+          <tfoot>
+            <tr className="border-t bg-slate-50">
+              <td className="px-3 py-2">
+                <input
+                  className="w-full border rounded px-2 py-1"
+                  placeholder="Full name"
+                  value={newRow.full}
+                  onChange={(e) =>
+                    setNewRow((p) => ({ ...p, full: e.target.value }))
+                  }
+                />
+              </td>
+              <td className="px-3 py-2">
+                <input
+                  className="w-full border rounded px-2 py-1"
+                  placeholder="Abbreviation"
+                  value={newRow.abbr}
+                  onChange={(e) =>
+                    setNewRow((p) => ({ ...p, abbr: e.target.value }))
+                  }
+                />
+              </td>
+              <td className="px-3 py-2">
+                <button
+                  className="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1 rounded flex items-center gap-1"
+                  onClick={addRow}
+                >
+                  <Plus size={16} /> Add
+                </button>
+              </td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+
+      {/* Mobile cards */}
+      <div className="md:hidden p-3 pt-0 space-y-3">
+        <div className="flex items-center gap-2 mb-2">
+          <FilterIcon className="w-4 h-4 text-indigo-600" />
+          <div className="flex items-center border rounded-lg px-2 py-1 bg-white w-full">
+            <Search className="w-3.5 h-3.5 text-slate-500 mr-1" />
+            <input
+              value={filter}
+              onChange={(e) => setFilter(e.target.value)}
+              placeholder="Filter…"
+              className="text-xs outline-none w-full"
+            />
+          </div>
+        </div>
+
+        {filtered.map((row, idx) => {
+          const originalIndex = draft.indexOf(row);
+          const isEditing = editIndex === originalIndex;
+          return (
+            <div
+              key={originalIndex}
+              className="border rounded-lg p-3 shadow-sm bg-white"
+            >
+              <div className="text-xs text-slate-500">Full Name</div>
+              <div className="font-medium">
+                {isEditing ? (
+                  <input
+                    className="w-full border rounded px-2 py-1 mt-1"
+                    value={tempRow.full}
+                    onChange={(e) =>
+                      setTempRow((p) => ({ ...p, full: e.target.value }))
+                    }
+                  />
+                ) : (
+                  row.full
+                )}
+              </div>
+              <div className="text-xs text-slate-500 mt-2">Abbreviation</div>
+              <div className="font-mono">
+                {isEditing ? (
+                  <input
+                    className="w-full border rounded px-2 py-1 mt-1"
+                    value={tempRow.abbr}
+                    onChange={(e) =>
+                      setTempRow((p) => ({ ...p, abbr: e.target.value }))
+                    }
+                  />
+                ) : (
+                  row.abbr
+                )}
+              </div>
+
+              <div className="flex gap-2 mt-3">
+                {isEditing ? (
+                  <>
+                    <button
+                      className="bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-1 rounded text-sm"
+                      onClick={saveEdit}
+                    >
+                      Save
+                    </button>
+                    <button
+                      className="bg-gray-200 hover:bg-gray-300 text-slate-800 px-3 py-1 rounded text-sm"
+                      onClick={cancelEdit}
+                    >
+                      Cancel
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <button
+                      className="bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-1 rounded text-sm"
+                      onClick={() => startEdit(originalIndex)}
+                    >
+                      Edit
+                    </button>
+                    <button
+                      className="bg-rose-600 hover:bg-rose-700 text-white px-3 py-1 rounded text-sm"
+                      onClick={() => removeRow(originalIndex)}
+                    >
+                      Remove
+                    </button>
+                  </>
+                )}
+              </div>
+            </div>
+          );
+        })}
+
+        {/* add row (mobile) */}
+        <div className="border rounded-lg p-3 bg-slate-50">
+          <div className="text-sm font-medium mb-2">Add new</div>
+          <div className="space-y-2">
+            <input
+              className="w-full border rounded px-2 py-1"
+              placeholder="Full name"
+              value={newRow.full}
+              onChange={(e) =>
+                setNewRow((p) => ({ ...p, full: e.target.value }))
+              }
+            />
+            <input
+              className="w-full border rounded px-2 py-1"
+              placeholder="Abbreviation"
+              value={newRow.abbr}
+              onChange={(e) =>
+                setNewRow((p) => ({ ...p, abbr: e.target.value }))
+              }
+            />
+            <button
+              className="w-full bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-2 rounded text-sm flex items-center justify-center gap-1"
+              onClick={addRow}
+            >
+              <Plus size={16} /> Add
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* =========================
+   Shared UI bits (same vibe)
+   ========================= */
+function MessageAlert({ message, type, onClose }) {
+  return (
+    <div
+      className={`rounded-lg p-4 flex items-center justify-between ${
+        type === "success"
+          ? "bg-green-50 border border-green-200"
+          : "bg-red-50 border border-red-200"
+      }`}
+    >
+      <div className="flex items-center">
+        {type === "success" ? (
+          <CheckCircle className="w-5 h-5 text-green-600 mr-2" />
+        ) : (
+          <AlertCircle className="w-5 h-5 text-red-600 mr-2" />
+        )}
+        <p
+          className={`text-sm font-medium ${
+            type === "success" ? "text-green-800" : "text-red-800"
+          }`}
+        >
+          {message}
+        </p>
+      </div>
+      <button
+        onClick={onClose}
+        className={`${
+          type === "success"
+            ? "text-green-600 hover:text-green-800"
+            : "text-red-600 hover:text-red-800"
+        }`}
+      >
+        <XIcon className="w-4 h-4" />
+      </button>
+    </div>
+  );
+}
+
+function Navbar({
+  user,
+  handleLogout,
+  mobileMenuOpen,
+  setMobileMenuOpen,
+  sidebarOpen,
+  setSidebarOpen,
+}) {
+  return (
+    <nav className="fixed top-0 left-0 right-0 z-50 bg-slate-900 text-white shadow-lg">
+      <div className="max-w-full mx-auto px-4 sm:px-6">
+        <div className="flex items-center justify-between h-16">
+          <div className="flex items-center">
+            <button
+              onClick={() => setSidebarOpen(!sidebarOpen)}
+              className="mr-4 p-2 rounded-md text-slate-300 hover:text-white hover:bg-slate-700 lg:hidden"
+              aria-label="Toggle sidebar"
+            >
+              <svg
+                className="h-6 w-6"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M4 6h16M4 12h16M4 18h16"
+                />
+              </svg>
+            </button>
+            <h1 className="text-lg sm:text-xl font-semibold">
+              Admin Dashboard - Abbreviations
+            </h1>
+          </div>
+
+          <div className="hidden md:flex items-center space-x-4">
+            <img
+              src={user.picture}
+              alt={user.name}
+              className="w-8 h-8 rounded-full border-2 border-slate-600"
+            />
+            <div className="text-right">
+              <div className="text-sm font-medium">{user.name}</div>
+              <div className="text-xs text-slate-300">{user.email}</div>
+            </div>
+            <button
+              onClick={handleLogout}
+              className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg text-sm"
+            >
+              Logout
+            </button>
+          </div>
+
+          <div className="md:hidden">
+            <button
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              className="p-2 rounded-md text-slate-300 hover:text-white hover:bg-slate-700"
+              aria-label="Toggle user menu"
+            >
+              {!mobileMenuOpen ? (
+                <svg
+                  className="h-6 w-6"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M4 6h16M4 12h16M4 18h16"
+                  />
+                </svg>
+              ) : (
+                <svg
+                  className="h-6 w-6"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M6 18L18 6M6 6l12 12"
+                  />
+                </svg>
+              )}
+            </button>
+          </div>
+        </div>
+
+        {mobileMenuOpen && (
+          <div className="md:hidden border-t border-slate-700">
+            <div className="px-3 py-3 bg-slate-800 flex items-center rounded-lg">
+              <img
+                src={user.picture}
+                alt={user.name}
+                className="w-10 h-10 rounded-full border-2 border-slate-600"
+              />
+              <div className="ml-3">
+                <div className="text-sm font-medium text-white">
+                  {user.name}
+                </div>
+                <div className="text-xs text-slate-slate-300">{user.email}</div>
+              </div>
+            </div>
+            <div className="px-3 py-3">
+              <button
+                onClick={handleLogout}
+                className="w-full bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg text-sm"
+              >
+                Logout
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+    </nav>
+  );
+}
+
 function SidebarLinks({ navigate, location, close }) {
   const [openWorklogs, setOpenWorklogs] = useState(false);
   const [openProjects, setOpenProjects] = useState(false);
 
-  // Keep sections open if child page active
   useEffect(() => {
     if (location.pathname.includes("worklog")) setOpenWorklogs(true);
-    if (location.pathname.includes("project") || location.pathname.includes("abbreviations"))
+    if (
+      location.pathname.includes("project") ||
+      location.pathname.includes("abbreviations")
+    )
       setOpenProjects(true);
   }, [location]);
 
@@ -235,10 +856,10 @@ function SidebarLinks({ navigate, location, close }) {
     <div className="p-6">
       <h2 className="text-xl font-bold text-white mb-6">Menu</h2>
       <nav className="flex flex-col space-y-2">
-
         <button
-          className={`text-left hover:bg-gray-700 p-3 rounded-lg transition-colors ${location.pathname === "/admin-dashboard" ? "bg-gray-700" : ""
-            }`}
+          className={`text-left hover:bg-gray-700 p-3 rounded-lg transition-colors ${
+            location.pathname === "/admin-dashboard" ? "bg-gray-700" : ""
+          }`}
           onClick={() => handleNavigation("/admin-dashboard")}
         >
           Home
@@ -258,15 +879,21 @@ function SidebarLinks({ navigate, location, close }) {
           {openWorklogs && (
             <div className="ml-4 mt-2 flex flex-col space-y-2 animate-fadeIn">
               <button
-                className={`text-left hover:bg-gray-700 p-2 rounded-lg transition-colors ${location.pathname.includes("approve-worklogs") ? "bg-gray-700" : ""
-                  }`}
+                className={`text-left hover:bg-gray-700 p-2 rounded-lg transition-colors ${
+                  location.pathname.includes("approve-worklogs")
+                    ? "bg-gray-700"
+                    : ""
+                }`}
                 onClick={() => handleNavigation("/admin/approve-worklogs")}
               >
                 Approve Worklogs
               </button>
               <button
-                className={`text-left hover:bg-gray-700 p-2 rounded-lg transition-colors ${location.pathname.includes("edit-worklog-entries") ? "bg-gray-700" : ""
-                  }`}
+                className={`text-left hover:bg-gray-700 p-2 rounded-lg transition-colors ${
+                  location.pathname.includes("edit-worklog-entries")
+                    ? "bg-gray-700"
+                    : ""
+                }`}
                 onClick={() => handleNavigation("/admin/edit-worklog-entries")}
               >
                 Edit Worklogs
@@ -277,8 +904,9 @@ function SidebarLinks({ navigate, location, close }) {
 
         {/* Employees */}
         <button
-          className={`text-left hover:bg-gray-700 p-3 rounded-lg transition-colors ${location.pathname.includes("handle-employees") ? "bg-gray-700" : ""
-            }`}
+          className={`text-left hover:bg-gray-700 p-3 rounded-lg transition-colors ${
+            location.pathname.includes("handle-employees") ? "bg-gray-700" : ""
+          }`}
           onClick={() => handleNavigation("/admin/handle-employees")}
         >
           Manage Employees
@@ -298,22 +926,29 @@ function SidebarLinks({ navigate, location, close }) {
           {openProjects && (
             <div className="ml-4 mt-2 flex flex-col space-y-2 animate-fadeIn">
               <button
-                className={`text-left hover:bg-gray-700 p-2 rounded-lg transition-colors ${location.pathname.includes("add-abbreviations") ? "bg-gray-700" : ""
-                  }`}
+                className={`text-left hover:bg-gray-700 p-2 rounded-lg transition-colors ${
+                  location.pathname.includes("add-abbreviations")
+                    ? "bg-gray-700"
+                    : ""
+                }`}
                 onClick={() => handleNavigation("/admin/add-abbreviations")}
               >
                 Add Abbreviations
               </button>
               <button
-                className={`text-left hover:bg-gray-700 p-2 rounded-lg transition-colors ${location.pathname.includes("add-project") ? "bg-gray-700" : ""
-                  }`}
+                className={`text-left hover:bg-gray-700 p-2 rounded-lg transition-colors ${
+                  location.pathname.includes("add-project") ? "bg-gray-700" : ""
+                }`}
                 onClick={() => handleNavigation("/admin/add-project")}
               >
                 Add Project
               </button>
               <button
-                className={`text-left hover:bg-gray-700 p-2 rounded-lg transition-colors ${location.pathname.includes("project-requests") ? "bg-gray-700" : ""
-                  }`}
+                className={`text-left hover:bg-gray-700 p-2 rounded-lg transition-colors ${
+                  location.pathname.includes("project-requests")
+                    ? "bg-gray-700"
+                    : ""
+                }`}
                 onClick={() => handleNavigation("/admin/project-requests")}
               >
                 Project Requests
@@ -324,100 +959,4 @@ function SidebarLinks({ navigate, location, close }) {
       </nav>
     </div>
   );
-}
-
-/* ----- Sub Components ----- */
-function StatCard({ title, value, accent }) {
-  return (
-    <div className="relative rounded-2xl p-6 backdrop-blur-xl bg-white/40 border border-white/30 shadow-xl overflow-hidden">
-      <div className={`absolute -top-10 -right-10 w-48 h-48 rounded-full bg-gradient-to-br ${accent} blur-2xl opacity-80`} />
-      <div className="relative">
-        <p className="text-sm font-medium text-slate-700/90">{title}</p>
-        <p className="text-4xl font-bold text-slate-900 mt-1">{value}</p>
-      </div>
-    </div>
-  );
-}
-
-function AttendanceCard({ attendance }) {
-  return (
-    <div className="rounded-2xl p-6 backdrop-blur-xl bg-white/60 border border-white/40 shadow-xl">
-      <h3 className="text-lg font-semibold text-slate-800 mb-3">Today's Attendance</h3>
-      <div className="grid grid-cols-2 gap-3">
-        <AttendanceItem label="Full Day Leave" value={attendance.leave} color="bg-rose-800" />
-        <AttendanceItem label="WFH" value={attendance.wfh} color="bg-emerald-600" />
-        <AttendanceItem label="1st Half Leave" value={attendance.halfleave1} color="bg-violet-600" />
-        <AttendanceItem label="2nd Half Leave" value={attendance.halfleave2} color="bg-red-600" />
-        <AttendanceItem label="1st Half WFH" value={attendance.wfh1} color="bg-orange-600" />
-        <AttendanceItem label="2nd Half WFH" value={attendance.wfh2} color="bg-blue-600" />
-      </div>
-      <button
-        onClick={() => window.location.assign("/admin/calendar")}
-        className="inline-flex items-center gap-1 mt-4 px-3 py-1.5 rounded-full text-sm font-semibold bg-indigo-600 text-white hover:bg-indigo-700"
-      >
-        Open calendar →
-      </button>
-    </div>
-  );
-}
-
-function AttendanceItem({ label, value, color }) {
-  return (
-    <div className="flex items-center justify-between rounded-xl bg-white/50 border border-white/30 px-4 py-3 shadow">
-      <span className="text-sm text-slate-700 font-medium">{label}</span>
-      <span className={`text-base font-bold text-white px-2.5 py-1 rounded-full ${color}`}>
-        {value}
-      </span>
-    </div>
-  );
-}
-
-function DeadlinesList({ items = [] }) {
-  const today = new Date();
-  const daysLeft = (due) => {
-    const d = new Date(due);
-    return Math.ceil((d - today) / (1000 * 60 * 60 * 24));
-  };
-  const tone = (n) =>
-    n <= 3
-      ? "bg-rose-100 text-rose-700"
-      : n <= 7
-        ? "bg-amber-100 text-amber-700"
-        : "bg-emerald-100 text-emerald-700";
-
-  return (
-    <div className="rounded-2xl p-6 backdrop-blur-xl bg-white/60 border border-white/40 shadow-xl">
-      <h3 className="text-lg font-semibold text-slate-800 mb-3">Upcoming Deadlines</h3>
-      <ul className="space-y-3">
-        {items.map((p) => {
-          const n = daysLeft(p.due);
-          return (
-            <li key={p.id} className="flex items-center justify-between rounded-xl bg-white/50 border border-white/30 px-4 py-3 shadow">
-              <div>
-                <p className="text-sm font-medium text-slate-800">{p.name}</p>
-                <p className="text-xs text-slate-600">Due {p.due}</p>
-              </div>
-              <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${tone(n)}`}>{n} days</span>
-            </li>
-          );
-        })}
-      </ul>
-      <button
-        onClick={() => window.location.assign("/admin/projects")}
-        className="inline-flex items-center gap-1 mt-4 px-3 py-1.5 rounded-full text-sm font-semibold bg-indigo-600 text-white hover:bg-indigo-700"
-      >
-        Manage projects →
-      </button>
-    </div>
-  );
-}
-
-function StatusBadge({ value }) {
-  const map = {
-    "Completed": "bg-emerald-100 text-emerald-700",
-    "In Progress": "bg-indigo-100 text-indigo-700",
-    "Delayed": "bg-rose-100 text-rose-700",
-  };
-  const cls = map[value] || "bg-slate-100 text-slate-700";
-  return <span className={`px-2.5 py-1 rounded-full text-xs font-semibold ${cls}`}>{value}</span>;
 }

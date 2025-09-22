@@ -20,7 +20,7 @@ model Users {
   spoc_name  String?
   spoc_email String?
   team  String
-  role  Role?
+  role  String?
 }
 
 model ProjectRecords {
