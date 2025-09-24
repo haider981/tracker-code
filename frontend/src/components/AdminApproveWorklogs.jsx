@@ -29,7 +29,7 @@
 //   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 //   const [user, setUser] = useState(null);
 
-//   /* ===== Auth (as-is from AdminDashboard) ===== */
+//   /* ===== Auth ===== */
 //   useEffect(() => {
 //     const token = localStorage.getItem("authToken");
 //     if (!token) {
@@ -63,8 +63,6 @@
 //     navigate("/");
 //   };
 
-//   /* ===== Approve Worklogs STATE/LOGIC (updated for admin) ===== */
-
 //   // Data
 //   const [worklogsByDate, setWorklogsByDate] = useState({});
 //   const [employees, setEmployees] = useState([]);
@@ -73,7 +71,7 @@
 //   const [loading, setLoading] = useState(true);
 //   const [error, setError] = useState(null);
 //   const [updating, setUpdating] = useState({});
-//   const [bulkUpdating, setBulkUpdating] = useState({}); // key: `${dateKey}|${emp}`
+//   const [bulkUpdating, setBulkUpdating] = useState({});
 
 //   // Filters: employees
 //   const [selectedEmployees, setSelectedEmployees] = useState([]);
@@ -104,14 +102,13 @@
 //   const statusRef = useOutclick(() => setShowStatusDropdown(false));
 //   const [selectedAuditStatuses, setSelectedAuditStatuses] = useState([...ALL_STATUSES]);
 
-//   // Edit mode for "Change to …" actions
+//   // Edit mode
 //   const [modifying, setModifying] = useState(null);
 
 //   /* --- Fetch employees --- */
 //   useEffect(() => {
 //     if (!user) return;
 //     const token = localStorage.getItem("authToken");
-//     // Updated to use admin endpoint
 //     fetch(`${API_BASE_URL}/api/admin/users`, {
 //       headers: { Authorization: `Bearer ${token}` },
 //     })
@@ -120,11 +117,10 @@
 //       .catch((err) => console.error("Failed to fetch employees:", err.message));
 //   }, [user]);
 
-//   /* --- Fetch worklogs (on filter change) --- */
+//   /* --- Fetch worklogs --- */
 //   useEffect(() => {
 //     if (!user) return;
 //     fetchWorklogs();
-//     // eslint-disable-next-line react-hooks/exhaustive-deps
 //   }, [user, startISO, endISO, selectedEmployees, selectedAuditStatuses]);
 
 //   const fetchWorklogs = async () => {
@@ -133,7 +129,6 @@
 //       setError(null);
 //       const token = localStorage.getItem("authToken");
 
-//       // Updated to use admin endpoint with proper body structure
 //       const res = await fetch(`${API_BASE_URL}/api/admin/worklogs`, {
 //         method: "POST",
 //         headers: {
@@ -173,6 +168,7 @@
 //     deadline.setUTCHours(23, 59, 59, 999);
 //     return new Date() <= deadline;
 //   };
+
 //   const withinDplus5 = (dateKey) => {
 //     if (!dateKey) return false;
 //     const D = new Date(dateKey);
@@ -193,6 +189,19 @@
 //         .sort((a, b) => a.localeCompare(b))
 //         .map((k) => [k, byEmp[k]])
 //     );
+//   };
+
+//   // Calculate total hours for an employee on a specific date
+//   const calculateTotalHours = (rows) => {
+//     return rows.reduce((total, row) => total + (parseFloat(row.hoursSpent) || 0), 0);
+//   };
+
+//   // Get background color based on total hours
+//   const getHoursBgColor = (totalHours) => {
+//     if (totalHours >= 6.5 && totalHours <= 7.5) return "bg-emerald-100";
+//     if (totalHours < 6.5) return "bg-red-100";
+//     if (totalHours > 7.5) return "bg-blue-100";
+//     return "";
 //   };
 
 //   const { actionablePendingCount, actionableRePendingCount } = useMemo(() => {
@@ -253,7 +262,7 @@
 //     );
 //   };
 
-//   /* --- Updates (single/bulk) --- */
+//   /* --- Updates --- */
 //   const mutateLocalRow = (dateKey, id, auditStatus) => {
 //     setWorklogsByDate((prev) => {
 //       const next = { ...prev };
@@ -268,7 +277,6 @@
 //       setUpdating((p) => ({ ...p, [worklogId]: true }));
 //       const token = localStorage.getItem("authToken");
 
-//       // Updated to use admin endpoint
 //       const res = await fetch(`${API_BASE_URL}/api/admin/worklogs/update-status`, {
 //         method: "PUT",
 //         headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
@@ -301,6 +309,18 @@
 //     updateWorklogStatus(id, "Re-Rejected", dateKey);
 //   };
 
+//   // New handlers for change to approve/reject
+//   const handleChangeToApprove = (id, dateKey, currentStatus) => {
+//     const newStatus = currentStatus === "Rejected" ? "Approved" : "Re-Approved";
+//     updateWorklogStatus(id, newStatus, dateKey);
+//   };
+
+//   const handleChangeToReject = (id, dateKey, currentStatus) => {
+//     if (!window.confirm("Are you sure you want to reject this entry?")) return;
+//     const newStatus = currentStatus === "Approved" ? "Rejected" : "Re-Rejected";
+//     updateWorklogStatus(id, newStatus, dateKey);
+//   };
+
 //   const handleApproveAll = async (dateKey, employeeName) => {
 //     const key = `${dateKey}|${employeeName}`;
 //     try {
@@ -312,7 +332,6 @@
 //       const ids = rows.map((r) => r._id);
 //       if (ids.length === 0) return;
 
-//       // Updated to use admin endpoint
 //       const res = await fetch(`${API_BASE_URL}/api/admin/worklogs/bulk-update-status`, {
 //         method: "PUT",
 //         headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
@@ -370,7 +389,6 @@
 //   const labelForFilter = () =>
 //     startISO === endISO ? formatISOToHuman(startISO) : `${formatISOToHuman(startISO)} – ${formatISOToHuman(endISO)}`;
 
-//   /* --- Render guards --- */
 //   if (!user) {
 //     return (
 //       <div className="min-h-screen flex items-center justify-center bg-slate-100">
@@ -379,14 +397,12 @@
 //     );
 //   }
 
-//   /* =================== LAYOUT (Navbar + Sidebar UNCHANGED) =================== */
 //   return (
 //     <div className="min-h-screen bg-slate-100">
-//       {/* Navbar (unchanged) */}
+//       {/* Navbar */}
 //       <nav className="fixed top-0 left-0 right-0 z-50 bg-slate-900 text-white shadow-lg">
 //         <div className="max-w-full mx-auto px-4 sm:px-6">
 //           <div className="flex items-center justify-between h-16">
-//             {/* Left side */}
 //             <div className="flex items-center">
 //               <button
 //                 onClick={() => setSidebarOpen(!sidebarOpen)}
@@ -401,7 +417,6 @@
 //               </h1>
 //             </div>
 
-//             {/* Right side */}
 //             <div className="hidden md:flex items-center space-x-4">
 //               <div className="flex items-center space-x-3">
 //                 <img src={user.picture} alt={user.name} className="w-8 h-8 rounded-full border-2 border-slate-600" />
@@ -418,7 +433,6 @@
 //               </button>
 //             </div>
 
-//             {/* Mobile menu button (kept for parity, no dropdown content here) */}
 //             <div className="md:hidden">
 //               <button
 //                 onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
@@ -439,13 +453,12 @@
 //         </div>
 //       </nav>
 
-//       {/* Sidebar (unchanged) */}
+//       {/* Sidebar */}
 //       {sidebarOpen && (
 //         <div className="fixed inset-0 z-40 lg:hidden">
 //           <div className="fixed inset-0 bg-black bg-opacity-50" onClick={() => setSidebarOpen(false)} />
 //           <aside className="fixed top-16 left-0 h-[calc(100vh-4rem)] w-80 bg-gray-800 text-white shadow-xl overflow-y-auto">
 //             <SidebarLinks navigate={navigate} location={useLocation()} close={() => setSidebarOpen(false)} />
-
 //           </aside>
 //         </div>
 //       )}
@@ -453,20 +466,17 @@
 //         <SidebarLinks navigate={navigate} location={useLocation()} />
 //       </aside>
 
-
-//       {/* =================== MAIN CONTENT (Approve Worklogs FULL) =================== */}
+//       {/* Main Content */}
 //       <main className="lg:ml-72 pt-20 p-6">
 //         <div className="p-3 sm:p-4 lg:p-6 space-y-6 lg:space-y-8 max-w-full overflow-hidden">
-//           {/* ===== Filters ===== */}
+//           {/* Filters */}
 //           <div className="rounded-xl lg:rounded-2xl shadow-md border border-slate-200 bg-gradient-to-r from-indigo-50 via-sky-50 to-cyan-50 p-4 lg:p-5">
 //             <div className="flex items-center gap-2 mb-3 lg:mb-4">
 //               <FilterIcon className="w-4 h-4 lg:w-5 lg:h-5 text-indigo-600" />
 //               <h3 className="text-sm lg:text-base font-semibold text-slate-800 tracking-tight">Filters</h3>
 //             </div>
 
-//             {/* Filters Row */}
 //             <div className="space-y-4 lg:space-y-0 lg:flex lg:flex-wrap lg:items-end lg:gap-6">
-
 //               {/* Date Picker */}
 //               <div className="w-full lg:min-w-[280px] lg:w-auto relative" ref={popRef}>
 //                 <label className="block text-xs lg:text-sm font-medium text-slate-700 mb-1">Date(s)</label>
@@ -502,7 +512,6 @@
 //                         <button
 //                           onClick={() => setActiveMonth(toMonthKey(addMonths(parseMonthKey(activeMonth), -1)))}
 //                           className="p-1 hover:bg-slate-100 rounded"
-//                           aria-label="Prev month"
 //                         >
 //                           <ChevronLeft className="w-4 h-4" />
 //                         </button>
@@ -514,7 +523,6 @@
 //                             setActiveMonth(toMonthKey(nextM));
 //                           }}
 //                           className="p-1 hover:bg-slate-100 rounded disabled:opacity-40"
-//                           aria-label="Next month"
 //                           disabled={isMonthFullyInFuture(addMonths(parseMonthKey(activeMonth), 1))}
 //                         >
 //                           <ChevronRight className="w-4 h-4" />
@@ -687,7 +695,7 @@
 //             </div>
 //           </div>
 
-//           {/* ===== States ===== */}
+//           {/* States */}
 //           {loading && (
 //             <div className="flex items-center gap-3 py-6">
 //               <div className="animate-spin rounded-full h-6 w-6 lg:h-8 lg:w-8 border-b-2 border-slate-900" />
@@ -715,7 +723,7 @@
 //             </div>
 //           )}
 
-//           {/* ===== By Date (desktop + mobile) ===== */}
+//           {/* By Date */}
 //           {!loading &&
 //             !error &&
 //             sortedDateKeys.map((dateKey) => {
@@ -746,6 +754,8 @@
 //                       const rows = grouped[emp];
 //                       const pendingCount = rows.filter((r) => r.auditStatus === "Pending").length;
 //                       const rePendingCount = rows.filter((r) => r.auditStatus === "Re-Pending").length;
+//                       const totalHours = calculateTotalHours(rows);
+//                       const hoursBgColor = getHoursBgColor(totalHours);
 //                       const key = `${dateKey}|${emp}`;
 //                       const canApproveAll = pendingCount > 0;
 
@@ -761,6 +771,9 @@
 //                                 <div className="text-xs text-slate-500">
 //                                   {pendingCount} Pending , {rePendingCount} Re-Pending
 //                                 </div>
+//                               </div>
+//                               <div className={`ml-4 px-3 py-1 rounded-full ${hoursBgColor} text-xs font-medium`}>
+//                                 Total Hours: {totalHours.toFixed(1)}
 //                               </div>
 //                             </div>
 
@@ -807,8 +820,10 @@
 //                                 {rows.map((log) => {
 //                                   const isPending = log.auditStatus === "Pending";
 //                                   const isRePending = log.auditStatus === "Re-Pending";
-//                                   // Admin has override powers - no time restrictions
-//                                   const actionable = true;
+//                                   const isApproved = log.auditStatus === "Approved";
+//                                   const isRejected = log.auditStatus === "Rejected";
+//                                   const isReApproved = log.auditStatus === "Re-Approved";
+//                                   const isReRejected = log.auditStatus === "Re-Rejected";
 
 //                                   return (
 //                                     <tr key={log._id} className={`${rowClassForAudit(log.auditStatus)} border-t`}>
@@ -885,58 +900,37 @@
 //                                           <>
 //                                             {modifying?.id === log._id ? (
 //                                               <div className="flex gap-2">
-//                                                 {(log.auditStatus === "Approved" || log.auditStatus === "Rejected") && (
-//                                                   <>
-//                                                     <button
-//                                                       onClick={() => updateWorklogStatus(log._id, "Approved", dateKey)}
-//                                                       className="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-2 rounded-lg text-sm"
-//                                                       disabled={!!updating[log._id]}
-//                                                     >
-//                                                       Approve
-//                                                     </button>
-//                                                     <button
-//                                                       onClick={() => updateWorklogStatus(log._id, "Rejected", dateKey)}
-//                                                       className="bg-rose-600 hover:bg-rose-700 text-white px-3 py-2 rounded-lg text-sm"
-//                                                       disabled={!!updating[log._id]}
-//                                                     >
-//                                                       Reject
-//                                                     </button>
-//                                                   </>
+//                                                 {(isApproved || isReApproved) && (
+//                                                   <button
+//                                                     onClick={() => handleChangeToReject(log._id, dateKey, log.auditStatus)}
+//                                                     className="bg-rose-600 hover:bg-rose-700 text-white px-2 py-1.5 rounded text-xs font-medium"
+//                                                     disabled={!!updating[log._id]}
+//                                                   >
+//                                                     {isReApproved ? "Change to Re-Reject" : "Change to Reject"}
+//                                                   </button>
 //                                                 )}
-
-//                                                 {(log.auditStatus === "Re-Approved" || log.auditStatus === "Re-Rejected") && (
-//                                                   <>
-//                                                     <button
-//                                                       onClick={() => updateWorklogStatus(log._id, "Re-Approved", dateKey)}
-//                                                       className="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-2 rounded-lg text-sm"
-//                                                       disabled={!!updating[log._id]}
-//                                                     >
-//                                                       Re-Approve
-//                                                     </button>
-//                                                     <button
-//                                                       onClick={() => updateWorklogStatus(log._id, "Re-Rejected", dateKey)}
-//                                                       className="bg-rose-600 hover:bg-rose-700 text-white px-3 py-2 rounded-lg text-sm"
-//                                                       disabled={!!updating[log._id]}
-//                                                     >
-//                                                       Re-Reject
-//                                                     </button>
-//                                                   </>
+//                                                 {(isRejected || isReRejected) && (
+//                                                   <button
+//                                                     onClick={() => handleChangeToApprove(log._id, dateKey, log.auditStatus)}
+//                                                     className="bg-emerald-600 hover:bg-emerald-700 text-white px-2 py-1.5 rounded text-xs font-medium"
+//                                                     disabled={!!updating[log._id]}
+//                                                   >
+//                                                     {isReRejected ? "Change to Re-Approve" : "Change to Approve"}
+//                                                   </button>
 //                                                 )}
-
 //                                                 <button
 //                                                   onClick={() => setModifying(null)}
-//                                                   className="bg-gray-200 hover:bg-gray-300 text-slate-700 px-3 py-2 rounded-lg text-sm"
+//                                                   className="bg-gray-200 hover:bg-gray-300 text-slate-700 px-2 py-1.5 rounded text-xs font-medium"
 //                                                 >
 //                                                   Cancel
 //                                                 </button>
 //                                               </div>
 //                                             ) : (
 //                                               <button
-//                                                 className="inline-flex items-center gap-1 bg-slate-200 hover:bg-slate-300 text-slate-700 px-3 py-2 rounded-lg text-sm"
+//                                                 className="inline-flex items-center gap-1 bg-slate-200 hover:bg-slate-300 text-slate-700 px-2 py-1.5 rounded text-xs font-medium"
 //                                                 onClick={() => setModifying({ id: log._id, dateKey })}
 //                                               >
-//                                                 <Pencil className="w-4 h-4" />
-//                                                 Modify
+//                                                 <Pencil className="w-3 h-3" />
 //                                               </button>
 //                                             )}
 //                                           </>
@@ -959,6 +953,8 @@
 //                       const rows = grouped[emp];
 //                       const pendingCount = rows.filter((r) => r.auditStatus === "Pending").length;
 //                       const rePendingCount = rows.filter((r) => r.auditStatus === "Re-Pending").length;
+//                       const totalHours = calculateTotalHours(rows);
+//                       const hoursBgColor = getHoursBgColor(totalHours);
 //                       const key = `${dateKey}|${emp}`;
 //                       const canApproveAll = pendingCount > 0;
 
@@ -973,6 +969,9 @@
 //                                 <div className="text-sm font-semibold text-slate-900 truncate">{emp}</div>
 //                                 <div className="text-xs text-slate-500">
 //                                   {pendingCount} pending, {rePendingCount} re-pending
+//                                 </div>
+//                                 <div className={`inline-block mt-1 px-2 py-0.5 rounded-full ${hoursBgColor} text-xs font-medium`}>
+//                                   Total Hours: {totalHours.toFixed(1)}
 //                                 </div>
 //                               </div>
 //                             </div>
@@ -1000,8 +999,10 @@
 //                             {rows.map((log) => {
 //                               const isPending = log.auditStatus === "Pending";
 //                               const isRePending = log.auditStatus === "Re-Pending";
-//                               // Admin has override powers - no time restrictions
-//                               const actionable = true;
+//                               const isApproved = log.auditStatus === "Approved";
+//                               const isRejected = log.auditStatus === "Rejected";
+//                               const isReApproved = log.auditStatus === "Re-Approved";
+//                               const isReRejected = log.auditStatus === "Re-Rejected";
 
 //                               return (
 //                                 <article key={log._id} className={`p-3 sm:p-4 ${rowClassForAudit(log.auditStatus)}`}>
@@ -1097,60 +1098,38 @@
 //                                     ) : (
 //                                       <>
 //                                         {modifying?.id === log._id ? (
-//                                           <div className="w-full space-y-2">
-//                                             <div className="flex flex-wrap gap-2">
-//                                               {(log.auditStatus === "Approved" || log.auditStatus === "Rejected") && (
-//                                                 <>
-//                                                   <button
-//                                                     onClick={() => updateWorklogStatus(log._id, "Approved", dateKey)}
-//                                                     className="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-2 rounded-lg text-sm flex-1 min-w-0"
-//                                                     disabled={!!updating[log._id]}
-//                                                   >
-//                                                     Approve
-//                                                   </button>
-//                                                   <button
-//                                                     onClick={() => updateWorklogStatus(log._id, "Rejected", dateKey)}
-//                                                     className="bg-rose-600 hover:bg-rose-700 text-white px-3 py-2 rounded-lg text-sm flex-1 min-w-0"
-//                                                     disabled={!!updating[log._id]}
-//                                                   >
-//                                                     Reject
-//                                                   </button>
-//                                                 </>
-//                                               )}
-
-//                                               {(log.auditStatus === "Re-Approved" || log.auditStatus === "Re-Rejected") && (
-//                                                 <>
-//                                                   <button
-//                                                     onClick={() => updateWorklogStatus(log._id, "Re-Approved", dateKey)}
-//                                                     className="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-2 rounded-lg text-sm flex-1 min-w-0"
-//                                                     disabled={!!updating[log._id]}
-//                                                   >
-//                                                     Re-Approve
-//                                                   </button>
-//                                                   <button
-//                                                     onClick={() => updateWorklogStatus(log._id, "Re-Rejected", dateKey)}
-//                                                     className="bg-rose-600 hover:bg-rose-700 text-white px-3 py-2 rounded-lg text-sm flex-1 min-w-0"
-//                                                     disabled={!!updating[log._id]}
-//                                                   >
-//                                                     Re-Reject
-//                                                   </button>
-//                                                 </>
-//                                               )}
-//                                             </div>
+//                                           <div className="flex gap-2">
+//                                             {(isApproved || isReApproved) && (
+//                                               <button
+//                                                 onClick={() => handleChangeToReject(log._id, dateKey, log.auditStatus)}
+//                                                 className="bg-rose-600 hover:bg-rose-700 text-white px-2 py-1.5 rounded text-xs font-medium"
+//                                                 disabled={!!updating[log._id]}
+//                                               >
+//                                                 {isReApproved ? "Change to Re-Reject" : "Change to Reject"}
+//                                               </button>
+//                                             )}
+//                                             {(isRejected || isReRejected) && (
+//                                               <button
+//                                                 onClick={() => handleChangeToApprove(log._id, dateKey, log.auditStatus)}
+//                                                 className="bg-emerald-600 hover:bg-emerald-700 text-white px-2 py-1.5 rounded text-xs font-medium"
+//                                                 disabled={!!updating[log._id]}
+//                                               >
+//                                                 {isReRejected ? "Change to Re-Approve" : "Change to Approve"}
+//                                               </button>
+//                                             )}
 //                                             <button
 //                                               onClick={() => setModifying(null)}
-//                                               className="bg-gray-200 hover:bg-gray-300 text-slate-700 px-3 py-2 rounded-lg text-sm w-full"
+//                                               className="bg-gray-200 hover:bg-gray-300 text-slate-700 px-2 py-1.5 rounded text-xs font-medium"
 //                                             >
 //                                               Cancel
 //                                             </button>
 //                                           </div>
 //                                         ) : (
 //                                           <button
-//                                             className="inline-flex items-center gap-1 bg-slate-200 hover:bg-slate-300 text-slate-700 px-3 py-2 rounded-lg text-sm"
+//                                             className="inline-flex items-center gap-1 bg-slate-200 hover:bg-slate-300 text-slate-700 px-2 py-1.5 rounded text-xs font-medium"
 //                                             onClick={() => setModifying({ id: log._id, dateKey })}
 //                                           >
-//                                             <Pencil className="w-4 h-4" />
-//                                             <span>Modify</span>
+//                                             <Pencil className="w-3 h-3" />
 //                                           </button>
 //                                         )}
 //                                       </>
@@ -1417,6 +1396,8 @@
 //   return ref;
 // }
 
+
+
 import React, { useState, useEffect, useMemo, useRef } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { jwtDecode } from "jwt-decode";
@@ -1440,6 +1421,30 @@ import {
 
 /* =================== CONFIG =================== */
 const API_BASE_URL = "http://localhost:5000";
+
+// Team colors mapping
+const TEAM_COLORS = {
+  Editorial_Maths: "bg-blue-100 border-blue-300 text-blue-800",
+  Editorial_Science: "bg-green-100 border-green-300 text-green-800",
+  Editorial_University: "bg-purple-100 border-purple-300 text-purple-800",
+  Editorial_English: "bg-red-100 border-red-300 text-red-800",
+  Editorial_SST: "bg-orange-100 border-orange-300 text-orange-800",
+  "Editorial_Eco&Com": "bg-teal-100 border-teal-300 text-teal-800",
+  DTP_Raj: "bg-pink-100 border-pink-300 text-pink-800",
+  DTP_Naveen: "bg-indigo-100 border-indigo-300 text-indigo-800",
+  DTP_Rimpi: "bg-cyan-100 border-cyan-300 text-cyan-800",
+  DTP_Suman: "bg-amber-100 border-amber-300 text-amber-800",
+  Digital_Marketing: "bg-lime-100 border-lime-300 text-lime-800",
+  CSMA_Maths: "bg-emerald-100 border-emerald-300 text-emerald-800",
+  CSMA_Science: "bg-violet-100 border-violet-300 text-violet-800",
+  CSMA_Intern: "bg-fuchsia-100 border-fuchsia-300 text-fuchsia-800",
+  Animation_Maths: "bg-rose-100 border-rose-300 text-rose-800",
+  InternScience: "bg-sky-100 border-sky-300 text-sky-800",
+  "University&_Titles": "bg-stone-100 border-stone-300 text-stone-800",
+};
+
+// All available teams
+const ALL_TEAMS = Object.keys(TEAM_COLORS);
 
 /* =================== MAIN PAGE =================== */
 export default function AdminApproveWorklogs() {
@@ -1497,15 +1502,15 @@ export default function AdminApproveWorklogs() {
   const [showEmpDropdown, setShowEmpDropdown] = useState(false);
   const empRef = useOutclick(() => setShowEmpDropdown(false));
 
-  // Filters: dates
+  // Filters: dates (using SPOC calendar)
   const todayISO = stripToISO(new Date());
   const [datePopoverOpen, setDatePopoverOpen] = useState(false);
-  const [rangeMode, setRangeMode] = useState(true);
   const [tempStart, setTempStart] = useState(isoNDaysAgo(2));
   const [tempEnd, setTempEnd] = useState(todayISO);
   const [activeMonth, setActiveMonth] = useState(() => toMonthKey(new Date(tempEnd)));
   const [startISO, setStartISO] = useState(isoNDaysAgo(2));
   const [endISO, setEndISO] = useState(todayISO);
+  const [isSelectingRange, setIsSelectingRange] = useState(false);
   const popRef = useOutclick(() => setDatePopoverOpen(false));
 
   // Filters: audit statuses
@@ -1520,6 +1525,17 @@ export default function AdminApproveWorklogs() {
   const [showStatusDropdown, setShowStatusDropdown] = useState(false);
   const statusRef = useOutclick(() => setShowStatusDropdown(false));
   const [selectedAuditStatuses, setSelectedAuditStatuses] = useState([...ALL_STATUSES]);
+
+  // Filters: work modes (new)
+  const [showWorkModeDropdown, setShowWorkModeDropdown] = useState(false);
+  const workModeRef = useOutclick(() => setShowWorkModeDropdown(false));
+  const [selectedWorkModes, setSelectedWorkModes] = useState([]);
+  const ALL_WORK_MODES = ["In Office", "WFH", "On Duty", "Half Day", "OT Home", "OT Office", "Night", "Leave"];
+
+  // Filters: teams (new)
+  const [showTeamDropdown, setShowTeamDropdown] = useState(false);
+  const teamRef = useOutclick(() => setShowTeamDropdown(false));
+  const [selectedTeams, setSelectedTeams] = useState([]);
 
   // Edit mode
   const [modifying, setModifying] = useState(null);
@@ -1540,7 +1556,7 @@ export default function AdminApproveWorklogs() {
   useEffect(() => {
     if (!user) return;
     fetchWorklogs();
-  }, [user, startISO, endISO, selectedEmployees, selectedAuditStatuses]);
+  }, [user, startISO, endISO, selectedEmployees, selectedAuditStatuses, selectedWorkModes, selectedTeams]);
 
   const fetchWorklogs = async () => {
     try {
@@ -1559,6 +1575,8 @@ export default function AdminApproveWorklogs() {
           endDate: endISO,
           employees: selectedEmployees.length > 0 ? selectedEmployees : undefined,
           auditStatus: selectedAuditStatuses.length === ALL_STATUSES.length ? undefined : selectedAuditStatuses,
+          workModes: selectedWorkModes.length > 0 ? selectedWorkModes : undefined,
+          teams: selectedTeams.length > 0 ? selectedTeams : undefined,
         }),
       });
 
@@ -1597,17 +1615,27 @@ export default function AdminApproveWorklogs() {
     return new Date() <= deadline;
   };
 
-  const groupByEmployee = (items) => {
-    const byEmp = {};
+  // Group by team first, then by employee
+  const groupByTeamAndEmployee = (items) => {
+    const byTeam = {};
     for (const row of items) {
-      if (!byEmp[row.employeeName]) byEmp[row.employeeName] = [];
-      byEmp[row.employeeName].push(row);
+      const team = row.team || "Unknown";
+      if (!byTeam[team]) byTeam[team] = {};
+      if (!byTeam[team][row.employeeName]) byTeam[team][row.employeeName] = [];
+      byTeam[team][row.employeeName].push(row);
     }
-    return Object.fromEntries(
-      Object.keys(byEmp)
-        .sort((a, b) => a.localeCompare(b))
-        .map((k) => [k, byEmp[k]])
-    );
+
+    // Sort teams and employees
+    const sortedTeams = {};
+    Object.keys(byTeam).sort().forEach(team => {
+      sortedTeams[team] = Object.fromEntries(
+        Object.keys(byTeam[team])
+          .sort((a, b) => a.localeCompare(b))
+          .map(emp => [emp, byTeam[team][emp]])
+      );
+    });
+
+    return sortedTeams;
   };
 
   // Calculate total hours for an employee on a specific date
@@ -1679,6 +1707,11 @@ export default function AdminApproveWorklogs() {
         <Clock className="w-4 h-4" /> Pending
       </span>
     );
+  };
+
+  // Get team color class
+  const getTeamColorClass = (team) => {
+    return TEAM_COLORS[team] || "bg-gray-100 border-gray-300 text-gray-800";
   };
 
   /* --- Updates --- */
@@ -1781,28 +1814,54 @@ export default function AdminApproveWorklogs() {
     }
   };
 
-  /* --- Date filter helpers --- */
-  const applyTempDate = () => {
-    if (rangeMode) {
-      const s = tempStart <= tempEnd ? tempStart : tempEnd;
-      const e = tempEnd >= tempStart ? tempEnd : tempStart;
-      setStartISO(s);
-      setEndISO(e);
+  /* --- Date filter helpers (SPOC style) --- */
+  const handleCalendarDateSelect = (iso) => {
+    if (iso > todayISO) return;
+
+    if (!tempStart || (tempStart && tempEnd && !isSelectingRange)) {
+      // Start new selection
+      setTempStart(iso);
+      setTempEnd(null);
+      setIsSelectingRange(true);
+    } else if (tempStart && !tempEnd && isSelectingRange) {
+      // Complete the range and auto-apply
+      let finalStart = tempStart;
+      let finalEnd = iso;
+
+      if (iso >= tempStart) {
+        finalEnd = iso;
+      } else {
+        finalEnd = tempStart;
+        finalStart = iso;
+      }
+
+      setTempStart(finalStart);
+      setTempEnd(finalEnd);
+      setIsSelectingRange(false);
+
+      // Auto-apply the selection
+      setStartISO(finalStart);
+      setEndISO(finalEnd);
+      setDatePopoverOpen(false);
     } else {
-      setStartISO(tempEnd);
-      setEndISO(tempEnd);
+      // Start new selection
+      setTempStart(iso);
+      setTempEnd(null);
+      setIsSelectingRange(true);
     }
-    setDatePopoverOpen(false);
   };
 
-  const quickApply = (days) => {
-    setRangeMode(true);
-    const s = isoNDaysAgo(days - 1);
-    setTempStart(s);
-    setTempEnd(todayISO);
-    setActiveMonth(toMonthKey(new Date(todayISO)));
-    setStartISO(s);
-    setEndISO(todayISO);
+  const handleQuickDateSelect = (days) => {
+    const endDate = todayISO;
+    const startDate = days === 1 ? todayISO : isoNDaysAgo(days - 1);
+
+    // Auto-apply for quick selections
+    setStartISO(startDate);
+    setEndISO(endDate);
+    setTempStart(startDate);
+    setTempEnd(endDate);
+    setIsSelectingRange(false);
+    setDatePopoverOpen(false);
   };
 
   const labelForFilter = () =>
@@ -1896,9 +1955,9 @@ export default function AdminApproveWorklogs() {
             </div>
 
             <div className="space-y-4 lg:space-y-0 lg:flex lg:flex-wrap lg:items-end lg:gap-6">
-              {/* Date Picker */}
+              {/* Date Picker (SPOC style) */}
               <div className="w-full lg:min-w-[280px] lg:w-auto relative" ref={popRef}>
-                <label className="block text-xs lg:text-sm font-medium text-slate-700 mb-1">Date(s)</label>
+                <label className="block text-xs lg:text-sm font-medium text-slate-700 mb-1">Date Range</label>
                 <button
                   onClick={() => setDatePopoverOpen((o) => !o)}
                   className="w-full border rounded-lg px-3 py-2 flex items-center justify-between hover:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-300 bg-white shadow-sm text-slate-700"
@@ -1907,89 +1966,112 @@ export default function AdminApproveWorklogs() {
                     <CalendarIcon className="w-4 h-4 text-indigo-600 flex-shrink-0" />
                     <span className="text-xs lg:text-sm font-medium truncate">{labelForFilter()}</span>
                   </span>
-                  <span className="text-xs text-slate-500 ml-2 flex-shrink-0">{rangeMode ? "Range" : "Single"}</span>
+                  <span className="text-xs text-slate-500 ml-2 flex-shrink-0">Range</span>
                 </button>
 
                 {datePopoverOpen && (
-                  <div className="absolute z-50 mt-2 w-[340px] right-0 lg:right-auto lg:left-0 rounded-xl border bg-white shadow-xl">
-                    <div className="px-3 py-2 border-b flex items-center justify-between">
-                      <div className="flex items-center gap-2">
+                  <div className="absolute z-50 mt-1 left-0 top-full bg-white border rounded-xl shadow-2xl w-full max-w-xs">
+                    <div className="px-3 py-2 border-b flex items-center justify-between bg-slate-50 rounded-t-xl">
+                      <div className="text-sm font-semibold text-slate-800">Select Date Range</div>
+                      <button
+                        onClick={() => setDatePopoverOpen(false)}
+                        className="p-1 hover:bg-slate-200 rounded-md transition-colors"
+                        aria-label="Close calendar"
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
+                    </div>
+
+                    {/* Quick Select Buttons */}
+                    <div className="px-2 py-1 bg-blue-50 border-b">
+                      <div className="text-xs font-medium text-slate-700 mb-1">Quick Select:</div>
+                      <div className="grid grid-cols-2 gap-1">
                         <button
-                          onClick={() => setRangeMode(false)}
-                          className={`text-xs px-2 py-1 rounded ${!rangeMode ? "bg-slate-900 text-white" : "bg-slate-100"}`}
+                          onClick={() => handleQuickDateSelect(1)}
+                          className="text-xs px-1 py-0.5 rounded border hover:bg-slate-50 transition-colors font-medium text-center"
                         >
-                          Single Day
+                          Today
                         </button>
                         <button
-                          onClick={() => setRangeMode(true)}
-                          className={`text-xs px-2 py-1 rounded ${rangeMode ? "bg-slate-900 text-white" : "bg-slate-100"}`}
+                          onClick={() => handleQuickDateSelect(3)}
+                          className="text-xs px-1 py-0.5 rounded border hover:bg-slate-50 transition-colors font-medium text-center"
                         >
-                          Range
+                          Past 3 Days
+                        </button>
+                        <button
+                          onClick={() => handleQuickDateSelect(7)}
+                          className="text-xs px-1 py-0.5 rounded border hover:bg-slate-50 transition-colors font-medium text-center"
+                        >
+                          Past 1 Week
+                        </button>
+                        <button
+                          onClick={() => handleQuickDateSelect(30)}
+                          className="text-xs px-1 py-0.5 rounded border hover:bg-slate-50 transition-colors font-medium text-center"
+                        >
+                          Past 1 Month
                         </button>
                       </div>
-                      <div className="flex items-center gap-1">
+                    </div>
+
+                    <div className="p-2">
+                      <div className="mb-1 text-xs text-slate-600 bg-amber-50 p-1 rounded border border-amber-200">
+                        <strong>How to select:</strong> Click start date, then end date.
+                        {isSelectingRange && tempStart && (
+                          <div className="mt-0.5 font-medium text-amber-700">
+                            Starting from {formatISOToHuman(tempStart)}
+                          </div>
+                        )}
+                        {tempStart && tempEnd && !isSelectingRange && (
+                          <div className="mt-0.5 font-medium text-green-700">
+                            Selected: {formatISOToHuman(tempStart)} to {formatISOToHuman(tempEnd)}
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Month navigation */}
+                      <div className="flex items-center justify-between mb-1">
                         <button
                           onClick={() => setActiveMonth(toMonthKey(addMonths(parseMonthKey(activeMonth), -1)))}
-                          className="p-1 hover:bg-slate-100 rounded"
+                          className="p-0.5 hover:bg-slate-200 rounded transition-colors"
+                          aria-label="Previous month"
                         >
-                          <ChevronLeft className="w-4 h-4" />
+                          <ChevronLeft className="w-3 h-3" />
                         </button>
-                        <div className="text-xs font-medium w-[130px] text-center">{formatMonthKey(activeMonth)}</div>
+                        <div className="text-xs font-medium min-w-[100px] text-center">{formatMonthKey(activeMonth)}</div>
                         <button
                           onClick={() => {
                             const nextM = addMonths(parseMonthKey(activeMonth), 1);
                             if (isMonthFullyInFuture(nextM)) return;
                             setActiveMonth(toMonthKey(nextM));
                           }}
-                          className="p-1 hover:bg-slate-100 rounded disabled:opacity-40"
+                          className="p-0.5 hover:bg-slate-200 rounded transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                          aria-label="Next month"
                           disabled={isMonthFullyInFuture(addMonths(parseMonthKey(activeMonth), 1))}
                         >
-                          <ChevronRight className="w-4 h-4" />
+                          <ChevronRight className="w-3 h-3" />
                         </button>
                       </div>
+
+                      {/* Calendar grid */}
+                      <CalendarGrid
+                        monthKey={activeMonth}
+                        tempStart={tempStart}
+                        tempEnd={tempEnd}
+                        onPick={handleCalendarDateSelect}
+                        isSelectingRange={isSelectingRange}
+                      />
                     </div>
 
-                    <CalendarGrid
-                      monthKey={activeMonth}
-                      rangeMode={rangeMode}
-                      tempStart={tempStart}
-                      tempEnd={tempEnd}
-                      onPick={(iso) => {
-                        if (!rangeMode) {
-                          if (iso > todayISO) return;
-                          setTempEnd(iso);
-                          return;
-                        }
-                        if (iso > todayISO) return;
-                        if (!tempStart || (tempStart && tempEnd && tempStart <= tempEnd)) {
-                          setTempStart(iso);
-                          setTempEnd(iso);
-                        } else {
-                          if (iso < tempStart) setTempStart(iso);
-                          else setTempEnd(iso);
-                        }
-                      }}
-                    />
-
-                    <div className="px-3 py-2 border-t flex flex-wrap items-center gap-2">
-                      <button onClick={() => quickApply(3)} className="text-xs px-2 py-1 rounded bg-slate-100 hover:bg-slate-200">Past 3 Days</button>
-                      <button onClick={() => quickApply(7)} className="text-xs px-2 py-1 rounded bg-slate-100 hover:bg-slate-200">Past 7 Days</button>
-                      <button onClick={() => quickApply(15)} className="text-xs px-2 py-1 rounded bg-slate-100 hover:bg-slate-200">Past 15 Days</button>
-                      <button onClick={() => quickApply(30)} className="text-xs px-2 py-1 rounded bg-slate-100 hover:bg-slate-200">Past 30 Days</button>
-                      <button
-                        onClick={() => {
-                          setRangeMode(false);
-                          setTempEnd(todayISO);
-                          setActiveMonth(toMonthKey(new Date(todayISO)));
-                          setStartISO(todayISO);
-                          setEndISO(todayISO);
-                          setDatePopoverOpen(false);
-                        }}
-                        className="text-xs px-2 py-1 rounded bg-slate-900 text-white ml-auto"
-                      >
-                        Today
-                      </button>
-                      <button onClick={applyTempDate} className="text-xs px-2 py-1 rounded bg-indigo-600 text-white">Apply</button>
+                    <div className="px-2 py-1 border-t bg-slate-50 rounded-b-xl">
+                      <div className="text-xs text-slate-600">
+                        {tempStart && tempEnd ? (
+                          <span>Selected: <span className="font-medium">{tempStart === tempEnd ? formatISOToHuman(tempStart) : `${formatISOToHuman(tempStart)} – ${formatISOToHuman(tempEnd)}`}</span></span>
+                        ) : tempStart ? (
+                          <span>Start: <span className="font-medium">{formatISOToHuman(tempStart)}</span></span>
+                        ) : (
+                          <span>Click a date to start</span>
+                        )}
+                      </div>
                     </div>
                   </div>
                 )}
@@ -2018,9 +2100,15 @@ export default function AdminApproveWorklogs() {
 
                 {showEmpDropdown && (
                   <div className="absolute z-50 mt-1 w-full bg-white border rounded-lg shadow-lg max-h-60 overflow-y-auto">
-                    <div className="px-3 py-2 text-xs text-slate-500 border-b bg-slate-50 flex items-center gap-2">
-                      <UsersIcon className="w-3.5 h-3.5" />
-                      Select employees
+                    <div className="px-3 py-2 text-xs text-slate-500 border-b bg-slate-50 flex items-center justify-between">
+                      <span className="flex items-center gap-2">
+                        <UsersIcon className="w-3.5 h-3.5" />
+                        Select employees
+                      </span>
+                      <div className="flex items-center gap-2">
+                        <button onClick={() => setSelectedEmployees(employees.map(emp => emp.name))} className="text-[11px] px-2 py-0.5 rounded bg-slate-100 hover:bg-slate-200">Select All</button>
+                        <button onClick={() => setSelectedEmployees([])} className="text-[11px] px-2 py-0.5 rounded bg-slate-100 hover:bg-slate-200">Clear</button>
+                      </div>
                     </div>
                     {employees.map((emp) => (
                       <label key={emp._id || emp.name} className="flex items-center px-3 py-2 hover:bg-slate-50 cursor-pointer text-xs lg:text-sm">
@@ -2096,18 +2184,123 @@ export default function AdminApproveWorklogs() {
                 )}
               </div>
 
+              {/* Work Mode multi-select (new) */}
+              <div ref={workModeRef} className="relative w-full lg:min-w-[260px] lg:w-auto">
+                <label className="block text-xs lg:text-sm font-medium text-slate-700 mb-1">Work Mode</label>
+                <button
+                  onClick={() => setShowWorkModeDropdown((o) => !o)}
+                  className="w-full border rounded-lg px-3 py-2 text-xs lg:text-sm text-left flex justify-between items-center hover:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-300 bg-white shadow-sm text-slate-700"
+                >
+                  <span className="flex flex-wrap gap-1 min-w-0 flex-1">
+                    {selectedWorkModes.length === 0 ? (
+                      <span className="text-slate-600">All work modes</span>
+                    ) : (
+                      selectedWorkModes.map((mode) => (
+                        <span key={mode} className="bg-purple-100 text-purple-700 px-2 py-0.5 rounded-full text-xs font-medium">
+                          {mode}
+                        </span>
+                      ))
+                    )}
+                  </span>
+                  <ChevronDown className={`w-4 h-4 ml-2 transition-transform flex-shrink-0 ${showWorkModeDropdown ? "rotate-180" : "rotate-0"}`} />
+                </button>
+
+                {showWorkModeDropdown && (
+                  <div className="absolute z-50 mt-1 w-full bg-white border rounded-lg shadow-lg max-h-60 overflow-y-auto">
+                    <div className="px-3 py-2 text-xs text-slate-500 border-b bg-slate-50 flex items-center justify-between">
+                      <span className="flex items-center gap-2">
+                        <UsersIcon className="w-3.5 h-3.5" />
+                        Select work modes
+                      </span>
+                      <div className="flex items-center gap-2">
+                        <button onClick={() => setSelectedWorkModes([...ALL_WORK_MODES])} className="text-[11px] px-2 py-0.5 rounded bg-slate-100 hover:bg-slate-200">Select All</button>
+                        <button onClick={() => setSelectedWorkModes([])} className="text-[11px] px-2 py-0.5 rounded bg-slate-100 hover:bg-slate-200">Clear</button>
+                      </div>
+                    </div>
+                    {ALL_WORK_MODES.map((mode) => (
+                      <label key={mode} className="flex items-center px-3 py-2 hover:bg-slate-50 cursor-pointer text-xs lg:text-sm">
+                        <input
+                          type="checkbox"
+                          value={mode}
+                          checked={selectedWorkModes.includes(mode)}
+                          onChange={() =>
+                            setSelectedWorkModes((prev) =>
+                              prev.includes(mode) ? prev.filter((m) => m !== mode) : [...prev, mode]
+                            )
+                          }
+                          className="mr-2"
+                        />
+                        {mode}
+                      </label>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Teams multi-select (new) */}
+              <div ref={teamRef} className="relative w-full lg:min-w-[260px] lg:w-auto">
+                <label className="block text-xs lg:text-sm font-medium text-slate-700 mb-1">Teams</label>
+                <button
+                  onClick={() => setShowTeamDropdown((o) => !o)}
+                  className="w-full border rounded-lg px-3 py-2 text-xs lg:text-sm text-left flex justify-between items-center hover:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-300 bg-white shadow-sm text-slate-700"
+                >
+                  <span className="flex flex-wrap gap-1 min-w-0 flex-1">
+                    {selectedTeams.length === 0 ? (
+                      <span className="text-slate-600">All teams</span>
+                    ) : (
+                      selectedTeams.map((team) => (
+                        <span key={team} className={`px-2 py-0.5 rounded-full text-xs font-medium ${getTeamColorClass(team)}`}>
+                          {team}
+                        </span>
+                      ))
+                    )}
+                  </span>
+                  <ChevronDown className={`w-4 h-4 ml-2 transition-transform flex-shrink-0 ${showTeamDropdown ? "rotate-180" : "rotate-0"}`} />
+                </button>
+
+                {showTeamDropdown && (
+                  <div className="absolute z-50 mt-1 w-full bg-white border rounded-lg shadow-lg max-h-60 overflow-y-auto">
+                    <div className="px-3 py-2 text-xs text-slate-500 border-b bg-slate-50 flex items-center justify-between">
+                      <span className="flex items-center gap-2">
+                        <UsersIcon className="w-3.5 h-3.5" />
+                        Select teams
+                      </span>
+                      <div className="flex items-center gap-2">
+                        <button onClick={() => setSelectedTeams([...ALL_TEAMS])} className="text-[11px] px-2 py-0.5 rounded bg-slate-100 hover:bg-slate-200">Select All</button>
+                        <button onClick={() => setSelectedTeams([])} className="text-[11px] px-2 py-0.5 rounded bg-slate-100 hover:bg-slate-200">Clear</button>
+                      </div>
+                    </div>
+                    {ALL_TEAMS.map((team) => (
+                      <label key={team} className="flex items-center px-3 py-2 hover:bg-slate-50 cursor-pointer text-xs lg:text-sm">
+                        <input
+                          type="checkbox"
+                          value={team}
+                          checked={selectedTeams.includes(team)}
+                          onChange={() =>
+                            setSelectedTeams((prev) =>
+                              prev.includes(team) ? prev.filter((t) => t !== team) : [...prev, team]
+                            )
+                          }
+                          className="mr-2"
+                        />
+                        <span className={`inline-block w-3 h-3 rounded-full mr-2 ${TEAM_COLORS[team]?.split(' ')[0]}`}></span>
+                        {team}
+                      </label>
+                    ))}
+                  </div>
+                )}
+              </div>
+
               {/* Summary info */}
               <div className="w-full lg:w-auto text-xs text-slate-700 lg:ml-auto">
-                <div className="flex flex-col space-y-2 lg:space-y-1 lg:items-end">
+                <div className="flex flex-col space-y-2 lg:space-y-0 lg:flex-row lg:items-center lg:gap-4">
                   <div className="inline-flex items-center gap-2 px-2 py-1 rounded bg-amber-100 text-amber-800">
                     <Clock className="w-3.5 h-3.5 flex-shrink-0" />
                     <span className="font-medium">{actionableRePendingCount} Re-Pending entries</span>
-                    <span className="opacity-80 hidden lg:inline">Admin can override at any time</span>
                   </div>
                   <div className="inline-flex items-center gap-2 px-2 py-1 rounded bg-yellow-100 text-yellow-800">
                     <Clock className="w-3.5 h-3.5 flex-shrink-0" />
                     <span className="font-medium">{actionablePendingCount} Pending entries</span>
-                    <span className="opacity-80 hidden lg:inline">Admin can override at any time</span>
                   </div>
                 </div>
               </div>
@@ -2142,18 +2335,22 @@ export default function AdminApproveWorklogs() {
             </div>
           )}
 
-          {/* By Date */}
+          {/* By Date - Grouped by Team then Employee */}
           {!loading &&
             !error &&
             sortedDateKeys.map((dateKey) => {
               const allRows = worklogsByDate[dateKey] || [];
               const filteredRows =
-                selectedAuditStatuses.length === 0
-                  ? []
-                  : allRows.filter((r) => selectedAuditStatuses.includes(r.auditStatus));
+                selectedAuditStatuses.length === 0 && selectedWorkModes.length === 0 && selectedTeams.length === 0
+                  ? allRows
+                  : allRows.filter((r) =>
+                    (selectedAuditStatuses.length === 0 || selectedAuditStatuses.includes(r.auditStatus)) &&
+                    (selectedWorkModes.length === 0 || selectedWorkModes.includes(r.workMode)) &&
+                    (selectedTeams.length === 0 || selectedTeams.includes(r.team))
+                  );
               if (filteredRows.length === 0) return null;
 
-              const grouped = groupByEmployee(filteredRows);
+              const groupedByTeam = groupByTeamAndEmployee(filteredRows);
 
               return (
                 <section key={dateKey} className="bg-white rounded-xl lg:rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
@@ -2167,75 +2364,272 @@ export default function AdminApproveWorklogs() {
                     </h2>
                   </div>
 
-                  {/* Desktop grouped tables */}
+                  {/* Desktop grouped tables by Team > Employee */}
                   <div className="hidden lg:block">
-                    {Object.keys(grouped).map((emp) => {
-                      const rows = grouped[emp];
-                      const pendingCount = rows.filter((r) => r.auditStatus === "Pending").length;
-                      const rePendingCount = rows.filter((r) => r.auditStatus === "Re-Pending").length;
-                      const totalHours = calculateTotalHours(rows);
-                      const hoursBgColor = getHoursBgColor(totalHours);
-                      const key = `${dateKey}|${emp}`;
-                      const canApproveAll = pendingCount > 0;
+                    {Object.keys(groupedByTeam).map((team) => (
+                      <div key={team} className="border-b last:border-b-0">
+                        {/* Team Header */}
+                        <div className={`px-4 py-3 ${getTeamColorClass(team)}`}>
+                          <h3 className="text-sm font-semibold">{team}</h3>
+                        </div>
 
-                      return (
-                        <div key={emp} className="p-4">
-                          <div className="flex items-center justify-between mb-3">
-                            <div className="flex items-center gap-3">
-                              <div className="w-8 h-8 rounded-full bg-indigo-100 text-indigo-700 flex items-center justify-center font-semibold">
-                                {emp.split(" ").map((x) => x[0] || "").join("").slice(0, 2).toUpperCase()}
-                              </div>
-                              <div>
-                                <div className="text-sm font-semibold text-slate-900">{emp}</div>
-                                <div className="text-xs text-slate-500">
-                                  {pendingCount} Pending , {rePendingCount} Re-Pending
+                        {/* Employees in this team */}
+                        {Object.keys(groupedByTeam[team]).map((emp) => {
+                          const rows = groupedByTeam[team][emp];
+                          const pendingCount = rows.filter((r) => r.auditStatus === "Pending").length;
+                          const rePendingCount = rows.filter((r) => r.auditStatus === "Re-Pending").length;
+                          const totalHours = calculateTotalHours(rows);
+                          const hoursBgColor = getHoursBgColor(totalHours);
+                          const key = `${dateKey}|${emp}`;
+                          const canApproveAll = pendingCount > 0;
+
+                          return (
+                            <div key={emp} className="p-4">
+                              <div className="flex items-center justify-between mb-3">
+                                <div className="flex items-center gap-3">
+                                  <div className="w-8 h-8 rounded-full bg-indigo-100 text-indigo-700 flex items-center justify-center font-semibold">
+                                    {emp.split(" ").map((x) => x[0] || "").join("").slice(0, 2).toUpperCase()}
+                                  </div>
+                                  <div>
+                                    <div className="text-sm font-semibold text-slate-900">{emp}</div>
+                                    <div className="text-xs text-slate-500">
+                                      {pendingCount} Pending , {rePendingCount} Re-Pending
+                                    </div>
+                                  </div>
+                                  <div className={`ml-4 px-3 py-1 rounded-full ${hoursBgColor} text-xs font-medium`}>
+                                    Total Hours: {totalHours.toFixed(1)}
+                                  </div>
                                 </div>
+
+                                <button
+                                  disabled={!canApproveAll || !!bulkUpdating[key]}
+                                  onClick={() => handleApproveAll(dateKey, emp)}
+                                  className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-md text-xs font-medium ${canApproveAll ? "bg-emerald-600 text-white hover:bg-emerald-700" : "bg-slate-200 text-slate-500 cursor-not-allowed"
+                                    }`}
+                                >
+                                  {bulkUpdating[key] ? (
+                                    <span className="flex items-center gap-2">
+                                      <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-white" />
+                                      Approving…
+                                    </span>
+                                  ) : (
+                                    <>
+                                      <Check className="w-4 h-4" />
+                                      Approve All (Pending)
+                                    </>
+                                  )}
+                                </button>
                               </div>
-                              <div className={`ml-4 px-3 py-1 rounded-full ${hoursBgColor} text-xs font-medium`}>
-                                Total Hours: {totalHours.toFixed(1)}
+
+                              <div className="overflow-x-auto rounded-xl border border-slate-200">
+                                <table className="w-full text-sm border-collapse">
+                                  <thead>
+                                    <tr className="bg-slate-100 text-slate-700">
+                                      <Th>Work Mode</Th>
+                                      <Th>Project</Th>
+                                      <Th>Task</Th>
+                                      <Th>Book Element</Th>
+                                      <Th>Chapter No</Th>
+                                      <Th>Hours Spent</Th>
+                                      <Th>No. of Units</Th>
+                                      <Th>Unit Type</Th>
+                                      <Th>Status</Th>
+                                      <Th>Due On</Th>
+                                      <Th>Details</Th>
+                                      <Th>Audit Status</Th>
+                                      <Th>Action</Th>
+                                    </tr>
+                                  </thead>
+                                  <tbody>
+                                    {rows.map((log) => {
+                                      const isPending = log.auditStatus === "Pending";
+                                      const isRePending = log.auditStatus === "Re-Pending";
+                                      const isApproved = log.auditStatus === "Approved";
+                                      const isRejected = log.auditStatus === "Rejected";
+                                      const isReApproved = log.auditStatus === "Re-Approved";
+                                      const isReRejected = log.auditStatus === "Re-Rejected";
+
+                                      return (
+                                        <tr key={log._id} className={`${rowClassForAudit(log.auditStatus)} border-t`}>
+                                          <Td>{log.workMode}</Td>
+                                          <Td className="max-w-[260px] truncate" title={log.projectName}>
+                                            {log.projectName}
+                                          </Td>
+                                          <Td>{log.task}</Td>
+                                          <Td>{log.bookElement}</Td>
+                                          <Td>{log.chapterNo}</Td>
+                                          <Td>{log.hoursSpent}</Td>
+                                          <Td>{log.noOfUnits}</Td>
+                                          <Td>{log.unitType}</Td>
+                                          <Td>{log.status}</Td>
+                                          <Td>{formatISOToHuman(log.dueOn)}</Td>
+                                          <Td className="max-w-[220px] whitespace-normal break-words">
+                                            {log.details || "-"}
+                                          </Td>
+                                          <Td>
+                                            <AuditBadge status={log.auditStatus} />
+                                          </Td>
+                                          <Td>
+                                            {isPending ? (
+                                              <div className="flex gap-2">
+                                                <button
+                                                  className="inline-flex items-center justify-center bg-emerald-600 hover:bg-emerald-700 text-white px-2.5 py-1.5 rounded-md disabled:opacity-50"
+                                                  onClick={() => handleApprove(log._id, dateKey)}
+                                                  disabled={!!updating[log._id]}
+                                                >
+                                                  {updating[log._id] ? (
+                                                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white" />
+                                                  ) : (
+                                                    <Check size={16} />
+                                                  )}
+                                                </button>
+                                                <button
+                                                  className="inline-flex items-center justify-center bg-rose-600 hover:bg-rose-700 text-white px-2.5 py-1.5 rounded-md disabled:opacity-50"
+                                                  onClick={() => handleReject(log._id, dateKey)}
+                                                  disabled={!!updating[log._id]}
+                                                >
+                                                  {updating[log._id] ? (
+                                                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white" />
+                                                  ) : (
+                                                    <X size={16} />
+                                                  )}
+                                                </button>
+                                              </div>
+                                            ) : isRePending ? (
+                                              <div className="flex gap-2">
+                                                <button
+                                                  className="inline-flex items-center justify-center bg-emerald-700 hover:bg-emerald-800 text-white px-2.5 py-1.5 rounded-md disabled:opacity-50"
+                                                  onClick={() => handleReApprove(log._id, dateKey)}
+                                                  disabled={!!updating[log._id]}
+                                                >
+                                                  {updating[log._id] ? (
+                                                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white" />
+                                                  ) : (
+                                                    <Check size={16} />
+                                                  )}
+                                                </button>
+                                                <button
+                                                  className="inline-flex items-center justify-center bg-rose-700 hover:bg-rose-800 text-white px-2.5 py-1.5 rounded-md disabled:opacity-50"
+                                                  onClick={() => handleReReject(log._id, dateKey)}
+                                                  disabled={!!updating[log._id]}
+                                                >
+                                                  {updating[log._id] ? (
+                                                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white" />
+                                                  ) : (
+                                                    <X size={16} />
+                                                  )}
+                                                </button>
+                                              </div>
+                                            ) : (
+                                              <>
+                                                {modifying?.id === log._id ? (
+                                                  <div className="flex gap-2">
+                                                    {(isApproved || isReApproved) && (
+                                                      <button
+                                                        onClick={() => handleChangeToReject(log._id, dateKey, log.auditStatus)}
+                                                        className="bg-rose-600 hover:bg-rose-700 text-white px-2 py-1.5 rounded text-xs font-medium"
+                                                        disabled={!!updating[log._id]}
+                                                      >
+                                                        {isReApproved ? "Change to Re-Reject" : "Change to Reject"}
+                                                      </button>
+                                                    )}
+                                                    {(isRejected || isReRejected) && (
+                                                      <button
+                                                        onClick={() => handleChangeToApprove(log._id, dateKey, log.auditStatus)}
+                                                        className="bg-emerald-600 hover:bg-emerald-700 text-white px-2 py-1.5 rounded text-xs font-medium"
+                                                        disabled={!!updating[log._id]}
+                                                      >
+                                                        {isReRejected ? "Change to Re-Approve" : "Change to Approve"}
+                                                      </button>
+                                                    )}
+                                                    <button
+                                                      onClick={() => setModifying(null)}
+                                                      className="bg-gray-200 hover:bg-gray-300 text-slate-700 px-2 py-1.5 rounded text-xs font-medium"
+                                                    >
+                                                      Cancel
+                                                    </button>
+                                                  </div>
+                                                ) : (
+                                                  <button
+                                                    className="inline-flex items-center gap-1 bg-slate-200 hover:bg-slate-300 text-slate-700 px-2 py-1.5 rounded text-xs font-medium"
+                                                    onClick={() => setModifying({ id: log._id, dateKey })}
+                                                  >
+                                                    <Pencil className="w-3 h-3" />
+                                                  </button>
+                                                )}
+                                              </>
+                                            )}
+                                          </Td>
+                                        </tr>
+                                      );
+                                    })}
+                                  </tbody>
+                                </table>
                               </div>
                             </div>
+                          );
+                        })}
+                      </div>
+                    ))}
+                  </div>
 
-                            <button
-                              disabled={!canApproveAll || !!bulkUpdating[key]}
-                              onClick={() => handleApproveAll(dateKey, emp)}
-                              className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-md text-xs font-medium ${canApproveAll ? "bg-emerald-600 text-white hover:bg-emerald-700" : "bg-slate-200 text-slate-500 cursor-not-allowed"
-                                }`}
-                            >
-                              {bulkUpdating[key] ? (
-                                <span className="flex items-center gap-2">
-                                  <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-white" />
-                                  Approving…
-                                </span>
-                              ) : (
-                                <>
-                                  <Check className="w-4 h-4" />
-                                  Approve All (Pending)
-                                </>
-                              )}
-                            </button>
-                          </div>
+                  {/* Mobile grouped cards by Team > Employee */}
+                  <div className="lg:hidden p-3 sm:p-4 space-y-4 sm:space-y-6">
+                    {Object.keys(groupedByTeam).map((team) => (
+                      <div key={team} className="rounded-lg border border-slate-200 overflow-hidden">
+                        {/* Team Header */}
+                        <div className={`px-3 sm:px-4 py-2 ${getTeamColorClass(team)}`}>
+                          <h3 className="text-sm font-semibold">{team}</h3>
+                        </div>
 
-                          <div className="overflow-x-auto rounded-xl border border-slate-200">
-                            <table className="w-full text-sm border-collapse">
-                              <thead>
-                                <tr className="bg-slate-100 text-slate-700">
-                                  <Th>Work Mode</Th>
-                                  <Th>Project</Th>
-                                  <Th>Task</Th>
-                                  <Th>Book Element</Th>
-                                  <Th>Chapter No</Th>
-                                  <Th>Hours Spent</Th>
-                                  <Th>No. of Units</Th>
-                                  <Th>Unit Type</Th>
-                                  <Th>Status</Th>
-                                  <Th>Due On</Th>
-                                  <Th>Details</Th>
-                                  <Th>Audit Status</Th>
-                                  <Th>Action</Th>
-                                </tr>
-                              </thead>
-                              <tbody>
+                        {/* Employees in this team */}
+                        {Object.keys(groupedByTeam[team]).map((emp) => {
+                          const rows = groupedByTeam[team][emp];
+                          const pendingCount = rows.filter((r) => r.auditStatus === "Pending").length;
+                          const rePendingCount = rows.filter((r) => r.auditStatus === "Re-Pending").length;
+                          const totalHours = calculateTotalHours(rows);
+                          const hoursBgColor = getHoursBgColor(totalHours);
+                          const key = `${dateKey}|${emp}`;
+                          const canApproveAll = pendingCount > 0;
+
+                          return (
+                            <div key={emp} className="border-t first:border-t-0">
+                              <div className="flex items-center justify-between px-3 sm:px-4 py-3 bg-slate-50/70">
+                                <div className="flex items-center gap-3 min-w-0 flex-1">
+                                  <div className="w-8 h-8 rounded-full bg-indigo-100 text-indigo-700 flex items-center justify-center font-semibold text-xs flex-shrink-0">
+                                    {emp.split(" ").map((x) => x[0] || "").join("").slice(0, 2).toUpperCase()}
+                                  </div>
+                                  <div className="min-w-0 flex-1">
+                                    <div className="text-sm font-semibold text-slate-900 truncate">{emp}</div>
+                                    <div className="text-xs text-slate-500">
+                                      {pendingCount} pending, {rePendingCount} re-pending
+                                    </div>
+                                    <div className={`inline-block mt-1 px-2 py-0.5 rounded-full ${hoursBgColor} text-xs font-medium`}>
+                                      Total Hours: {totalHours.toFixed(1)}
+                                    </div>
+                                  </div>
+                                </div>
+                                <button
+                                  disabled={!canApproveAll || !!bulkUpdating[key]}
+                                  onClick={() => handleApproveAll(dateKey, emp)}
+                                  className={`inline-flex items-center gap-1 px-2 sm:px-3 py-1.5 rounded-md text-xs font-medium flex-shrink-0 ${canApproveAll ? "bg-emerald-600 text-white hover:bg-emerald-700" : "bg-slate-200 text-slate-500 cursor-not-allowed"
+                                    }`}
+                                >
+                                  {bulkUpdating[key] ? (
+                                    <span className="flex items-center gap-1">
+                                      <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-white" />
+                                      <span className="hidden sm:inline">Approving…</span>
+                                    </span>
+                                  ) : (
+                                    <>
+                                      <Check className="w-3 h-3 sm:w-4 sm:h-4" />
+                                      <span className="hidden sm:inline">Approve All</span>
+                                    </>
+                                  )}
+                                </button>
+                              </div>
+
+                              <div className="divide-y">
                                 {rows.map((log) => {
                                   const isPending = log.auditStatus === "Pending";
                                   const isRePending = log.auditStatus === "Re-Pending";
@@ -2245,76 +2639,96 @@ export default function AdminApproveWorklogs() {
                                   const isReRejected = log.auditStatus === "Re-Rejected";
 
                                   return (
-                                    <tr key={log._id} className={`${rowClassForAudit(log.auditStatus)} border-t`}>
-                                      <Td>{log.workMode}</Td>
-                                      <Td className="max-w-[260px] truncate" title={log.projectName}>
-                                        {log.projectName}
-                                      </Td>
-                                      <Td>{log.task}</Td>
-                                      <Td>{log.bookElement}</Td>
-                                      <Td>{log.chapterNo}</Td>
-                                      <Td>{log.hoursSpent}</Td>
-                                      <Td>{log.noOfUnits}</Td>
-                                      <Td>{log.unitType}</Td>
-                                      <Td>{log.status}</Td>
-                                      <Td>{formatISOToHuman(log.dueOn)}</Td>
-                                      <Td className="max-w-[220px] whitespace-normal break-words">
-                                        {log.details || "-"}
-                                      </Td>
-                                      <Td>
+                                    <article key={log._id} className={`p-3 sm:p-4 ${rowClassForAudit(log.auditStatus)}`}>
+                                      <div className="flex items-start justify-between mb-3">
+                                        <div className="min-w-0 flex-1 pr-3">
+                                          <h3 className="text-sm sm:text-[15px] font-semibold text-slate-900 truncate" title={log.projectName}>
+                                            {log.projectName}
+                                          </h3>
+                                          <p className="text-xs text-slate-500 mt-0.5">
+                                            {log.task} · {log.bookElement} · Ch {log.chapterNo}
+                                          </p>
+                                        </div>
                                         <AuditBadge status={log.auditStatus} />
-                                      </Td>
-                                      <Td>
+                                      </div>
+
+                                      <dl className="grid grid-cols-2 gap-x-3 sm:gap-x-4 gap-y-2 text-xs sm:text-[13px] mb-4">
+                                        <Info label="Work Mode" value={log.workMode} />
+                                        <Info label="Hours" value={log.hoursSpent} />
+                                        <Info label="Units" value={`${log.noOfUnits} ${log.unitType || ""}`} />
+                                        <Info label="Status" value={log.status} />
+                                        <Info label="Due On" value={formatISOToHuman(log.dueOn)} />
+                                        {log.details && (
+                                          <div className="col-span-2">
+                                            <dt className="text-slate-500">Details</dt>
+                                            <dd className="text-slate-800 break-words">{log.details}</dd>
+                                          </div>
+                                        )}
+                                      </dl>
+
+                                      <div className="flex flex-wrap gap-2">
                                         {isPending ? (
-                                          <div className="flex gap-2">
+                                          <>
                                             <button
-                                              className="inline-flex items-center justify-center bg-emerald-600 hover:bg-emerald-700 text-white px-2.5 py-1.5 rounded-md disabled:opacity-50"
+                                              className="inline-flex items-center gap-1 bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-2 rounded-lg text-sm disabled:opacity-50 flex-1 min-w-0"
                                               onClick={() => handleApprove(log._id, dateKey)}
                                               disabled={!!updating[log._id]}
                                             >
                                               {updating[log._id] ? (
                                                 <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white" />
                                               ) : (
-                                                <Check size={16} />
+                                                <>
+                                                  <Check size={16} />
+                                                  <span>Approve</span>
+                                                </>
                                               )}
                                             </button>
                                             <button
-                                              className="inline-flex items-center justify-center bg-rose-600 hover:bg-rose-700 text-white px-2.5 py-1.5 rounded-md disabled:opacity-50"
+                                              className="inline-flex items-center gap-1 bg-rose-600 hover:bg-rose-700 text-white px-3 py-2 rounded-lg text-sm disabled:opacity-50 flex-1 min-w-0"
                                               onClick={() => handleReject(log._id, dateKey)}
                                               disabled={!!updating[log._id]}
                                             >
                                               {updating[log._id] ? (
                                                 <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white" />
                                               ) : (
-                                                <X size={16} />
+                                                <>
+                                                  <X size={16} />
+                                                  <span>Reject</span>
+                                                </>
                                               )}
                                             </button>
-                                          </div>
+                                          </>
                                         ) : isRePending ? (
-                                          <div className="flex gap-2">
+                                          <>
                                             <button
-                                              className="inline-flex items-center justify-center bg-emerald-700 hover:bg-emerald-800 text-white px-2.5 py-1.5 rounded-md disabled:opacity-50"
+                                              className="inline-flex items-center gap-1 bg-emerald-700 hover:bg-emerald-800 text-white px-3 py-2 rounded-lg text-sm disabled:opacity-50 flex-1 min-w-0"
                                               onClick={() => handleReApprove(log._id, dateKey)}
                                               disabled={!!updating[log._id]}
                                             >
                                               {updating[log._id] ? (
                                                 <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white" />
                                               ) : (
-                                                <Check size={16} />
+                                                <>
+                                                  <Check size={16} />
+                                                  <span>Re-Approve</span>
+                                                </>
                                               )}
                                             </button>
                                             <button
-                                              className="inline-flex items-center justify-center bg-rose-700 hover:bg-rose-800 text-white px-2.5 py-1.5 rounded-md disabled:opacity-50"
+                                              className="inline-flex items-center gap-1 bg-rose-700 hover:bg-rose-800 text-white px-3 py-2 rounded-lg text-sm disabled:opacity-50 flex-1 min-w-0"
                                               onClick={() => handleReReject(log._id, dateKey)}
                                               disabled={!!updating[log._id]}
                                             >
                                               {updating[log._id] ? (
                                                 <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white" />
                                               ) : (
-                                                <X size={16} />
+                                                <>
+                                                  <X size={16} />
+                                                  <span>Re-Reject</span>
+                                                </>
                                               )}
                                             </button>
-                                          </div>
+                                          </>
                                         ) : (
                                           <>
                                             {modifying?.id === log._id ? (
@@ -2354,213 +2768,16 @@ export default function AdminApproveWorklogs() {
                                             )}
                                           </>
                                         )}
-                                      </Td>
-                                    </tr>
+                                      </div>
+                                    </article>
                                   );
                                 })}
-                              </tbody>
-                            </table>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-
-                  {/* Mobile grouped cards */}
-                  <div className="lg:hidden p-3 sm:p-4 space-y-4 sm:space-y-6">
-                    {Object.keys(grouped).map((emp) => {
-                      const rows = grouped[emp];
-                      const pendingCount = rows.filter((r) => r.auditStatus === "Pending").length;
-                      const rePendingCount = rows.filter((r) => r.auditStatus === "Re-Pending").length;
-                      const totalHours = calculateTotalHours(rows);
-                      const hoursBgColor = getHoursBgColor(totalHours);
-                      const key = `${dateKey}|${emp}`;
-                      const canApproveAll = pendingCount > 0;
-
-                      return (
-                        <div key={emp} className="rounded-lg border border-slate-200 overflow-hidden">
-                          <div className="flex items-center justify-between px-3 sm:px-4 py-3 bg-slate-50/70">
-                            <div className="flex items-center gap-3 min-w-0 flex-1">
-                              <div className="w-8 h-8 rounded-full bg-indigo-100 text-indigo-700 flex items-center justify-center font-semibold text-xs flex-shrink-0">
-                                {emp.split(" ").map((x) => x[0] || "").join("").slice(0, 2).toUpperCase()}
-                              </div>
-                              <div className="min-w-0 flex-1">
-                                <div className="text-sm font-semibold text-slate-900 truncate">{emp}</div>
-                                <div className="text-xs text-slate-500">
-                                  {pendingCount} pending, {rePendingCount} re-pending
-                                </div>
-                                <div className={`inline-block mt-1 px-2 py-0.5 rounded-full ${hoursBgColor} text-xs font-medium`}>
-                                  Total Hours: {totalHours.toFixed(1)}
-                                </div>
                               </div>
                             </div>
-                            <button
-                              disabled={!canApproveAll || !!bulkUpdating[key]}
-                              onClick={() => handleApproveAll(dateKey, emp)}
-                              className={`inline-flex items-center gap-1 px-2 sm:px-3 py-1.5 rounded-md text-xs font-medium flex-shrink-0 ${canApproveAll ? "bg-emerald-600 text-white hover:bg-emerald-700" : "bg-slate-200 text-slate-500 cursor-not-allowed"
-                                }`}
-                            >
-                              {bulkUpdating[key] ? (
-                                <span className="flex items-center gap-1">
-                                  <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-white" />
-                                  <span className="hidden sm:inline">Approving…</span>
-                                </span>
-                              ) : (
-                                <>
-                                  <Check className="w-3 h-3 sm:w-4 sm:h-4" />
-                                  <span className="hidden sm:inline">Approve All</span>
-                                </>
-                              )}
-                            </button>
-                          </div>
-
-                          <div className="divide-y">
-                            {rows.map((log) => {
-                              const isPending = log.auditStatus === "Pending";
-                              const isRePending = log.auditStatus === "Re-Pending";
-                              const isApproved = log.auditStatus === "Approved";
-                              const isRejected = log.auditStatus === "Rejected";
-                              const isReApproved = log.auditStatus === "Re-Approved";
-                              const isReRejected = log.auditStatus === "Re-Rejected";
-
-                              return (
-                                <article key={log._id} className={`p-3 sm:p-4 ${rowClassForAudit(log.auditStatus)}`}>
-                                  <div className="flex items-start justify-between mb-3">
-                                    <div className="min-w-0 flex-1 pr-3">
-                                      <h3 className="text-sm sm:text-[15px] font-semibold text-slate-900 truncate" title={log.projectName}>
-                                        {log.projectName}
-                                      </h3>
-                                      <p className="text-xs text-slate-500 mt-0.5">
-                                        {log.task} · {log.bookElement} · Ch {log.chapterNo}
-                                      </p>
-                                    </div>
-                                    <AuditBadge status={log.auditStatus} />
-                                  </div>
-
-                                  <dl className="grid grid-cols-2 gap-x-3 sm:gap-x-4 gap-y-2 text-xs sm:text-[13px] mb-4">
-                                    <Info label="Work Mode" value={log.workMode} />
-                                    <Info label="Hours" value={log.hoursSpent} />
-                                    <Info label="Units" value={`${log.noOfUnits} ${log.unitType || ""}`} />
-                                    <Info label="Status" value={log.status} />
-                                    <Info label="Due On" value={formatISOToHuman(log.dueOn)} />
-                                    {log.details && (
-                                      <div className="col-span-2">
-                                        <dt className="text-slate-500">Details</dt>
-                                        <dd className="text-slate-800 break-words">{log.details}</dd>
-                                      </div>
-                                    )}
-                                  </dl>
-
-                                  <div className="flex flex-wrap gap-2">
-                                    {isPending ? (
-                                      <>
-                                        <button
-                                          className="inline-flex items-center gap-1 bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-2 rounded-lg text-sm disabled:opacity-50 flex-1 min-w-0"
-                                          onClick={() => handleApprove(log._id, dateKey)}
-                                          disabled={!!updating[log._id]}
-                                        >
-                                          {updating[log._id] ? (
-                                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white" />
-                                          ) : (
-                                            <>
-                                              <Check size={16} />
-                                              <span>Approve</span>
-                                            </>
-                                          )}
-                                        </button>
-                                        <button
-                                          className="inline-flex items-center gap-1 bg-rose-600 hover:bg-rose-700 text-white px-3 py-2 rounded-lg text-sm disabled:opacity-50 flex-1 min-w-0"
-                                          onClick={() => handleReject(log._id, dateKey)}
-                                          disabled={!!updating[log._id]}
-                                        >
-                                          {updating[log._id] ? (
-                                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white" />
-                                          ) : (
-                                            <>
-                                              <X size={16} />
-                                              <span>Reject</span>
-                                            </>
-                                          )}
-                                        </button>
-                                      </>
-                                    ) : isRePending ? (
-                                      <>
-                                        <button
-                                          className="inline-flex items-center gap-1 bg-emerald-700 hover:bg-emerald-800 text-white px-3 py-2 rounded-lg text-sm disabled:opacity-50 flex-1 min-w-0"
-                                          onClick={() => handleReApprove(log._id, dateKey)}
-                                          disabled={!!updating[log._id]}
-                                        >
-                                          {updating[log._id] ? (
-                                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white" />
-                                          ) : (
-                                            <>
-                                              <Check size={16} />
-                                              <span>Re-Approve</span>
-                                            </>
-                                          )}
-                                        </button>
-                                        <button
-                                          className="inline-flex items-center gap-1 bg-rose-700 hover:bg-rose-800 text-white px-3 py-2 rounded-lg text-sm disabled:opacity-50 flex-1 min-w-0"
-                                          onClick={() => handleReReject(log._id, dateKey)}
-                                          disabled={!!updating[log._id]}
-                                        >
-                                          {updating[log._id] ? (
-                                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white" />
-                                          ) : (
-                                            <>
-                                              <X size={16} />
-                                              <span>Re-Reject</span>
-                                            </>
-                                          )}
-                                        </button>
-                                      </>
-                                    ) : (
-                                      <>
-                                        {modifying?.id === log._id ? (
-                                          <div className="flex gap-2">
-                                            {(isApproved || isReApproved) && (
-                                              <button
-                                                onClick={() => handleChangeToReject(log._id, dateKey, log.auditStatus)}
-                                                className="bg-rose-600 hover:bg-rose-700 text-white px-2 py-1.5 rounded text-xs font-medium"
-                                                disabled={!!updating[log._id]}
-                                              >
-                                                {isReApproved ? "Change to Re-Reject" : "Change to Reject"}
-                                              </button>
-                                            )}
-                                            {(isRejected || isReRejected) && (
-                                              <button
-                                                onClick={() => handleChangeToApprove(log._id, dateKey, log.auditStatus)}
-                                                className="bg-emerald-600 hover:bg-emerald-700 text-white px-2 py-1.5 rounded text-xs font-medium"
-                                                disabled={!!updating[log._id]}
-                                              >
-                                                {isReRejected ? "Change to Re-Approve" : "Change to Approve"}
-                                              </button>
-                                            )}
-                                            <button
-                                              onClick={() => setModifying(null)}
-                                              className="bg-gray-200 hover:bg-gray-300 text-slate-700 px-2 py-1.5 rounded text-xs font-medium"
-                                            >
-                                              Cancel
-                                            </button>
-                                          </div>
-                                        ) : (
-                                          <button
-                                            className="inline-flex items-center gap-1 bg-slate-200 hover:bg-slate-300 text-slate-700 px-2 py-1.5 rounded text-xs font-medium"
-                                            onClick={() => setModifying({ id: log._id, dateKey })}
-                                          >
-                                            <Pencil className="w-3 h-3" />
-                                          </button>
-                                        )}
-                                      </>
-                                    )}
-                                  </div>
-                                </article>
-                              );
-                            })}
-                          </div>
-                        </div>
-                      );
-                    })}
+                          );
+                        })}
+                      </div>
+                    ))}
                   </div>
                 </section>
               );
@@ -2571,13 +2788,11 @@ export default function AdminApproveWorklogs() {
   );
 }
 
-/* =============== SidebarLinks (UNCHANGED from AdminDashboard) =============== */
-/* =================== SIDEBAR =================== */
+/* =============== SidebarLinks =============== */
 function SidebarLinks({ navigate, location, close }) {
   const [openWorklogs, setOpenWorklogs] = useState(false);
   const [openProjects, setOpenProjects] = useState(false);
 
-  // Keep sections open if child page active
   useEffect(() => {
     if (location.pathname.includes("worklog")) setOpenWorklogs(true);
     if (location.pathname.includes("project") || location.pathname.includes("abbreviations"))
@@ -2701,12 +2916,12 @@ function Td({ children, className = "" }) {
 }
 
 /* =================== Calendar Grid =================== */
-function CalendarGrid({ monthKey, rangeMode, tempStart, tempEnd, onPick }) {
+function CalendarGrid({ monthKey, tempStart, tempEnd, onPick, isSelectingRange }) {
   const monthDate = parseMonthKey(monthKey);
   const today = stripToISO(new Date());
 
   const firstDay = new Date(Date.UTC(monthDate.getUTCFullYear(), monthDate.getUTCMonth(), 1));
-  const startWeekday = firstDay.getUTCDay(); // 0..6
+  const startWeekday = firstDay.getUTCDay();
   const daysInMonth = new Date(
     Date.UTC(monthDate.getUTCFullYear(), monthDate.getUTCMonth() + 1, 0)
   ).getUTCDate();
@@ -2720,38 +2935,56 @@ function CalendarGrid({ monthKey, rangeMode, tempStart, tempEnd, onPick }) {
   while (cells.length % 7 !== 0) cells.push(null);
 
   const isInSelection = (iso) => {
-    if (!iso) return false;
-    if (!rangeMode) return iso === tempEnd;
-    const s = tempStart <= tempEnd ? tempStart : tempEnd;
-    const e = tempEnd >= tempStart ? tempEnd : tempStart;
-    return iso >= s && iso <= e;
+    if (!iso || !tempStart) return false;
+    if (!tempEnd) return iso === tempStart;
+    const start = tempStart <= tempEnd ? tempStart : tempEnd;
+    const end = tempEnd >= tempStart ? tempEnd : tempStart;
+    return iso >= start && iso <= end;
+  };
+
+  const isSelectionStart = (iso) => {
+    if (!tempStart) return false;
+    if (!tempEnd) return iso === tempStart;
+    const start = tempStart <= tempEnd ? tempStart : tempEnd;
+    return iso === start;
+  };
+
+  const isSelectionEnd = (iso) => {
+    if (!tempStart || !tempEnd || tempStart === tempEnd) return false;
+    const end = tempEnd >= tempStart ? tempEnd : tempStart;
+    return iso === end;
   };
 
   return (
-    <div className="px-3 py-2">
-      <div className="grid grid-cols-7 text-[11px] text-slate-500 mb-1">
-        {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((d) => (
-          <div key={d} className="text-center py-1">
-            {d}
-          </div>
+    <div className="min-h-[160px]">
+      <div className="grid grid-cols-7 text-[10px] text-slate-500 mb-0.5 font-medium">
+        {["S", "M", "T", "W", "T", "F", "S"].map((d) => (
+          <div key={d} className="text-center py-0.5">{d}</div>
         ))}
       </div>
-      <div className="grid grid-cols-7 gap-2 px-1 pb-2">
+      <div className="grid grid-cols-7 gap-0.5">
         {cells.map((iso, idx) => {
-          if (!iso) return <div key={idx} className="h-9" />;
+          if (!iso) return <div key={idx} className="h-5" />;
+
           const disabled = iso > today;
           const selected = isInSelection(iso);
+          const isStart = isSelectionStart(iso);
+          const isEnd = isSelectionEnd(iso);
           const isToday = iso === today;
+
           return (
             <button
               key={idx}
               disabled={disabled}
               onClick={() => onPick(iso)}
-              className={`h-9 w-9 flex items-center justify-center rounded-full text-sm transition
-                ${disabled ? "opacity-30 cursor-not-allowed" : "hover:bg-blue-50"}
-                ${selected ? "bg-indigo-600 text-white font-semibold" : "bg-white"}
-                ${isToday ? "ring-1 ring-indigo-400" : ""}`}
-              title={formatISOToHuman(iso)}
+              className={`h-5 w-5 flex items-center justify-center rounded-full text-[10px] transition-all duration-200 relative font-medium
+                                ${disabled ? "opacity-30 cursor-not-allowed text-slate-400" : "hover:bg-indigo-50 cursor-pointer text-slate-700"}
+                                ${selected && !isStart && !isEnd ? "bg-indigo-100 text-indigo-700" : ""}
+                                ${isStart || isEnd ? "bg-indigo-600 text-white shadow" : ""}
+                                ${isToday && !selected ? "ring-1 ring-indigo-300" : ""}
+                                ${isSelectingRange && tempStart && !disabled ? "hover:bg-indigo-200" : ""}
+                            `}
+              title={`${formatISOToHuman(iso)}${isToday ? ' (Today)' : ''}${disabled ? ' (Future date)' : ''}`}
             >
               {new Date(iso).getUTCDate()}
             </button>
@@ -2761,7 +2994,6 @@ function CalendarGrid({ monthKey, rangeMode, tempStart, tempEnd, onPick }) {
     </div>
   );
 }
-
 /* =================== Date helpers =================== */
 function stripToISO(d) {
   const dt = new Date(d);

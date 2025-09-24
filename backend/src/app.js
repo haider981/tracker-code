@@ -16,6 +16,7 @@ const adminHandleEmployeeRoutes = require('./routes/adminHandleEmployeeRoutes');
 const adminProjectRequestRoutes = require('./routes/adminProjectRequestRoutes');
 const adminAddProjectRoutes = require('./routes/adminAddProjectRoutes');
 const abbreviationsRoutes = require('./routes/abbreviationsRoutes');
+const adminAddAbbreviationRoutes = require('./routes/adminAddAbbreviationRoutes');
 
 const { initializeScheduledJobs, stopAllScheduledJobs } = require('./services/schedulerService');
 
@@ -41,6 +42,7 @@ app.use('/api/admin', scheduledRoutes);
 app.use('/api/admin', adminAddProjectRoutes);
 app.use('/api/admin/projects', adminProjectRequestRoutes);
 app.use('/api/admin/abbreviations', abbreviationsRoutes);
+app.use('/api/abbreviations', adminAddAbbreviationRoutes);
 
 
 const scheduledJobs = initializeScheduledJobs();
