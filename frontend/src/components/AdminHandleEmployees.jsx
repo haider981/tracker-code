@@ -177,6 +177,12 @@ export default function AdminHandleEmployees() {
       return;
     }
 
+    // SPOC email validation if provided
+    if (newEmployee.spoc_email && !emailRegex.test(newEmployee.spoc_email)) {
+      setError("Please enter a valid SPOC email address");
+      return;
+    }
+
     setLoading(true);
     setError("");
     try {
@@ -190,13 +196,25 @@ export default function AdminHandleEmployees() {
         body: JSON.stringify(newEmployee),
       });
 
+      const responseData = await res.json();
+
       if (!res.ok) {
-        const errorData = await res.json();
-        throw new Error(errorData.message || `HTTP error! status: ${res.status}`);
+        // Handle different types of errors
+        if (res.status === 409) {
+          // Conflict - user already exists
+          const conflictMsg = responseData.existingUser
+            ? `User '${responseData.existingUser.name}' with email '${responseData.existingUser.email}' already exists.`
+            : responseData.message || "User with this email already exists";
+          setError(conflictMsg);
+        } else {
+          throw new Error(responseData.message || `HTTP error! status: ${res.status}`);
+        }
+        return;
       }
 
-      const saved = await res.json();
-      setEmployees((prev) => [...prev, saved]);
+      // Success - add the new user to the list
+      const savedUser = responseData.user || responseData;
+      setEmployees((prev) => [...prev, savedUser]);
       setAddModalOpen(false);
       setNewEmployee({
         name: "",
@@ -206,8 +224,9 @@ export default function AdminHandleEmployees() {
         team: "",
         role: "Employee",
       });
-      setSuccessMessage("Employee added successfully!");
-      setTimeout(() => setSuccessMessage(""), 3000);
+      setSuccessMessage(responseData.message || "Employee added successfully!");
+      setTimeout(() => setSuccessMessage(""), 5000);
+
     } catch (err) {
       console.error("Error adding employee:", err);
       setError(err.message || "Failed to add employee. Please try again.");
@@ -237,6 +256,12 @@ export default function AdminHandleEmployees() {
       return;
     }
 
+    // SPOC email validation if provided
+    if (editEmployee.spoc_email && !emailRegex.test(editEmployee.spoc_email)) {
+      setError("Please enter a valid SPOC email address");
+      return;
+    }
+
     setLoading(true);
     setError("");
     try {
@@ -254,23 +279,40 @@ export default function AdminHandleEmployees() {
         }
       );
 
+      const responseData = await res.json();
+
       if (!res.ok) {
-        const errorData = await res.json();
-        throw new Error(errorData.message || `HTTP error! status: ${res.status}`);
+        // Handle different types of errors
+        if (res.status === 409) {
+          // Conflict - another user already exists with this email
+          const conflictMsg = responseData.existingUser
+            ? `Another user '${responseData.existingUser.name}' with email '${responseData.existingUser.email}' already exists.`
+            : responseData.message || "Another user with this email already exists";
+          setError(conflictMsg);
+        } else if (res.status === 404) {
+          setError("User not found. It may have been deleted by another admin.");
+          // Optionally refresh the employee list
+          fetchEmployees();
+        } else {
+          throw new Error(responseData.message || `HTTP error! status: ${res.status}`);
+        }
+        return;
       }
 
-      const updated = await res.json();
+      // Success - update the employee in the list
+      const updatedUser = responseData.user || responseData;
       setEmployees((prev) =>
         prev.map((emp) => {
           const currentId = emp.id || emp._id;
-          const updatedId = updated.id || updated._id;
-          return currentId === updatedId ? updated : emp;
+          const updatedId = updatedUser.id || updatedUser._id;
+          return currentId === updatedId ? updatedUser : emp;
         })
       );
       setEditModalOpen(false);
       setEditEmployee(null);
-      setSuccessMessage("Employee updated successfully!");
-      setTimeout(() => setSuccessMessage(""), 3000);
+      setSuccessMessage(responseData.message || "Employee updated successfully!");
+      setTimeout(() => setSuccessMessage(""), 5000);
+
     } catch (err) {
       console.error("Error updating employee:", err);
       setError(err.message || "Failed to update employee. Please try again.");
@@ -296,17 +338,27 @@ export default function AdminHandleEmployees() {
         },
       });
 
+      const responseData = await res.json();
+
       if (!res.ok) {
-        const errorData = await res.json();
-        throw new Error(errorData.message || `HTTP error! status: ${res.status}`);
+        if (res.status === 404) {
+          setError("User not found. It may have already been deleted.");
+          // Refresh the list to sync with database
+          fetchEmployees();
+        } else {
+          throw new Error(responseData.message || `HTTP error! status: ${res.status}`);
+        }
+        return;
       }
 
+      // Success - remove from local state
       setEmployees((prev) => prev.filter((emp) => {
         const empId = emp.id || emp._id;
         return empId !== id;
       }));
-      setSuccessMessage("Employee deleted successfully!");
-      setTimeout(() => setSuccessMessage(""), 3000);
+      setSuccessMessage(responseData.message || "Employee deleted successfully!");
+      setTimeout(() => setSuccessMessage(""), 5000);
+
     } catch (err) {
       console.error("Error deleting employee:", err);
       setError(err.message || "Failed to delete employee. Please try again.");
@@ -448,21 +500,35 @@ export default function AdminHandleEmployees() {
 /* =================== COMPONENTS =================== */
 function MessageAlert({ message, type, onClose }) {
   return (
-    <div className={`rounded-lg p-4 flex items-center justify-between ${type === "success" ? "bg-green-50 border border-green-200" : "bg-red-50 border border-red-200"
+    <div className={`rounded-lg p-4 flex items-center justify-between ${type === "success"
+        ? "bg-green-50 border border-green-200"
+        : "bg-red-50 border border-red-200"
       }`}>
-      <div className="flex items-center">
+      <div className="flex items-start">
         {type === "success" ? (
-          <CheckCircle className="w-5 h-5 text-green-600 mr-2" />
+          <CheckCircle className="w-5 h-5 text-green-600 mr-2 mt-0.5 flex-shrink-0" />
         ) : (
-          <AlertCircle className="w-5 h-5 text-red-600 mr-2" />
+          <AlertCircle className="w-5 h-5 text-red-600 mr-2 mt-0.5 flex-shrink-0" />
         )}
-        <p className={`text-sm font-medium ${type === "success" ? "text-green-800" : "text-red-800"
-          }`}>
-          {message}
-        </p>
+        <div>
+          <p className={`text-sm font-medium ${type === "success" ? "text-green-800" : "text-red-800"
+            }`}>
+            {message}
+          </p>
+          {type === "error" && (
+            <p className="text-xs text-red-600 mt-1">
+              Please verify the information and try again.
+            </p>
+          )}
+        </div>
       </div>
-      <button onClick={onClose} className={`${type === "success" ? "text-green-600 hover:text-green-800" : "text-red-600 hover:text-red-800"
-        }`}>
+      <button
+        onClick={onClose}
+        className={`ml-4 ${type === "success"
+            ? "text-green-600 hover:text-green-800"
+            : "text-red-600 hover:text-red-800"
+          } flex-shrink-0`}
+      >
         <XIcon className="w-4 h-4" />
       </button>
     </div>

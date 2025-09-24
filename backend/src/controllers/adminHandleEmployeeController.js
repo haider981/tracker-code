@@ -1,12 +1,21 @@
 // const prisma = require("../config/prisma");
 
-// // ✅ Get all employees
+// // ✅ Get all employees - CLEAN VERSION
 // const getUsers = async (req, res) => {
 //   try {
-//     // Get ALL fields (no select clause)
-//     const users = await prisma.users.findMany();
-    
-//     console.log("Raw users from DB:", JSON.stringify(users, null, 2));
+//     const users = await prisma.users.findMany({
+//       select: {
+//         id: true,
+//         name: true,
+//         email: true,
+//         spoc_name: true,
+//         spoc_email: true,
+//         team: true,
+//         role: true,
+//       }
+//     });
+
+//     console.log("Users fetched successfully:", users.length);
 //     res.json({ success: true, users });
 //   } catch (err) {
 //     console.error("Error fetching users:", err);
@@ -22,14 +31,12 @@
 //   try {
 //     const { name, email, spoc_name, spoc_email, team, role } = req.body;
 
-//     // Validate required fields
 //     if (!name || !email || !team) {
-//       return res.status(400).json({
-//         message: "Missing required fields: name, email, and team are required"
+//       return res.status(400).json({ 
+//         message: "Missing required fields: name, email, and team are required" 
 //       });
 //     }
 
-//     // Create user data object without id (let it auto-increment)
 //     const userData = {
 //       name: name.trim(),
 //       email: email.trim().toLowerCase(),
@@ -37,7 +44,6 @@
 //       role: role || "Employee"
 //     };
 
-//     // Add optional fields only if they exist
 //     if (spoc_name && spoc_name.trim()) {
 //       userData.spoc_name = spoc_name.trim();
 //     }
@@ -52,15 +58,15 @@
 //     res.status(201).json(newUser);
 //   } catch (err) {
 //     console.error("Error adding user:", err);
-
-//     // Handle unique constraint errors
 //     if (err.code === 'P2002') {
-//       return res.status(400).json({
-//         message: "User with this email already exists"
+//       return res.status(400).json({ 
+//         message: "User with this email already exists" 
 //       });
 //     }
-
-//     res.status(400).json({ message: "Error adding user", error: err.message });
+//     res.status(400).json({ 
+//       message: "Error adding user", 
+//       error: err.message 
+//     });
 //   }
 // };
 
@@ -70,14 +76,12 @@
 //     const { id } = req.params;
 //     const { name, email, spoc_name, spoc_email, team, role } = req.body;
 
-//     // Validate required fields
 //     if (!name || !email || !team) {
-//       return res.status(400).json({
-//         message: "Missing required fields: name, email, and team are required"
+//       return res.status(400).json({ 
+//         message: "Missing required fields: name, email, and team are required" 
 //       });
 //     }
 
-//     // Create update data object
 //     const updateData = {
 //       name: name.trim(),
 //       email: email.trim().toLowerCase(),
@@ -85,7 +89,6 @@
 //       role: role || "Employee"
 //     };
 
-//     // Add optional fields
 //     if (spoc_name !== undefined) {
 //       updateData.spoc_name = spoc_name ? spoc_name.trim() : null;
 //     }
@@ -101,22 +104,18 @@
 //     res.json(updatedUser);
 //   } catch (err) {
 //     console.error("Error updating user:", err);
-
-//     // Handle not found errors
 //     if (err.code === 'P2025') {
-//       return res.status(404).json({
-//         message: "User not found"
-//       });
+//       return res.status(404).json({ message: "User not found" });
 //     }
-
-//     // Handle unique constraint errors
 //     if (err.code === 'P2002') {
-//       return res.status(400).json({
-//         message: "User with this email already exists"
+//       return res.status(400).json({ 
+//         message: "User with this email already exists" 
 //       });
 //     }
-
-//     res.status(400).json({ message: "Error updating user", error: err.message });
+//     res.status(400).json({ 
+//       message: "Error updating user", 
+//       error: err.message 
+//     });
 //   }
 // };
 
@@ -124,29 +123,44 @@
 // const deleteUser = async (req, res) => {
 //   try {
 //     const { id } = req.params;
-
 //     await prisma.users.delete({
 //       where: { id: Number(id) },
 //     });
-
 //     res.json({ message: "User deleted successfully" });
 //   } catch (err) {
 //     console.error("Error deleting user:", err);
-
-//     // Handle not found errors
 //     if (err.code === 'P2025') {
-//       return res.status(404).json({
-//         message: "User not found"
-//       });
+//       return res.status(404).json({ message: "User not found" });
 //     }
-
-//     res.status(400).json({ message: "Error deleting user", error: err.message });
+//     res.status(400).json({ 
+//       message: "Error deleting user", 
+//       error: err.message 
+//     });
 //   }
 // };
 
 // module.exports = { getUsers, addUser, updateUser, deleteUser };
 
+
+
 const prisma = require("../config/prisma");
+
+// Helper function to check for existing users
+const checkExistingUser = async (email, excludeId = null) => {
+  const whereClause = { email: email.toLowerCase() };
+  
+  // If updating, exclude the current user's ID from the check
+  if (excludeId) {
+    whereClause.id = { not: Number(excludeId) };
+  }
+  
+  const existingUser = await prisma.users.findFirst({
+    where: whereClause,
+    select: { id: true, name: true, email: true }
+  });
+  
+  return existingUser;
+};
 
 // ✅ Get all employees - CLEAN VERSION
 const getUsers = async (req, res) => {
@@ -174,17 +188,48 @@ const getUsers = async (req, res) => {
   }
 };
 
-// ✅ Add employee
+// ✅ Add employee with enhanced duplicate prevention
 const addUser = async (req, res) => {
   try {
     const { name, email, spoc_name, spoc_email, team, role } = req.body;
 
+    // Required field validation
     if (!name || !email || !team) {
       return res.status(400).json({ 
         message: "Missing required fields: name, email, and team are required" 
       });
     }
 
+    // Email format validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email.trim())) {
+      return res.status(400).json({ 
+        message: "Please provide a valid email address" 
+      });
+    }
+
+    // Check if user already exists with this email
+    const existingUser = await checkExistingUser(email.trim());
+    if (existingUser) {
+      return res.status(409).json({ 
+        message: `User with email '${email.trim().toLowerCase()}' already exists. User: ${existingUser.name}`,
+        conflictField: "email",
+        existingUser: {
+          id: existingUser.id,
+          name: existingUser.name,
+          email: existingUser.email
+        }
+      });
+    }
+
+    // Validate SPOC email format if provided
+    if (spoc_email && spoc_email.trim() && !emailRegex.test(spoc_email.trim())) {
+      return res.status(400).json({ 
+        message: "Please provide a valid SPOC email address" 
+      });
+    }
+
+    // Prepare user data
     const userData = {
       name: name.trim(),
       email: email.trim().toLowerCase(),
@@ -192,6 +237,7 @@ const addUser = async (req, res) => {
       role: role || "Employee"
     };
 
+    // Add optional fields only if they have values
     if (spoc_name && spoc_name.trim()) {
       userData.spoc_name = spoc_name.trim();
     }
@@ -203,33 +249,83 @@ const addUser = async (req, res) => {
       data: userData,
     });
 
-    res.status(201).json(newUser);
+    console.log("User created successfully:", newUser.email);
+    res.status(201).json({
+      success: true,
+      message: "User created successfully",
+      user: newUser
+    });
+
   } catch (err) {
     console.error("Error adding user:", err);
+    
+    // Handle Prisma unique constraint violations as backup
     if (err.code === 'P2002') {
-      return res.status(400).json({ 
-        message: "User with this email already exists" 
+      const field = err.meta?.target?.[0] || 'email';
+      return res.status(409).json({ 
+        message: `User with this ${field} already exists`,
+        conflictField: field
       });
     }
-    res.status(400).json({ 
+    
+    res.status(500).json({ 
       message: "Error adding user", 
       error: err.message 
     });
   }
 };
 
-// ✅ Update employee
+// ✅ Update employee with enhanced duplicate prevention
 const updateUser = async (req, res) => {
   try {
     const { id } = req.params;
     const { name, email, spoc_name, spoc_email, team, role } = req.body;
 
+    // Validate ID format
+    const userId = Number(id);
+    if (isNaN(userId) || userId <= 0) {
+      return res.status(400).json({ 
+        message: "Invalid user ID provided" 
+      });
+    }
+
+    // Required field validation
     if (!name || !email || !team) {
       return res.status(400).json({ 
         message: "Missing required fields: name, email, and team are required" 
       });
     }
 
+    // Email format validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email.trim())) {
+      return res.status(400).json({ 
+        message: "Please provide a valid email address" 
+      });
+    }
+
+    // Check if another user already exists with this email
+    const existingUser = await checkExistingUser(email.trim(), userId);
+    if (existingUser) {
+      return res.status(409).json({ 
+        message: `Another user with email '${email.trim().toLowerCase()}' already exists. User: ${existingUser.name}`,
+        conflictField: "email",
+        existingUser: {
+          id: existingUser.id,
+          name: existingUser.name,
+          email: existingUser.email
+        }
+      });
+    }
+
+    // Validate SPOC email format if provided
+    if (spoc_email && spoc_email.trim() && !emailRegex.test(spoc_email.trim())) {
+      return res.status(400).json({ 
+        message: "Please provide a valid SPOC email address" 
+      });
+    }
+
+    // Prepare update data
     const updateData = {
       name: name.trim(),
       email: email.trim().toLowerCase(),
@@ -237,6 +333,7 @@ const updateUser = async (req, res) => {
       role: role || "Employee"
     };
 
+    // Handle optional fields (allow clearing them by sending empty strings)
     if (spoc_name !== undefined) {
       updateData.spoc_name = spoc_name ? spoc_name.trim() : null;
     }
@@ -245,22 +342,36 @@ const updateUser = async (req, res) => {
     }
 
     const updatedUser = await prisma.users.update({
-      where: { id: Number(id) },
+      where: { id: userId },
       data: updateData,
     });
 
-    res.json(updatedUser);
+    console.log("User updated successfully:", updatedUser.email);
+    res.json({
+      success: true,
+      message: "User updated successfully",
+      user: updatedUser
+    });
+
   } catch (err) {
     console.error("Error updating user:", err);
+    
     if (err.code === 'P2025') {
-      return res.status(404).json({ message: "User not found" });
-    }
-    if (err.code === 'P2002') {
-      return res.status(400).json({ 
-        message: "User with this email already exists" 
+      return res.status(404).json({ 
+        message: "User not found" 
       });
     }
-    res.status(400).json({ 
+    
+    // Handle Prisma unique constraint violations as backup
+    if (err.code === 'P2002') {
+      const field = err.meta?.target?.[0] || 'email';
+      return res.status(409).json({ 
+        message: `Another user with this ${field} already exists`,
+        conflictField: field
+      });
+    }
+    
+    res.status(500).json({ 
       message: "Error updating user", 
       error: err.message 
     });
@@ -271,16 +382,35 @@ const updateUser = async (req, res) => {
 const deleteUser = async (req, res) => {
   try {
     const { id } = req.params;
+    
+    // Validate ID format
+    const userId = Number(id);
+    if (isNaN(userId) || userId <= 0) {
+      return res.status(400).json({ 
+        message: "Invalid user ID provided" 
+      });
+    }
+
     await prisma.users.delete({
-      where: { id: Number(id) },
+      where: { id: userId },
     });
-    res.json({ message: "User deleted successfully" });
+
+    console.log("User deleted successfully, ID:", userId);
+    res.json({ 
+      success: true,
+      message: "User deleted successfully" 
+    });
+    
   } catch (err) {
     console.error("Error deleting user:", err);
+    
     if (err.code === 'P2025') {
-      return res.status(404).json({ message: "User not found" });
+      return res.status(404).json({ 
+        message: "User not found" 
+      });
     }
-    res.status(400).json({ 
+    
+    res.status(500).json({ 
       message: "Error deleting user", 
       error: err.message 
     });

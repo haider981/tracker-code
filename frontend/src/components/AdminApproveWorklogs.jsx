@@ -132,7 +132,7 @@
 //       setLoading(true);
 //       setError(null);
 //       const token = localStorage.getItem("authToken");
-      
+
 //       // Updated to use admin endpoint with proper body structure
 //       const res = await fetch(`${API_BASE_URL}/api/admin/worklogs`, {
 //         method: "POST",
@@ -147,7 +147,7 @@
 //           auditStatus: selectedAuditStatuses.length === ALL_STATUSES.length ? undefined : selectedAuditStatuses,
 //         }),
 //       });
-      
+
 //       if (!res.ok) throw new Error(await res.text());
 //       const data = await res.json();
 //       setWorklogsByDate(data.worklogsByDate || {});
@@ -267,18 +267,18 @@
 //     try {
 //       setUpdating((p) => ({ ...p, [worklogId]: true }));
 //       const token = localStorage.getItem("authToken");
-      
+
 //       // Updated to use admin endpoint
 //       const res = await fetch(`${API_BASE_URL}/api/admin/worklogs/update-status`, {
 //         method: "PUT",
 //         headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
-//         body: JSON.stringify({ 
-//           worklogId, 
+//         body: JSON.stringify({
+//           worklogId,
 //           auditStatus: status,
 //           adminComments: adminComments || undefined
 //         }),
 //       });
-      
+
 //       if (!res.ok) throw new Error(await res.text());
 //       await res.json();
 //       mutateLocalRow(dateKey, worklogId, status);
@@ -316,13 +316,13 @@
 //       const res = await fetch(`${API_BASE_URL}/api/admin/worklogs/bulk-update-status`, {
 //         method: "PUT",
 //         headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
-//         body: JSON.stringify({ 
-//           worklogIds: ids, 
+//         body: JSON.stringify({
+//           worklogIds: ids,
 //           auditStatus: "Approved",
 //           adminComments: `Bulk approved by admin on ${new Date().toISOString().split('T')[0]}`
 //         }),
 //       });
-      
+
 //       if (!res.ok) throw new Error(await res.text());
 //       await res.json();
 
@@ -444,13 +444,15 @@
 //         <div className="fixed inset-0 z-40 lg:hidden">
 //           <div className="fixed inset-0 bg-black bg-opacity-50" onClick={() => setSidebarOpen(false)} />
 //           <aside className="fixed top-16 left-0 h-[calc(100vh-4rem)] w-80 bg-gray-800 text-white shadow-xl overflow-y-auto">
-//             <SidebarLinks navigate={navigate} setSidebarOpen={setSidebarOpen} />
+//             <SidebarLinks navigate={navigate} location={useLocation()} close={() => setSidebarOpen(false)} />
+
 //           </aside>
 //         </div>
 //       )}
 //       <aside className="hidden lg:block fixed top-16 left-0 h-[calc(100vh-4rem)] w-72 bg-gray-800 text-white shadow-xl overflow-y-auto">
-//         <SidebarLinks navigate={navigate} />
+//         <SidebarLinks navigate={navigate} location={useLocation()} />
 //       </aside>
+
 
 //       {/* =================== MAIN CONTENT (Approve Worklogs FULL) =================== */}
 //       <main className="lg:ml-72 pt-20 p-6">
@@ -765,9 +767,8 @@
 //                             <button
 //                               disabled={!canApproveAll || !!bulkUpdating[key]}
 //                               onClick={() => handleApproveAll(dateKey, emp)}
-//                               className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-md text-xs font-medium ${
-//                                 canApproveAll ? "bg-emerald-600 text-white hover:bg-emerald-700" : "bg-slate-200 text-slate-500 cursor-not-allowed"
-//                               }`}
+//                               className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-md text-xs font-medium ${canApproveAll ? "bg-emerald-600 text-white hover:bg-emerald-700" : "bg-slate-200 text-slate-500 cursor-not-allowed"
+//                                 }`}
 //                             >
 //                               {bulkUpdating[key] ? (
 //                                 <span className="flex items-center gap-2">
@@ -808,7 +809,7 @@
 //                                   const isRePending = log.auditStatus === "Re-Pending";
 //                                   // Admin has override powers - no time restrictions
 //                                   const actionable = true;
-                                  
+
 //                                   return (
 //                                     <tr key={log._id} className={`${rowClassForAudit(log.auditStatus)} border-t`}>
 //                                       <Td>{log.workMode}</Td>
@@ -978,9 +979,8 @@
 //                             <button
 //                               disabled={!canApproveAll || !!bulkUpdating[key]}
 //                               onClick={() => handleApproveAll(dateKey, emp)}
-//                               className={`inline-flex items-center gap-1 px-2 sm:px-3 py-1.5 rounded-md text-xs font-medium flex-shrink-0 ${
-//                                 canApproveAll ? "bg-emerald-600 text-white hover:bg-emerald-700" : "bg-slate-200 text-slate-500 cursor-not-allowed"
-//                               }`}
+//                               className={`inline-flex items-center gap-1 px-2 sm:px-3 py-1.5 rounded-md text-xs font-medium flex-shrink-0 ${canApproveAll ? "bg-emerald-600 text-white hover:bg-emerald-700" : "bg-slate-200 text-slate-500 cursor-not-allowed"
+//                                 }`}
 //                             >
 //                               {bulkUpdating[key] ? (
 //                                 <span className="flex items-center gap-1">
@@ -1002,7 +1002,7 @@
 //                               const isRePending = log.auditStatus === "Re-Pending";
 //                               // Admin has override powers - no time restrictions
 //                               const actionable = true;
-                              
+
 //                               return (
 //                                 <article key={log._id} className={`p-3 sm:p-4 ${rowClassForAudit(log.auditStatus)}`}>
 //                                   <div className="flex items-start justify-between mb-3">
@@ -1174,34 +1174,32 @@
 // }
 
 // /* =============== SidebarLinks (UNCHANGED from AdminDashboard) =============== */
-// function SidebarLinks({ navigate, setSidebarOpen }) {
-//   const close = () => setSidebarOpen && setSidebarOpen(false);
-//   const location = useLocation();
+// /* =================== SIDEBAR =================== */
+// function SidebarLinks({ navigate, location, close }) {
+//   const [openWorklogs, setOpenWorklogs] = useState(false);
+//   const [openProjects, setOpenProjects] = useState(false);
 
-//   // Auto-open menus based on current route
-//   const [openWorklogs, setOpenWorklogs] = useState(location.pathname.includes("worklog"));
-//   const [openEmployees, setOpenEmployees] = useState(location.pathname.includes("employees"));
-//   const [openProjects, setOpenProjects] = useState(
-//     location.pathname.includes("project") || location.pathname.includes("abbreviations")
-//   );
-
+//   // Keep sections open if child page active
 //   useEffect(() => {
 //     if (location.pathname.includes("worklog")) setOpenWorklogs(true);
-//     if (location.pathname.includes("employees")) setOpenEmployees(true);
-//     if (location.pathname.includes("project") || location.pathname.includes("abbreviations")) setOpenProjects(true);
+//     if (location.pathname.includes("project") || location.pathname.includes("abbreviations"))
+//       setOpenProjects(true);
 //   }, [location]);
+
+//   const handleNavigation = (path) => {
+//     navigate(path);
+//     if (close) close();
+//   };
 
 //   return (
 //     <div className="p-6">
 //       <h2 className="text-xl font-bold text-white mb-6">Menu</h2>
 //       <nav className="flex flex-col space-y-2">
-//         {/* Home */}
+
 //         <button
-//           className={`text-left hover:bg-gray-700 p-3 rounded-lg ${location.pathname === "/admin-dashboard" ? "bg-gray-700" : ""}`}
-//           onClick={() => {
-//             navigate("/admin-dashboard");
-//             close();
-//           }}
+//           className={`text-left hover:bg-gray-700 p-3 rounded-lg transition-colors ${location.pathname === "/admin-dashboard" ? "bg-gray-700" : ""
+//             }`}
+//           onClick={() => handleNavigation("/admin-dashboard")}
 //         >
 //           Home
 //         </button>
@@ -1209,33 +1207,27 @@
 //         {/* Worklogs */}
 //         <div>
 //           <button
-//             className="w-full flex justify-between items-center hover:bg-gray-700 p-3 rounded-lg"
+//             className="w-full flex justify-between items-center hover:bg-gray-700 p-3 rounded-lg transition-colors"
 //             onClick={() => setOpenWorklogs(!openWorklogs)}
 //           >
 //             <span>Worklogs</span>
-//             <span>{openWorklogs ? "▾" : "▸"}</span>
+//             <span className="transition-transform duration-200">
+//               {openWorklogs ? "▾" : "▸"}
+//             </span>
 //           </button>
 //           {openWorklogs && (
-//             <div className="ml-4 mt-2 flex flex-col space-y-2">
+//             <div className="ml-4 mt-2 flex flex-col space-y-2 animate-fadeIn">
 //               <button
-//                 className={`text-left hover:bg-gray-700 p-2 rounded-lg ${
-//                   location.pathname.includes("approve-worklogs") ? "bg-gray-700" : ""
-//                 }`}
-//                 onClick={() => {
-//                   navigate("/admin/approve-worklogs");
-//                   close();
-//                 }}
+//                 className={`text-left hover:bg-gray-700 p-2 rounded-lg transition-colors ${location.pathname.includes("approve-worklogs") ? "bg-gray-700" : ""
+//                   }`}
+//                 onClick={() => handleNavigation("/admin/approve-worklogs")}
 //               >
 //                 Approve Worklogs
 //               </button>
 //               <button
-//                 className={`text-left hover:bg-gray-700 p-2 rounded-lg ${
-//                   location.pathname.includes("edit-worklog-entries") ? "bg-gray-700" : ""
-//                 }`}
-//                 onClick={() => {
-//                   navigate("/admin/edit-worklog-entries");
-//                   close();
-//                 }}
+//                 className={`text-left hover:bg-gray-700 p-2 rounded-lg transition-colors ${location.pathname.includes("edit-worklog-entries") ? "bg-gray-700" : ""
+//                   }`}
+//                 onClick={() => handleNavigation("/admin/edit-worklog-entries")}
 //               >
 //                 Edit Worklogs
 //               </button>
@@ -1244,102 +1236,51 @@
 //         </div>
 
 //         {/* Employees */}
-//         <div>
-//           <button
-//             className="w-full flex justify-between items-center hover:bg-gray-700 p-3 rounded-lg"
-//             onClick={() => setOpenEmployees(!openEmployees)}
-//           >
-//             <span>Employees</span>
-//             <span>{openEmployees ? "▾" : "▸"}</span>
-//           </button>
-//           {openEmployees && (
-//             <div className="ml-4 mt-2 flex flex-col space-y-2">
-//               <button
-//                 className={`text-left hover:bg-gray-700 p-2 rounded-lg ${
-//                   location.pathname.includes("handle-employees") ? "bg-gray-700" : ""
-//                 }`}
-//                 onClick={() => {
-//                   navigate("/admin/handle-employees");
-//                   close();
-//                 }}
-//               >
-//                 Handle Employees
-//               </button>
-//               <button
-//                 className={`text-left hover:bg-gray-700 p-2 rounded-lg ${
-//                   location.pathname.includes("employees-info") ? "bg-gray-700" : ""
-//                 }`}
-//                 onClick={() => {
-//                   navigate("/admin/employees-info");
-//                   close();
-//                 }}
-//               >
-//                 Employees Info
-//               </button>
-//             </div>
-//           )}
-//         </div>
+//         <button
+//           className={`text-left hover:bg-gray-700 p-3 rounded-lg transition-colors ${location.pathname.includes("handle-employees") ? "bg-gray-700" : ""
+//             }`}
+//           onClick={() => handleNavigation("/admin/handle-employees")}
+//         >
+//           Manage Employees
+//         </button>
 
 //         {/* Projects */}
 //         <div>
 //           <button
-//             className="w-full flex justify-between items-center hover:bg-gray-700 p-3 rounded-lg"
+//             className="w-full flex justify-between items-center hover:bg-gray-700 p-3 rounded-lg transition-colors"
 //             onClick={() => setOpenProjects(!openProjects)}
 //           >
 //             <span>Projects</span>
-//             <span>{openProjects ? "▾" : "▸"}</span>
+//             <span className="transition-transform duration-200">
+//               {openProjects ? "▾" : "▸"}
+//             </span>
 //           </button>
 //           {openProjects && (
-//             <div className="ml-4 mt-2 flex flex-col space-y-2">
+//             <div className="ml-4 mt-2 flex flex-col space-y-2 animate-fadeIn">
 //               <button
-//                 className={`text-left hover:bg-gray-700 p-2 rounded-lg ${
-//                   location.pathname.includes("add-abbreviations") ? "bg-gray-700" : ""
-//                 }`}
-//                 onClick={() => {
-//                   navigate("/admin/add-abbreviations");
-//                   close();
-//                 }}
+//                 className={`text-left hover:bg-gray-700 p-2 rounded-lg transition-colors ${location.pathname.includes("add-abbreviations") ? "bg-gray-700" : ""
+//                   }`}
+//                 onClick={() => handleNavigation("/admin/add-abbreviations")}
 //               >
 //                 Add Abbreviations
 //               </button>
 //               <button
-//                 className={`text-left hover:bg-gray-700 p-2 rounded-lg ${
-//                   location.pathname.includes("add-project") ? "bg-gray-700" : ""
-//                 }`}
-//                 onClick={() => {
-//                   navigate("/admin/add-project");
-//                   close();
-//                 }}
+//                 className={`text-left hover:bg-gray-700 p-2 rounded-lg transition-colors ${location.pathname.includes("add-project") ? "bg-gray-700" : ""
+//                   }`}
+//                 onClick={() => handleNavigation("/admin/add-project")}
 //               >
 //                 Add Project
 //               </button>
 //               <button
-//                 className={`text-left hover:bg-gray-700 p-2 rounded-lg ${
-//                   location.pathname.includes("project-requests") ? "bg-gray-700" : ""
-//                 }`}
-//                 onClick={() => {
-//                   navigate("/admin/project-requests");
-//                   close();
-//                 }}
+//                 className={`text-left hover:bg-gray-700 p-2 rounded-lg transition-colors ${location.pathname.includes("project-requests") ? "bg-gray-700" : ""
+//                   }`}
+//                 onClick={() => handleNavigation("/admin/project-requests")}
 //               >
 //                 Project Requests
 //               </button>
 //             </div>
 //           )}
 //         </div>
-
-//         {/* Defaulters */}
-//         <button
-//           className={`text-left hover:bg-gray-700 p-3 rounded-lg ${
-//             location.pathname.includes("defaulters-list") ? "bg-gray-700" : ""
-//           }`}
-//           onClick={() => {
-//             navigate("/admin/defaulters-list");
-//             close();
-//           }}
-//         >
-//           Defaulters List
-//         </button>
 //       </nav>
 //     </div>
 //   );
@@ -1476,7 +1417,6 @@
 //   return ref;
 // }
 
-
 import React, { useState, useEffect, useMemo, useRef } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { jwtDecode } from "jwt-decode";
@@ -1508,7 +1448,7 @@ export default function AdminApproveWorklogs() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [user, setUser] = useState(null);
 
-  /* ===== Auth (as-is from AdminDashboard) ===== */
+  /* ===== Auth ===== */
   useEffect(() => {
     const token = localStorage.getItem("authToken");
     if (!token) {
@@ -1542,8 +1482,6 @@ export default function AdminApproveWorklogs() {
     navigate("/");
   };
 
-  /* ===== Approve Worklogs STATE/LOGIC (updated for admin) ===== */
-
   // Data
   const [worklogsByDate, setWorklogsByDate] = useState({});
   const [employees, setEmployees] = useState([]);
@@ -1552,7 +1490,7 @@ export default function AdminApproveWorklogs() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [updating, setUpdating] = useState({});
-  const [bulkUpdating, setBulkUpdating] = useState({}); // key: `${dateKey}|${emp}`
+  const [bulkUpdating, setBulkUpdating] = useState({});
 
   // Filters: employees
   const [selectedEmployees, setSelectedEmployees] = useState([]);
@@ -1583,14 +1521,13 @@ export default function AdminApproveWorklogs() {
   const statusRef = useOutclick(() => setShowStatusDropdown(false));
   const [selectedAuditStatuses, setSelectedAuditStatuses] = useState([...ALL_STATUSES]);
 
-  // Edit mode for "Change to …" actions
+  // Edit mode
   const [modifying, setModifying] = useState(null);
 
   /* --- Fetch employees --- */
   useEffect(() => {
     if (!user) return;
     const token = localStorage.getItem("authToken");
-    // Updated to use admin endpoint
     fetch(`${API_BASE_URL}/api/admin/users`, {
       headers: { Authorization: `Bearer ${token}` },
     })
@@ -1599,11 +1536,10 @@ export default function AdminApproveWorklogs() {
       .catch((err) => console.error("Failed to fetch employees:", err.message));
   }, [user]);
 
-  /* --- Fetch worklogs (on filter change) --- */
+  /* --- Fetch worklogs --- */
   useEffect(() => {
     if (!user) return;
     fetchWorklogs();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user, startISO, endISO, selectedEmployees, selectedAuditStatuses]);
 
   const fetchWorklogs = async () => {
@@ -1612,7 +1548,6 @@ export default function AdminApproveWorklogs() {
       setError(null);
       const token = localStorage.getItem("authToken");
 
-      // Updated to use admin endpoint with proper body structure
       const res = await fetch(`${API_BASE_URL}/api/admin/worklogs`, {
         method: "POST",
         headers: {
@@ -1652,6 +1587,7 @@ export default function AdminApproveWorklogs() {
     deadline.setUTCHours(23, 59, 59, 999);
     return new Date() <= deadline;
   };
+
   const withinDplus5 = (dateKey) => {
     if (!dateKey) return false;
     const D = new Date(dateKey);
@@ -1672,6 +1608,19 @@ export default function AdminApproveWorklogs() {
         .sort((a, b) => a.localeCompare(b))
         .map((k) => [k, byEmp[k]])
     );
+  };
+
+  // Calculate total hours for an employee on a specific date
+  const calculateTotalHours = (rows) => {
+    return rows.reduce((total, row) => total + (parseFloat(row.hoursSpent) || 0), 0);
+  };
+
+  // Get background color based on total hours
+  const getHoursBgColor = (totalHours) => {
+    if (totalHours >= 6.5 && totalHours <= 7.5) return "bg-emerald-100";
+    if (totalHours < 6.5) return "bg-red-100";
+    if (totalHours > 7.5) return "bg-blue-100";
+    return "";
   };
 
   const { actionablePendingCount, actionableRePendingCount } = useMemo(() => {
@@ -1732,7 +1681,7 @@ export default function AdminApproveWorklogs() {
     );
   };
 
-  /* --- Updates (single/bulk) --- */
+  /* --- Updates --- */
   const mutateLocalRow = (dateKey, id, auditStatus) => {
     setWorklogsByDate((prev) => {
       const next = { ...prev };
@@ -1747,7 +1696,6 @@ export default function AdminApproveWorklogs() {
       setUpdating((p) => ({ ...p, [worklogId]: true }));
       const token = localStorage.getItem("authToken");
 
-      // Updated to use admin endpoint
       const res = await fetch(`${API_BASE_URL}/api/admin/worklogs/update-status`, {
         method: "PUT",
         headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
@@ -1780,6 +1728,18 @@ export default function AdminApproveWorklogs() {
     updateWorklogStatus(id, "Re-Rejected", dateKey);
   };
 
+  // New handlers for change to approve/reject
+  const handleChangeToApprove = (id, dateKey, currentStatus) => {
+    const newStatus = currentStatus === "Rejected" ? "Approved" : "Re-Approved";
+    updateWorklogStatus(id, newStatus, dateKey);
+  };
+
+  const handleChangeToReject = (id, dateKey, currentStatus) => {
+    if (!window.confirm("Are you sure you want to reject this entry?")) return;
+    const newStatus = currentStatus === "Approved" ? "Rejected" : "Re-Rejected";
+    updateWorklogStatus(id, newStatus, dateKey);
+  };
+
   const handleApproveAll = async (dateKey, employeeName) => {
     const key = `${dateKey}|${employeeName}`;
     try {
@@ -1791,7 +1751,6 @@ export default function AdminApproveWorklogs() {
       const ids = rows.map((r) => r._id);
       if (ids.length === 0) return;
 
-      // Updated to use admin endpoint
       const res = await fetch(`${API_BASE_URL}/api/admin/worklogs/bulk-update-status`, {
         method: "PUT",
         headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
@@ -1849,7 +1808,6 @@ export default function AdminApproveWorklogs() {
   const labelForFilter = () =>
     startISO === endISO ? formatISOToHuman(startISO) : `${formatISOToHuman(startISO)} – ${formatISOToHuman(endISO)}`;
 
-  /* --- Render guards --- */
   if (!user) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-slate-100">
@@ -1858,14 +1816,12 @@ export default function AdminApproveWorklogs() {
     );
   }
 
-  /* =================== LAYOUT (Navbar + Sidebar UNCHANGED) =================== */
   return (
     <div className="min-h-screen bg-slate-100">
-      {/* Navbar (unchanged) */}
+      {/* Navbar */}
       <nav className="fixed top-0 left-0 right-0 z-50 bg-slate-900 text-white shadow-lg">
         <div className="max-w-full mx-auto px-4 sm:px-6">
           <div className="flex items-center justify-between h-16">
-            {/* Left side */}
             <div className="flex items-center">
               <button
                 onClick={() => setSidebarOpen(!sidebarOpen)}
@@ -1880,7 +1836,6 @@ export default function AdminApproveWorklogs() {
               </h1>
             </div>
 
-            {/* Right side */}
             <div className="hidden md:flex items-center space-x-4">
               <div className="flex items-center space-x-3">
                 <img src={user.picture} alt={user.name} className="w-8 h-8 rounded-full border-2 border-slate-600" />
@@ -1897,7 +1852,6 @@ export default function AdminApproveWorklogs() {
               </button>
             </div>
 
-            {/* Mobile menu button (kept for parity, no dropdown content here) */}
             <div className="md:hidden">
               <button
                 onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
@@ -1918,13 +1872,12 @@ export default function AdminApproveWorklogs() {
         </div>
       </nav>
 
-      {/* Sidebar (unchanged) */}
+      {/* Sidebar */}
       {sidebarOpen && (
         <div className="fixed inset-0 z-40 lg:hidden">
           <div className="fixed inset-0 bg-black bg-opacity-50" onClick={() => setSidebarOpen(false)} />
           <aside className="fixed top-16 left-0 h-[calc(100vh-4rem)] w-80 bg-gray-800 text-white shadow-xl overflow-y-auto">
             <SidebarLinks navigate={navigate} location={useLocation()} close={() => setSidebarOpen(false)} />
-
           </aside>
         </div>
       )}
@@ -1932,20 +1885,17 @@ export default function AdminApproveWorklogs() {
         <SidebarLinks navigate={navigate} location={useLocation()} />
       </aside>
 
-
-      {/* =================== MAIN CONTENT (Approve Worklogs FULL) =================== */}
+      {/* Main Content */}
       <main className="lg:ml-72 pt-20 p-6">
         <div className="p-3 sm:p-4 lg:p-6 space-y-6 lg:space-y-8 max-w-full overflow-hidden">
-          {/* ===== Filters ===== */}
+          {/* Filters */}
           <div className="rounded-xl lg:rounded-2xl shadow-md border border-slate-200 bg-gradient-to-r from-indigo-50 via-sky-50 to-cyan-50 p-4 lg:p-5">
             <div className="flex items-center gap-2 mb-3 lg:mb-4">
               <FilterIcon className="w-4 h-4 lg:w-5 lg:h-5 text-indigo-600" />
               <h3 className="text-sm lg:text-base font-semibold text-slate-800 tracking-tight">Filters</h3>
             </div>
 
-            {/* Filters Row */}
             <div className="space-y-4 lg:space-y-0 lg:flex lg:flex-wrap lg:items-end lg:gap-6">
-
               {/* Date Picker */}
               <div className="w-full lg:min-w-[280px] lg:w-auto relative" ref={popRef}>
                 <label className="block text-xs lg:text-sm font-medium text-slate-700 mb-1">Date(s)</label>
@@ -1981,7 +1931,6 @@ export default function AdminApproveWorklogs() {
                         <button
                           onClick={() => setActiveMonth(toMonthKey(addMonths(parseMonthKey(activeMonth), -1)))}
                           className="p-1 hover:bg-slate-100 rounded"
-                          aria-label="Prev month"
                         >
                           <ChevronLeft className="w-4 h-4" />
                         </button>
@@ -1993,7 +1942,6 @@ export default function AdminApproveWorklogs() {
                             setActiveMonth(toMonthKey(nextM));
                           }}
                           className="p-1 hover:bg-slate-100 rounded disabled:opacity-40"
-                          aria-label="Next month"
                           disabled={isMonthFullyInFuture(addMonths(parseMonthKey(activeMonth), 1))}
                         >
                           <ChevronRight className="w-4 h-4" />
@@ -2166,7 +2114,7 @@ export default function AdminApproveWorklogs() {
             </div>
           </div>
 
-          {/* ===== States ===== */}
+          {/* States */}
           {loading && (
             <div className="flex items-center gap-3 py-6">
               <div className="animate-spin rounded-full h-6 w-6 lg:h-8 lg:w-8 border-b-2 border-slate-900" />
@@ -2194,7 +2142,7 @@ export default function AdminApproveWorklogs() {
             </div>
           )}
 
-          {/* ===== By Date (desktop + mobile) ===== */}
+          {/* By Date */}
           {!loading &&
             !error &&
             sortedDateKeys.map((dateKey) => {
@@ -2225,6 +2173,8 @@ export default function AdminApproveWorklogs() {
                       const rows = grouped[emp];
                       const pendingCount = rows.filter((r) => r.auditStatus === "Pending").length;
                       const rePendingCount = rows.filter((r) => r.auditStatus === "Re-Pending").length;
+                      const totalHours = calculateTotalHours(rows);
+                      const hoursBgColor = getHoursBgColor(totalHours);
                       const key = `${dateKey}|${emp}`;
                       const canApproveAll = pendingCount > 0;
 
@@ -2240,6 +2190,9 @@ export default function AdminApproveWorklogs() {
                                 <div className="text-xs text-slate-500">
                                   {pendingCount} Pending , {rePendingCount} Re-Pending
                                 </div>
+                              </div>
+                              <div className={`ml-4 px-3 py-1 rounded-full ${hoursBgColor} text-xs font-medium`}>
+                                Total Hours: {totalHours.toFixed(1)}
                               </div>
                             </div>
 
@@ -2286,8 +2239,10 @@ export default function AdminApproveWorklogs() {
                                 {rows.map((log) => {
                                   const isPending = log.auditStatus === "Pending";
                                   const isRePending = log.auditStatus === "Re-Pending";
-                                  // Admin has override powers - no time restrictions
-                                  const actionable = true;
+                                  const isApproved = log.auditStatus === "Approved";
+                                  const isRejected = log.auditStatus === "Rejected";
+                                  const isReApproved = log.auditStatus === "Re-Approved";
+                                  const isReRejected = log.auditStatus === "Re-Rejected";
 
                                   return (
                                     <tr key={log._id} className={`${rowClassForAudit(log.auditStatus)} border-t`}>
@@ -2364,58 +2319,37 @@ export default function AdminApproveWorklogs() {
                                           <>
                                             {modifying?.id === log._id ? (
                                               <div className="flex gap-2">
-                                                {(log.auditStatus === "Approved" || log.auditStatus === "Rejected") && (
-                                                  <>
-                                                    <button
-                                                      onClick={() => updateWorklogStatus(log._id, "Approved", dateKey)}
-                                                      className="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-2 rounded-lg text-sm"
-                                                      disabled={!!updating[log._id]}
-                                                    >
-                                                      Approve
-                                                    </button>
-                                                    <button
-                                                      onClick={() => updateWorklogStatus(log._id, "Rejected", dateKey)}
-                                                      className="bg-rose-600 hover:bg-rose-700 text-white px-3 py-2 rounded-lg text-sm"
-                                                      disabled={!!updating[log._id]}
-                                                    >
-                                                      Reject
-                                                    </button>
-                                                  </>
+                                                {(isApproved || isReApproved) && (
+                                                  <button
+                                                    onClick={() => handleChangeToReject(log._id, dateKey, log.auditStatus)}
+                                                    className="bg-rose-600 hover:bg-rose-700 text-white px-2 py-1.5 rounded text-xs font-medium"
+                                                    disabled={!!updating[log._id]}
+                                                  >
+                                                    {isReApproved ? "Change to Re-Reject" : "Change to Reject"}
+                                                  </button>
                                                 )}
-
-                                                {(log.auditStatus === "Re-Approved" || log.auditStatus === "Re-Rejected") && (
-                                                  <>
-                                                    <button
-                                                      onClick={() => updateWorklogStatus(log._id, "Re-Approved", dateKey)}
-                                                      className="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-2 rounded-lg text-sm"
-                                                      disabled={!!updating[log._id]}
-                                                    >
-                                                      Re-Approve
-                                                    </button>
-                                                    <button
-                                                      onClick={() => updateWorklogStatus(log._id, "Re-Rejected", dateKey)}
-                                                      className="bg-rose-600 hover:bg-rose-700 text-white px-3 py-2 rounded-lg text-sm"
-                                                      disabled={!!updating[log._id]}
-                                                    >
-                                                      Re-Reject
-                                                    </button>
-                                                  </>
+                                                {(isRejected || isReRejected) && (
+                                                  <button
+                                                    onClick={() => handleChangeToApprove(log._id, dateKey, log.auditStatus)}
+                                                    className="bg-emerald-600 hover:bg-emerald-700 text-white px-2 py-1.5 rounded text-xs font-medium"
+                                                    disabled={!!updating[log._id]}
+                                                  >
+                                                    {isReRejected ? "Change to Re-Approve" : "Change to Approve"}
+                                                  </button>
                                                 )}
-
                                                 <button
                                                   onClick={() => setModifying(null)}
-                                                  className="bg-gray-200 hover:bg-gray-300 text-slate-700 px-3 py-2 rounded-lg text-sm"
+                                                  className="bg-gray-200 hover:bg-gray-300 text-slate-700 px-2 py-1.5 rounded text-xs font-medium"
                                                 >
                                                   Cancel
                                                 </button>
                                               </div>
                                             ) : (
                                               <button
-                                                className="inline-flex items-center gap-1 bg-slate-200 hover:bg-slate-300 text-slate-700 px-3 py-2 rounded-lg text-sm"
+                                                className="inline-flex items-center gap-1 bg-slate-200 hover:bg-slate-300 text-slate-700 px-2 py-1.5 rounded text-xs font-medium"
                                                 onClick={() => setModifying({ id: log._id, dateKey })}
                                               >
-                                                <Pencil className="w-4 h-4" />
-                                                Modify
+                                                <Pencil className="w-3 h-3" />
                                               </button>
                                             )}
                                           </>
@@ -2438,6 +2372,8 @@ export default function AdminApproveWorklogs() {
                       const rows = grouped[emp];
                       const pendingCount = rows.filter((r) => r.auditStatus === "Pending").length;
                       const rePendingCount = rows.filter((r) => r.auditStatus === "Re-Pending").length;
+                      const totalHours = calculateTotalHours(rows);
+                      const hoursBgColor = getHoursBgColor(totalHours);
                       const key = `${dateKey}|${emp}`;
                       const canApproveAll = pendingCount > 0;
 
@@ -2452,6 +2388,9 @@ export default function AdminApproveWorklogs() {
                                 <div className="text-sm font-semibold text-slate-900 truncate">{emp}</div>
                                 <div className="text-xs text-slate-500">
                                   {pendingCount} pending, {rePendingCount} re-pending
+                                </div>
+                                <div className={`inline-block mt-1 px-2 py-0.5 rounded-full ${hoursBgColor} text-xs font-medium`}>
+                                  Total Hours: {totalHours.toFixed(1)}
                                 </div>
                               </div>
                             </div>
@@ -2479,8 +2418,10 @@ export default function AdminApproveWorklogs() {
                             {rows.map((log) => {
                               const isPending = log.auditStatus === "Pending";
                               const isRePending = log.auditStatus === "Re-Pending";
-                              // Admin has override powers - no time restrictions
-                              const actionable = true;
+                              const isApproved = log.auditStatus === "Approved";
+                              const isRejected = log.auditStatus === "Rejected";
+                              const isReApproved = log.auditStatus === "Re-Approved";
+                              const isReRejected = log.auditStatus === "Re-Rejected";
 
                               return (
                                 <article key={log._id} className={`p-3 sm:p-4 ${rowClassForAudit(log.auditStatus)}`}>
@@ -2576,60 +2517,38 @@ export default function AdminApproveWorklogs() {
                                     ) : (
                                       <>
                                         {modifying?.id === log._id ? (
-                                          <div className="w-full space-y-2">
-                                            <div className="flex flex-wrap gap-2">
-                                              {(log.auditStatus === "Approved" || log.auditStatus === "Rejected") && (
-                                                <>
-                                                  <button
-                                                    onClick={() => updateWorklogStatus(log._id, "Approved", dateKey)}
-                                                    className="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-2 rounded-lg text-sm flex-1 min-w-0"
-                                                    disabled={!!updating[log._id]}
-                                                  >
-                                                    Approve
-                                                  </button>
-                                                  <button
-                                                    onClick={() => updateWorklogStatus(log._id, "Rejected", dateKey)}
-                                                    className="bg-rose-600 hover:bg-rose-700 text-white px-3 py-2 rounded-lg text-sm flex-1 min-w-0"
-                                                    disabled={!!updating[log._id]}
-                                                  >
-                                                    Reject
-                                                  </button>
-                                                </>
-                                              )}
-
-                                              {(log.auditStatus === "Re-Approved" || log.auditStatus === "Re-Rejected") && (
-                                                <>
-                                                  <button
-                                                    onClick={() => updateWorklogStatus(log._id, "Re-Approved", dateKey)}
-                                                    className="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-2 rounded-lg text-sm flex-1 min-w-0"
-                                                    disabled={!!updating[log._id]}
-                                                  >
-                                                    Re-Approve
-                                                  </button>
-                                                  <button
-                                                    onClick={() => updateWorklogStatus(log._id, "Re-Rejected", dateKey)}
-                                                    className="bg-rose-600 hover:bg-rose-700 text-white px-3 py-2 rounded-lg text-sm flex-1 min-w-0"
-                                                    disabled={!!updating[log._id]}
-                                                  >
-                                                    Re-Reject
-                                                  </button>
-                                                </>
-                                              )}
-                                            </div>
+                                          <div className="flex gap-2">
+                                            {(isApproved || isReApproved) && (
+                                              <button
+                                                onClick={() => handleChangeToReject(log._id, dateKey, log.auditStatus)}
+                                                className="bg-rose-600 hover:bg-rose-700 text-white px-2 py-1.5 rounded text-xs font-medium"
+                                                disabled={!!updating[log._id]}
+                                              >
+                                                {isReApproved ? "Change to Re-Reject" : "Change to Reject"}
+                                              </button>
+                                            )}
+                                            {(isRejected || isReRejected) && (
+                                              <button
+                                                onClick={() => handleChangeToApprove(log._id, dateKey, log.auditStatus)}
+                                                className="bg-emerald-600 hover:bg-emerald-700 text-white px-2 py-1.5 rounded text-xs font-medium"
+                                                disabled={!!updating[log._id]}
+                                              >
+                                                {isReRejected ? "Change to Re-Approve" : "Change to Approve"}
+                                              </button>
+                                            )}
                                             <button
                                               onClick={() => setModifying(null)}
-                                              className="bg-gray-200 hover:bg-gray-300 text-slate-700 px-3 py-2 rounded-lg text-sm w-full"
+                                              className="bg-gray-200 hover:bg-gray-300 text-slate-700 px-2 py-1.5 rounded text-xs font-medium"
                                             >
                                               Cancel
                                             </button>
                                           </div>
                                         ) : (
                                           <button
-                                            className="inline-flex items-center gap-1 bg-slate-200 hover:bg-slate-300 text-slate-700 px-3 py-2 rounded-lg text-sm"
+                                            className="inline-flex items-center gap-1 bg-slate-200 hover:bg-slate-300 text-slate-700 px-2 py-1.5 rounded text-xs font-medium"
                                             onClick={() => setModifying({ id: log._id, dateKey })}
                                           >
-                                            <Pencil className="w-4 h-4" />
-                                            <span>Modify</span>
+                                            <Pencil className="w-3 h-3" />
                                           </button>
                                         )}
                                       </>
