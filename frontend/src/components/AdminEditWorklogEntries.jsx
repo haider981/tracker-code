@@ -206,7 +206,7 @@
 //       }
 
 //       const data = await response.json();
-//       setEmployees(data.users || []); // Changed from data.employees to data.users
+//       setEmployees(data.users || []);
 
 //     } catch (err) {
 //       console.error("Failed to fetch employees:", err.response?.data?.message || err.message);
@@ -312,24 +312,36 @@
 //     );
 //   };
 
+//   /* =================== HELPER FUNCTION FOR PROPERTY ACCESS =================== */
+//   const getProperty = (obj, ...keys) => {
+//     for (const key of keys) {
+//       if (obj[key] !== undefined && obj[key] !== null) return obj[key];
+//     }
+//     return "";
+//   };
+
 //   /* =================== CRUD: Edit / Delete / Add =================== */
 //   const handleOpenEdit = (log, dateKey) => {
-//     // prefill form with the selected row
+//     // FIX: Handle multiple possible property name formats
 //     setEditForm({
-//       _id: log._id,
-//       employeeName: log.employeeName || log.name || "",
-//       workMode: log.workMode || log.work_mode || "",
-//       projectName: log.projectName || log.project_name || "",
-//       task: log.task || "",
-//       bookElement: log.bookElement || log.book_element || "",
-//       chapterNumbers: log.chapterNo ? [String(log.chapterNo)] : (log.chapter_number ? log.chapter_number.split(", ").filter(Boolean) : []),
-//       hoursSpent: log.hoursSpent || log.hours_spent || "",
-//       noOfUnits: log.noOfUnits || log.number_of_units || "",
-//       unitType: log.unitType || log.unit_type || "pages",
+//       _id: log._id || log.id, // FIX: Handle both _id and id
+//       employeeName: getProperty(log, 'employeeName', 'employee_name', 'name'),
+//       workMode: getProperty(log, 'workMode', 'work_mode'),
+//       projectName: getProperty(log, 'projectName', 'project_name'),
+//       task: getProperty(log, 'task', 'task_name'),
+//       bookElement: getProperty(log, 'bookElement', 'book_element'),
+//       chapterNumbers: log.chapterNo 
+//         ? [String(log.chapterNo)] 
+//         : (log.chapter_number 
+//             ? log.chapter_number.split(", ").filter(Boolean) 
+//             : []),
+//       hoursSpent: getProperty(log, 'hoursSpent', 'hours_spent'),
+//       noOfUnits: getProperty(log, 'noOfUnits', 'number_of_units'),
+//       unitType: getProperty(log, 'unitType', 'unit_type') || "pages",
 //       status: log.status || "",
-//       dueOn: toISODateOnly(log.dueOn || log.due_on) || dateKey,
+//       dueOn: toISODateOnly(getProperty(log, 'dueOn', 'due_on')) || dateKey,
 //       details: log.details || "",
-//       auditStatus: log.auditStatus || log.audit_status || "Pending",
+//       auditStatus: getProperty(log, 'auditStatus', 'audit_status') || "Pending",
 //       dateKey, // for local state writeback
 //     });
 //     setFormErrors({});
@@ -367,7 +379,7 @@
 //           const dk = editForm.dateKey;
 //           if (!next[dk]) return next;
 //           next[dk] = next[dk].map((r) =>
-//             r._id === editForm._id
+//             (r._id || r.id) === editForm._id
 //               ? {
 //                 ...r,
 //                 employeeName: editForm.employeeName,
@@ -376,6 +388,7 @@
 //                 task: editForm.task,
 //                 bookElement: editForm.bookElement,
 //                 chapterNumbers: editForm.chapterNumbers.join(", "),
+//                 chapterNo: editForm.chapterNumbers.join(", "),
 //                 hoursSpent: Number(editForm.hoursSpent) || 0,
 //                 noOfUnits: Number(editForm.noOfUnits) || 0,
 //                 unitType: editForm.unitType,
@@ -400,18 +413,26 @@
 //     }
 //   };
 
-//   const handleDelete = async (id) => {
+//   const handleDelete = async (log) => {
+//     // FIX: Pass the entire log object and extract ID properly
+//     const worklogId = log._id || log.id;
+
+//     if (!worklogId) {
+//       alert("Error: Could not identify the worklog entry to delete.");
+//       return;
+//     }
+
 //     if (!window.confirm("Are you sure you want to delete this entry?")) return;
 
 //     try {
-//       const response = await axios.delete(`${API_BASE_URL}/api/admin/worklogs/${id}`);
+//       const response = await axios.delete(`${API_BASE_URL}/api/admin/worklogs/${worklogId}`);
 
 //       if (response.data.success) {
 //         // Remove locally
 //         setWorklogsByDate((prev) => {
 //           const next = { ...prev };
 //           for (const dateKey of Object.keys(next)) {
-//             next[dateKey] = next[dateKey].filter((r) => r._id !== id);
+//             next[dateKey] = next[dateKey].filter((r) => (r._id || r.id) !== worklogId);
 //           }
 //           return next;
 //         });
@@ -429,7 +450,7 @@
 //     setAddForm({
 //       _id: undefined,
 //       employeeName: employeeName || "",
-//       date: dateKey, // This is the key fix - set the actual date instead of dateKey as dueOn
+//       date: dateKey,
 //       workMode: "",
 //       projectName: "",
 //       task: "",
@@ -439,7 +460,7 @@
 //       noOfUnits: "",
 //       unitType: "pages",
 //       status: "",
-//       dueOn: dateKey, // Keep this for due date
+//       dueOn: dateKey,
 //       details: "",
 //       team: user.team,
 //       auditStatus: "Pending",
@@ -453,7 +474,7 @@
 //     setAddForm({
 //       _id: undefined,
 //       employeeName: "",
-//       date: todayDate, // Add the date field for backend
+//       date: todayDate,
 //       workMode: "",
 //       projectName: "",
 //       task: "",
@@ -485,7 +506,7 @@
 //       setSavingAdd(true);
 //       const response = await axios.post(`${API_BASE_URL}/api/admin/worklogs/create`, {
 //         employeeName: form.employeeName,
-//         date: mode === "inline" ? addContext.dateKey : form.dueOn, // Use correct date based on mode
+//         date: mode === "inline" ? addContext.dateKey : form.dueOn,
 //         workMode: form.workMode,
 //         projectName: form.projectName,
 //         task: form.task,
@@ -507,8 +528,27 @@
 //         setWorklogsByDate((prev) => {
 //           const next = { ...prev };
 //           const createdRow = response.data.worklog || {};
+
+//           // FIX: Ensure the created row has consistent property names
+//           const normalizedRow = {
+//             _id: createdRow._id || createdRow.id,
+//             employeeName: createdRow.employeeName || createdRow.employee_name || form.employeeName,
+//             workMode: createdRow.workMode || createdRow.work_mode || form.workMode,
+//             projectName: createdRow.projectName || createdRow.project_name || form.projectName,
+//             task: createdRow.task || form.task,
+//             bookElement: createdRow.bookElement || createdRow.book_element || form.bookElement,
+//             chapterNo: createdRow.chapterNo || createdRow.chapter_number || form.chapterNumbers.join(", "),
+//             hoursSpent: createdRow.hoursSpent || createdRow.hours_spent || form.hoursSpent,
+//             noOfUnits: createdRow.noOfUnits || createdRow.number_of_units || form.noOfUnits,
+//             unitType: createdRow.unitType || createdRow.unit_type || form.unitType,
+//             status: createdRow.status || form.status,
+//             dueOn: createdRow.dueOn || createdRow.due_on || form.dueOn,
+//             details: createdRow.details || form.details,
+//             auditStatus: createdRow.auditStatus || createdRow.audit_status || form.auditStatus,
+//           };
+
 //           if (!next[dk]) next[dk] = [];
-//           next[dk] = [...next[dk], createdRow];
+//           next[dk] = [...next[dk], normalizedRow];
 //           return next;
 //         });
 
@@ -1090,7 +1130,7 @@
 //                                       </button>
 //                                       <button
 //                                         className="inline-flex items-center justify-center bg-rose-600 hover:bg-rose-700 text-white px-2.5 py-1.5 rounded-md"
-//                                         onClick={() => handleDelete(log._id)}
+//                                         onClick={() => handleDelete(log)}
 //                                         title="Delete"
 //                                       >
 //                                         <Trash2 size={16} />
@@ -1188,7 +1228,7 @@
 //                                 </button>
 //                                 <button
 //                                   className="inline-flex items-center gap-1 bg-rose-600 hover:bg-rose-700 text-white px-3 py-2 rounded-lg text-sm flex-1 min-w-0"
-//                                   onClick={() => handleDelete(log._id)}
+//                                   onClick={() => handleDelete(log)}
 //                                 >
 //                                   <Trash2 size={16} />
 //                                   <span>Delete</span>
@@ -1876,6 +1916,7 @@
 // }
 
 
+
 import React, { useState, useEffect, useMemo, useRef } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { jwtDecode } from "jwt-decode";
@@ -1902,23 +1943,15 @@ import {
 const API_BASE_URL = "http://localhost:5000";
 
 /* =================== CONSTANTS =================== */
-const WORK_MODES = ["In Office", "WFH", "On Duty", "Half Day", "OT Home", "OT Office", "Night"];
+const WORK_MODES = ["In Office", "WFH", "On Duty", "Half Day", "OT Home", "OT Office", "Night", "Leave"];
 const STATUS = ["In Progress", "Delayed", "Completed", "Not approved"];
 const HOURS = [
   "0.5", "1", "1.5", "2", "2.5", "3", "3.5", "4", "4.5", "5", "5.5", "6", "6.5", "7", "7.5", "8",
 ];
-const TASKS = [
-  "CMPL-MS", "VRF-MS", "DRF", "TAL", "R1", "R2", "R3", "R4", "CR", "FER", "SET", "FINAL", "MEET",
-  "QRY", "Coord", "GLANCE", "Research", "Analysis", "KT", "Interview", "PLAN", "UPL", "COM",
-];
-const BASE_BOOK_ELEMENTS = [
-  "Theory", "Exercise", "Chapter", "Full book", "Mind Map", "Diagram", "Solution", "Booklet",
-  "Full Video", "AVLR-VO", "DLR", "Lesson Plan", "Miscellaneous", "AVLR-Ideation", "Marketing",
-  "Development", "Recruitment", "References", "Frames", "Papers", "Projects", "Lesson Plan",
-];
-const BASE_CHAPTER_NUMBERS = [
-  "Title", "Syllabus", "Content", "Projects", "Papers", "Miscellaneous", "Appendix", "Full Book",
-  ...Array.from({ length: 60 }, (_, i) => String(i + 1)),
+const TASKS = ["CMPL-MS", "VRF-MS", "DRF", "TAL", "R1", "R2", "R3", "R4", "CR", "FER", "SET", "FINAL", "MEET", "QRY", "Coord", "GLANCE", "Research", "Analysis", "KT", "Interview", "PLAN", "UPL", "Generation", "COM", "CR1", "CR2", "CR3", "CR4", "CR5", "Code"];
+const BASE_BOOK_ELEMENTS = ["Theory", "Exercise", "Chapter", "Full book", "Mind Map", "Diagram", "Solution", "Booklet", "Full Video", "AVLR-VO", "DLR", "Lesson Plan", "Miscellaneous", "AVLR-Ideation", "Marketing", "Development", "Recruitment", "References", "Frames", "Papers", "Projects", "Lesson Plan", "Shooting", "Frontend", "Backend", "DB", "OST", "Visual Instructions", "Animation", "Sheets"];
+const BASE_CHAPTER_NUMBERS = ["Title", "Syllabus", "Content", "Projects", "Papers", "Miscellaneous", "Appendix", "Full Book", "Full Book", "Unit 1", "Unit 2", "Unit 3", "Unit 4", "Unit 5",
+  ...Array.from({ length: 40 }, (_, i) => String(i + 1))
 ];
 const UNITS = [
   { label: "pages", value: "pages" },
@@ -1936,6 +1969,30 @@ const HOUR_BUCKETS = [
   { id: "LE75", label: "Sum ≤ 7.5", test: (h) => h <= 7.5 },
   { id: "GT75", label: "Sum > 7.5", test: (h) => h > 7.5 },
 ];
+
+// Team colors mapping (same as AdminApproveWorklog)
+const TEAM_COLORS = {
+  Editorial_Maths: "bg-blue-100 border-blue-300 text-blue-800",
+  Editorial_Science: "bg-green-100 border-green-300 text-green-800",
+  Editorial_University: "bg-purple-100 border-purple-300 text-purple-800",
+  Editorial_English: "bg-red-100 border-red-300 text-red-800",
+  Editorial_SST: "bg-orange-100 border-orange-300 text-orange-800",
+  "Editorial_Eco&Com": "bg-teal-100 border-teal-300 text-teal-800",
+  DTP_Raj: "bg-pink-100 border-pink-300 text-pink-800",
+  DTP_Naveen: "bg-indigo-100 border-indigo-300 text-indigo-800",
+  DTP_Rimpi: "bg-cyan-100 border-cyan-300 text-cyan-800",
+  DTP_Suman: "bg-amber-100 border-amber-300 text-amber-800",
+  Digital_Marketing: "bg-lime-100 border-lime-300 text-lime-800",
+  CSMA_Maths: "bg-emerald-100 border-emerald-300 text-emerald-800",
+  CSMA_Science: "bg-violet-100 border-violet-300 text-violet-800",
+  CSMA_Intern: "bg-fuchsia-100 border-fuchsia-300 text-fuchsia-800",
+  Animation_Maths: "bg-rose-100 border-rose-300 text-rose-800",
+  InternScience: "bg-sky-100 border-sky-300 text-sky-800",
+  "University&_Titles": "bg-stone-100 border-stone-300 text-stone-800",
+};
+
+// All available teams
+const ALL_TEAMS = Object.keys(TEAM_COLORS);
 
 function Label({ children, className = "" }) {
   return (
@@ -1974,7 +2031,7 @@ export default function AdminEditWorklogEntries() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [user, setUser] = useState(null);
 
-  /* ===== Auth (as-is from AdminDashboard) ===== */
+  /* ===== Auth ===== */
   useEffect(() => {
     const token = localStorage.getItem("authToken");
     if (!token) {
@@ -2042,8 +2099,20 @@ export default function AdminEditWorklogEntries() {
   const statusRef = useOutclick(() => setShowStatusDropdown(false));
   const [selectedAuditStatuses, setSelectedAuditStatuses] = useState([...ALL_STATUSES]);
 
+  // NEW FILTERS: Work Mode and Teams
+  const [showWorkModeDropdown, setShowWorkModeDropdown] = useState(false);
+  const workModeRef = useOutclick(() => setShowWorkModeDropdown(false));
+  const [selectedWorkModes, setSelectedWorkModes] = useState([]);
+
+  const [showTeamDropdown, setShowTeamDropdown] = useState(false);
+  const teamRef = useOutclick(() => setShowTeamDropdown(false));
+  const [selectedTeams, setSelectedTeams] = useState([]);
+
   // Filters: hour bucket
   const [selectedHourBucket, setSelectedHourBucket] = useState("ALL");
+
+  // NEW FILTER: Global search
+  const [globalSearch, setGlobalSearch] = useState("");
 
   // Edit / Add modals
   const [globalAddOpen, setGlobalAddOpen] = useState(false);
@@ -2096,7 +2165,7 @@ export default function AdminEditWorklogEntries() {
     if (!user) return;
     fetchWorklogs();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user, startISO, endISO, selectedEmployees, selectedAuditStatuses.length, selectedHourBucket]);
+  }, [user, startISO, endISO, selectedEmployees, selectedAuditStatuses, selectedWorkModes, selectedTeams, selectedHourBucket]);
 
   const fetchWorklogs = async () => {
     try {
@@ -2106,7 +2175,10 @@ export default function AdminEditWorklogEntries() {
       const response = await axios.post(`${API_BASE_URL}/api/admin/worklogs`, {
         startDate: startISO,
         endDate: endISO,
-        employees: selectedEmployees,
+        employees: selectedEmployees.length > 0 ? selectedEmployees : undefined,
+        auditStatus: selectedAuditStatuses.length === ALL_STATUSES.length ? undefined : selectedAuditStatuses,
+        workModes: selectedWorkModes.length > 0 ? selectedWorkModes : undefined,
+        teams: selectedTeams.length > 0 ? selectedTeams : undefined,
       }, {
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -2130,18 +2202,46 @@ export default function AdminEditWorklogEntries() {
     [worklogsByDate]
   );
 
-  const groupByEmployee = (items) => {
-    const byEmp = {};
+  // Group by team first, then by employee (same as AdminApproveWorklog)
+  const groupByTeamAndEmployee = (items) => {
+    const byTeam = {};
     for (const row of items) {
+      const team = row.team || "Unknown";
+      if (!byTeam[team]) byTeam[team] = {};
       const empName = row.employeeName || row.name || "Unknown";
-      if (!byEmp[empName]) byEmp[empName] = [];
-      byEmp[empName].push(row);
+      if (!byTeam[team][empName]) byTeam[team][empName] = [];
+      byTeam[team][empName].push(row);
     }
-    return Object.fromEntries(
-      Object.keys(byEmp)
-        .sort((a, b) => a.localeCompare(b))
-        .map((k) => [k, byEmp[k]])
-    );
+
+    // Sort teams and employees
+    const sortedTeams = {};
+    Object.keys(byTeam).sort().forEach(team => {
+      sortedTeams[team] = Object.fromEntries(
+        Object.keys(byTeam[team])
+          .sort((a, b) => a.localeCompare(b))
+          .map(emp => [emp, byTeam[team][emp]])
+      );
+    });
+
+    return sortedTeams;
+  };
+
+  // Calculate total hours for an employee on a specific date
+  const calculateTotalHours = (rows) => {
+    return rows.reduce((total, row) => total + (parseFloat(row.hoursSpent || row.hours_spent) || 0), 0);
+  };
+
+  // Get background color based on total hours (same as AdminApproveWorklog)
+  const getHoursBgColor = (totalHours) => {
+    if (totalHours >= 6.5 && totalHours <= 7.5) return "bg-emerald-100";
+    if (totalHours < 6.5) return "bg-red-100";
+    if (totalHours > 7.5) return "bg-blue-100";
+    return "";
+  };
+
+  // Get team color class (same as AdminApproveWorklog)
+  const getTeamColorClass = (team) => {
+    return TEAM_COLORS[team] || "bg-gray-100 border-gray-300 text-gray-800";
   };
 
   const rowClassForAudit = (status) => {
@@ -2190,6 +2290,50 @@ export default function AdminEditWorklogEntries() {
     );
   };
 
+  // Global search highlighting function
+  const highlightText = (text, searchTerm) => {
+    if (!searchTerm || !text) return text;
+
+    const regex = new RegExp(`(${searchTerm.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
+    const parts = String(text).split(regex);
+
+    return parts.map((part, index) =>
+      regex.test(part) ? (
+        <span key={index} className="bg-yellow-200 px-0.5 rounded font-medium">
+          {part}
+        </span>
+      ) : part
+    );
+  };
+
+  // Filter entries by global search
+  const filterByGlobalSearch = (entries) => {
+    if (!globalSearch.trim()) return entries;
+
+    const searchTerm = globalSearch.toLowerCase();
+    return entries.filter(entry => {
+      const searchableFields = [
+        entry.employeeName || entry.employee_name,
+        entry.workMode || entry.work_mode,
+        entry.projectName || entry.project_name,
+        entry.task || entry.task_name,
+        entry.bookElement || entry.book_element,
+        entry.chapterNo || entry.chapter_number,
+        entry.status,
+        entry.details,
+        entry.auditStatus || entry.audit_status,
+        entry.team,
+        String(entry.hoursSpent || entry.hours_spent),
+        String(entry.noOfUnits || entry.number_of_units),
+        entry.unitType || entry.unit_type,
+      ].filter(Boolean);
+
+      return searchableFields.some(field =>
+        String(field).toLowerCase().includes(searchTerm)
+      );
+    });
+  };
+
   /* =================== HELPER FUNCTION FOR PROPERTY ACCESS =================== */
   const getProperty = (obj, ...keys) => {
     for (const key of keys) {
@@ -2202,17 +2346,17 @@ export default function AdminEditWorklogEntries() {
   const handleOpenEdit = (log, dateKey) => {
     // FIX: Handle multiple possible property name formats
     setEditForm({
-      _id: log._id || log.id, // FIX: Handle both _id and id
+      _id: log._id || log.id,
       employeeName: getProperty(log, 'employeeName', 'employee_name', 'name'),
       workMode: getProperty(log, 'workMode', 'work_mode'),
       projectName: getProperty(log, 'projectName', 'project_name'),
       task: getProperty(log, 'task', 'task_name'),
       bookElement: getProperty(log, 'bookElement', 'book_element'),
-      chapterNumbers: log.chapterNo 
-        ? [String(log.chapterNo)] 
-        : (log.chapter_number 
-            ? log.chapter_number.split(", ").filter(Boolean) 
-            : []),
+      chapterNumbers: log.chapterNo
+        ? [String(log.chapterNo)]
+        : (log.chapter_number
+          ? log.chapter_number.split(", ").filter(Boolean)
+          : []),
       hoursSpent: getProperty(log, 'hoursSpent', 'hours_spent'),
       noOfUnits: getProperty(log, 'noOfUnits', 'number_of_units'),
       unitType: getProperty(log, 'unitType', 'unit_type') || "pages",
@@ -2294,7 +2438,7 @@ export default function AdminEditWorklogEntries() {
   const handleDelete = async (log) => {
     // FIX: Pass the entire log object and extract ID properly
     const worklogId = log._id || log.id;
-    
+
     if (!worklogId) {
       alert("Error: Could not identify the worklog entry to delete.");
       return;
@@ -2406,7 +2550,7 @@ export default function AdminEditWorklogEntries() {
         setWorklogsByDate((prev) => {
           const next = { ...prev };
           const createdRow = response.data.worklog || {};
-          
+
           // FIX: Ensure the created row has consistent property names
           const normalizedRow = {
             _id: createdRow._id || createdRow.id,
@@ -2423,8 +2567,9 @@ export default function AdminEditWorklogEntries() {
             dueOn: createdRow.dueOn || createdRow.due_on || form.dueOn,
             details: createdRow.details || form.details,
             auditStatus: createdRow.auditStatus || createdRow.audit_status || form.auditStatus,
+            team: createdRow.team || user.team,
           };
-          
+
           if (!next[dk]) next[dk] = [];
           next[dk] = [...next[dk], normalizedRow];
           return next;
@@ -2479,7 +2624,7 @@ export default function AdminEditWorklogEntries() {
     const setter = which === "edit" ? setEditForm : setAddForm;
     setter((f) => ({
       ...f,
-      projectName: p.name,
+      projectName: p.id, // CHANGED: Fill project ID instead of project name
       dueOn: f.dueOn || p.dueOn || "",
     }));
     setShowSuggest(false);
@@ -2563,7 +2708,7 @@ export default function AdminEditWorklogEntries() {
               </button>
             </div>
 
-            {/* Mobile menu button (kept for parity, no dropdown content here) */}
+            {/* Mobile menu button */}
             <div className="md:hidden">
               <button
                 onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
@@ -2583,6 +2728,23 @@ export default function AdminEditWorklogEntries() {
           </div>
         </div>
       </nav>
+      {/* Mobile Menu Dropdown - ADD THIS SECTION */}
+      {mobileMenuOpen && (
+        <div className="md:hidden fixed top-16 left-0 right-0 z-40 bg-slate-800 text-white shadow-xl">
+          <div className="px-4 py-4 space-y-3">
+            <div className="flex items-center space-x-3 pb-3 border-b border-slate-600">
+              <img src={user.picture} alt={user.name} className="w-8 h-8 rounded-full border-2 border-slate-600" />
+              <div>
+                <div className="text-sm font-medium">{user.name}</div>
+                <div className="text-xs text-slate-300">{user.email}</div>
+              </div>
+            </div>
+            <button onClick={handleLogout} className="w-full bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg text-sm">
+              Logout
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Sidebar */}
       {sidebarOpen && (
@@ -2610,6 +2772,29 @@ export default function AdminEditWorklogEntries() {
 
             {/* Filters Row */}
             <div className="space-y-4 lg:space-y-0 lg:flex lg:flex-wrap lg:items-end lg:gap-6">
+              {/* Global Search */}
+              <div className="w-full lg:min-w-[280px] lg:w-auto">
+                <label className="block text-xs lg:text-sm font-medium text-slate-700 mb-1">Search Entries</label>
+                <div className="relative">
+                  <input
+                    type="text"
+                    value={globalSearch}
+                    onChange={(e) => setGlobalSearch(e.target.value)}
+                    placeholder="Search across all fields..."
+                    className="w-full border rounded-lg px-3 py-2 pl-10 text-xs lg:text-sm hover:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-300 bg-white shadow-sm text-slate-700"
+                  />
+                  <SearchIcon className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
+                  {globalSearch && (
+                    <button
+                      onClick={() => setGlobalSearch("")}
+                      className="absolute right-3 top-2.5 text-slate-400 hover:text-slate-600"
+                    >
+                      <XIcon className="w-4 h-4" />
+                    </button>
+                  )}
+                </div>
+              </div>
+
               {/* Date Picker */}
               <div className="w-full lg:min-w-[280px] lg:w-auto relative" ref={popRef}>
                 <label className="block text-xs lg:text-sm font-medium text-slate-700 mb-1">Date(s)</label>
@@ -2784,6 +2969,113 @@ export default function AdminEditWorklogEntries() {
                 )}
               </div>
 
+              {/* Work Mode multi-select (NEW) */}
+              <div ref={workModeRef} className="relative w-full lg:min-w-[260px] lg:w-auto">
+                <label className="block text-xs lg:text-sm font-medium text-slate-700 mb-1">Work Mode</label>
+                <button
+                  onClick={() => setShowWorkModeDropdown((o) => !o)}
+                  className="w-full border rounded-lg px-3 py-2 text-xs lg:text-sm text-left flex justify-between items-center hover:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-300 bg-white shadow-sm text-slate-700"
+                >
+                  <span className="flex flex-wrap gap-1 min-w-0 flex-1">
+                    {selectedWorkModes.length === 0 ? (
+                      <span className="text-slate-600">All work modes</span>
+                    ) : (
+                      selectedWorkModes.map((mode) => (
+                        <span key={mode} className="bg-purple-100 text-purple-700 px-2 py-0.5 rounded-full text-xs font-medium">
+                          {mode}
+                        </span>
+                      ))
+                    )}
+                  </span>
+                  <ChevronDown className={`w-4 h-4 ml-2 transition-transform flex-shrink-0 ${showWorkModeDropdown ? "rotate-180" : "rotate-0"}`} />
+                </button>
+
+                {showWorkModeDropdown && (
+                  <div className="absolute z-50 mt-1 w-full bg-white border rounded-lg shadow-lg max-h-60 overflow-y-auto">
+                    <div className="px-3 py-2 text-xs text-slate-500 border-b bg-slate-50 flex items-center justify-between">
+                      <span className="flex items-center gap-2">
+                        <UsersIcon className="w-3.5 h-3.5" />
+                        Select work modes
+                      </span>
+                      <div className="flex items-center gap-2">
+                        <button onClick={() => setSelectedWorkModes([...WORK_MODES])} className="text-[11px] px-2 py-0.5 rounded bg-slate-100 hover:bg-slate-200">Select All</button>
+                        <button onClick={() => setSelectedWorkModes([])} className="text-[11px] px-2 py-0.5 rounded bg-slate-100 hover:bg-slate-200">Clear</button>
+                      </div>
+                    </div>
+                    {WORK_MODES.map((mode) => (
+                      <label key={mode} className="flex items-center px-3 py-2 hover:bg-slate-50 cursor-pointer text-xs lg:text-sm">
+                        <input
+                          type="checkbox"
+                          value={mode}
+                          checked={selectedWorkModes.includes(mode)}
+                          onChange={() =>
+                            setSelectedWorkModes((prev) =>
+                              prev.includes(mode) ? prev.filter((m) => m !== mode) : [...prev, mode]
+                            )
+                          }
+                          className="mr-2"
+                        />
+                        {mode}
+                      </label>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Teams multi-select (NEW) */}
+              <div ref={teamRef} className="relative w-full lg:min-w-[260px] lg:w-auto">
+                <label className="block text-xs lg:text-sm font-medium text-slate-700 mb-1">Teams</label>
+                <button
+                  onClick={() => setShowTeamDropdown((o) => !o)}
+                  className="w-full border rounded-lg px-3 py-2 text-xs lg:text-sm text-left flex justify-between items-center hover:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-300 bg-white shadow-sm text-slate-700"
+                >
+                  <span className="flex flex-wrap gap-1 min-w-0 flex-1">
+                    {selectedTeams.length === 0 ? (
+                      <span className="text-slate-600">All teams</span>
+                    ) : (
+                      selectedTeams.map((team) => (
+                        <span key={team} className={`px-2 py-0.5 rounded-full text-xs font-medium ${getTeamColorClass(team)}`}>
+                          {team}
+                        </span>
+                      ))
+                    )}
+                  </span>
+                  <ChevronDown className={`w-4 h-4 ml-2 transition-transform flex-shrink-0 ${showTeamDropdown ? "rotate-180" : "rotate-0"}`} />
+                </button>
+
+                {showTeamDropdown && (
+                  <div className="absolute z-50 mt-1 w-full bg-white border rounded-lg shadow-lg max-h-60 overflow-y-auto">
+                    <div className="px-3 py-2 text-xs text-slate-500 border-b bg-slate-50 flex items-center justify-between">
+                      <span className="flex items-center gap-2">
+                        <UsersIcon className="w-3.5 h-3.5" />
+                        Select teams
+                      </span>
+                      <div className="flex items-center gap-2">
+                        <button onClick={() => setSelectedTeams([...ALL_TEAMS])} className="text-[11px] px-2 py-0.5 rounded bg-slate-100 hover:bg-slate-200">Select All</button>
+                        <button onClick={() => setSelectedTeams([])} className="text-[11px] px-2 py-0.5 rounded bg-slate-100 hover:bg-slate-200">Clear</button>
+                      </div>
+                    </div>
+                    {ALL_TEAMS.map((team) => (
+                      <label key={team} className="flex items-center px-3 py-2 hover:bg-slate-50 cursor-pointer text-xs lg:text-sm">
+                        <input
+                          type="checkbox"
+                          value={team}
+                          checked={selectedTeams.includes(team)}
+                          onChange={() =>
+                            setSelectedTeams((prev) =>
+                              prev.includes(team) ? prev.filter((t) => t !== team) : [...prev, team]
+                            )
+                          }
+                          className="mr-2"
+                        />
+                        <span className={`inline-block w-3 h-3 rounded-full mr-2 ${TEAM_COLORS[team]?.split(' ')[0]}`}></span>
+                        {team}
+                      </label>
+                    ))}
+                  </div>
+                )}
+              </div>
+
               {/* Audit Status multi-select */}
               <div ref={statusRef} className="relative w-full lg:min-w-[260px] lg:w-auto">
                 <label className="block text-xs lg:text-sm font-medium text-slate-700 mb-1">Audit Status</label>
@@ -2897,29 +3189,58 @@ export default function AdminEditWorklogEntries() {
             </div>
           )}
 
-          {/* ===== By Date (desktop + mobile) ===== */}
+          {/* ===== By Date - Grouped by Team then Employee (UPDATED) ===== */}
           {!loading &&
             !error &&
             sortedDateKeys.map((dateKey) => {
               const allRows = worklogsByDate[dateKey] || [];
 
-              // Filter by audit status
-              const filteredByStatus = allRows.filter((r) =>
+              // Filter by audit status, work mode, team
+              let filteredRows = allRows.filter((r) =>
                 selectedAuditStatuses.includes(r.auditStatus || r.audit_status || "Pending")
               );
 
-              // Group by employee and calculate totals
-              const grouped = groupByEmployee(filteredByStatus);
-              const processed = Object.entries(grouped).map(([emp, logs]) => {
-                const total = logs.reduce((acc, r) => acc + Number(r.hoursSpent || r.hours_spent || 0), 0);
-                return { emp, logs, total };
+              if (selectedWorkModes.length > 0) {
+                filteredRows = filteredRows.filter((r) =>
+                  selectedWorkModes.includes(r.workMode || r.work_mode)
+                );
+              }
+
+              if (selectedTeams.length > 0) {
+                filteredRows = filteredRows.filter((r) =>
+                  selectedTeams.includes(r.team)
+                );
+              }
+
+              // Apply global search filter
+              filteredRows = filterByGlobalSearch(filteredRows);
+
+              // Group by team and employee
+              const groupedByTeam = groupByTeamAndEmployee(filteredRows);
+
+              // Filter by hour bucket at the team-employee level
+              const processedGrouped = {};
+              Object.keys(groupedByTeam).forEach(team => {
+                processedGrouped[team] = {};
+                Object.keys(groupedByTeam[team]).forEach(emp => {
+                  const logs = groupedByTeam[team][emp];
+                  const total = calculateTotalHours(logs);
+                  const bucket = HOUR_BUCKETS.find((b) => b.id === selectedHourBucket);
+                  if ((bucket?.test ?? (() => true))(total)) {
+                    processedGrouped[team][emp] = logs;
+                  }
+                });
+                // Remove empty teams
+                if (Object.keys(processedGrouped[team]).length === 0) {
+                  delete processedGrouped[team];
+                }
               });
 
-              // Filter by hour bucket
-              const bucket = HOUR_BUCKETS.find((b) => b.id === selectedHourBucket);
-              const filtered = processed.filter((o) => (bucket?.test ?? (() => true))(o.total));
+              if (Object.keys(processedGrouped).length === 0) return null;
 
-              if (filtered.length === 0) return null;
+              const totalEntries = Object.values(processedGrouped).reduce((acc, teamData) =>
+                acc + Object.values(teamData).reduce((empAcc, logs) => empAcc + logs.length, 0), 0
+              );
 
               return (
                 <section key={dateKey} className="bg-white rounded-xl lg:rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
@@ -2928,193 +3249,216 @@ export default function AdminEditWorklogEntries() {
                       <CalendarIcon className="w-4 h-4 text-indigo-600" />
                       {formatISOToHuman(dateKey)}
                       <span className="ml-2 rounded-full bg-indigo-100 text-indigo-700 text-[11px] px-2 py-0.5 font-medium">
-                        {filtered.reduce((acc, { logs }) => acc + logs.length, 0)} entries
+                        {totalEntries} entries
                       </span>
                     </h2>
                   </div>
 
-                  {/* Desktop grouped tables */}
+                  {/* Desktop grouped tables by Team > Employee */}
                   <div className="hidden lg:block">
-                    {filtered.map(({ emp, logs, total }) => (
-                      <div key={emp} className="p-4">
-                        <div className="flex items-center justify-between mb-3">
-                          <div className="flex items-center gap-3">
-                            <div className="w-8 h-8 rounded-full bg-indigo-100 text-indigo-700 flex items-center justify-center font-semibold">
-                              {emp.split(" ").map((x) => x[0] || "").join("").slice(0, 2).toUpperCase()}
-                            </div>
-                            <div>
-                              <div className="text-sm font-semibold text-slate-900">{emp}</div>
-                              <div className="text-xs text-slate-500">
-                                {logs.length} {logs.length === 1 ? "entry" : "entries"}
+                    {Object.keys(processedGrouped).map((team) => (
+                      <div key={team} className="border-b last:border-b-0">
+                        {/* Team Header */}
+                        <div className={`px-4 py-3 ${getTeamColorClass(team)}`}>
+                          <h3 className="text-sm font-semibold">{team}</h3>
+                        </div>
+
+                        {/* Employees in this team */}
+                        {Object.keys(processedGrouped[team]).map((emp) => {
+                          const logs = processedGrouped[team][emp];
+                          const totalHours = calculateTotalHours(logs);
+                          const hoursBgColor = getHoursBgColor(totalHours);
+
+                          return (
+                            <div key={emp} className="p-4">
+                              <div className="flex items-center justify-between mb-3">
+                                <div className="flex items-center gap-3">
+                                  <div className="w-8 h-8 rounded-full bg-indigo-100 text-indigo-700 flex items-center justify-center font-semibold">
+                                    {emp.split(" ").map((x) => x[0] || "").join("").slice(0, 2).toUpperCase()}
+                                  </div>
+                                  <div>
+                                    <div className="text-sm font-semibold text-slate-900">{emp}</div>
+                                    <div className="text-xs text-slate-500">
+                                      {logs.length} {logs.length === 1 ? "entry" : "entries"}
+                                    </div>
+                                  </div>
+                                  <div className={`ml-4 px-3 py-1 rounded-full ${hoursBgColor} text-xs font-medium`}>
+                                    Total Hours: {totalHours.toFixed(1)}
+                                  </div>
+                                </div>
+
+                                <button
+                                  className="inline-flex items-center gap-2 px-3 py-1.5 rounded-md bg-indigo-600 text-white hover:bg-indigo-700 text-sm"
+                                  onClick={() => handleOpenAdd(emp, dateKey)}
+                                >
+                                  <Plus className="w-4 h-4" /> Add Entry
+                                </button>
+                              </div>
+
+                              <div className="overflow-x-auto rounded-xl border border-slate-200">
+                                <table className="w-full text-sm border-collapse">
+                                  <thead>
+                                    <tr className="bg-slate-100 text-slate-700">
+                                      <Th>Work Mode</Th>
+                                      <Th>Project</Th>
+                                      <Th>Task</Th>
+                                      <Th>Book Element</Th>
+                                      <Th>Chapters</Th>
+                                      <Th>Hours Spent</Th>
+                                      <Th>No. of Units</Th>
+                                      <Th>Unit Type</Th>
+                                      <Th>Status</Th>
+                                      <Th>Due On</Th>
+                                      <Th>Details</Th>
+                                      <Th>Audit Status</Th>
+                                      <Th>Action</Th>
+                                    </tr>
+                                  </thead>
+                                  <tbody>
+                                    {logs.map((log) => (
+                                      <tr key={log._id} className={`${rowClassForAudit(log.auditStatus || log.audit_status)} border-t`}>
+                                        <Td>{highlightText(log.workMode || log.work_mode, globalSearch)}</Td>
+                                        <Td className="max-w-[260px] truncate" title={log.projectName || log.project_name}>
+                                          {highlightText(log.projectName || log.project_name, globalSearch)}
+                                        </Td>
+                                        <Td>{highlightText(log.task || log.task_name, globalSearch)}</Td>
+                                        <Td>{highlightText(log.bookElement || log.book_element, globalSearch)}</Td>
+                                        <Td>{highlightText(log.chapterNo || log.chapter_number, globalSearch)}</Td>
+                                        <Td>{highlightText(log.hoursSpent || log.hours_spent, globalSearch)}</Td>
+                                        <Td>{highlightText(log.noOfUnits || log.number_of_units, globalSearch)}</Td>
+                                        <Td>{highlightText(log.unitType || log.unit_type, globalSearch)}</Td>
+                                        <Td>{highlightText(log.status, globalSearch)}</Td>
+                                        <Td>{formatISOToHuman(log.dueOn || log.due_on)}</Td>
+                                        <Td className="max-w-[220px] whitespace-normal break-words">
+                                          {highlightText(log.details || "-", globalSearch)}
+                                        </Td>
+                                        <Td>
+                                          <AuditBadge status={log.auditStatus || log.audit_status} />
+                                        </Td>
+                                        <Td>
+                                          <div className="flex gap-2">
+                                            <button
+                                              className="inline-flex items-center justify-center bg-blue-600 hover:bg-blue-700 text-white px-2.5 py-1.5 rounded-md"
+                                              onClick={() => handleOpenEdit(log, dateKey)}
+                                              title="Edit"
+                                            >
+                                              <Pencil size={16} />
+                                            </button>
+                                            <button
+                                              className="inline-flex items-center justify-center bg-rose-600 hover:bg-rose-700 text-white px-2.5 py-1.5 rounded-md"
+                                              onClick={() => handleDelete(log)}
+                                              title="Delete"
+                                            >
+                                              <Trash2 size={16} />
+                                            </button>
+                                          </div>
+                                        </Td>
+                                      </tr>
+                                    ))}
+                                  </tbody>
+                                </table>
                               </div>
                             </div>
-                          </div>
-                          <span className={`px-3 py-1 rounded-full text-xs font-semibold ${total > 7.5 ? "bg-rose-100 text-rose-700" :
-                            total >= 7 ? "bg-amber-100 text-amber-700" :
-                              "bg-emerald-100 text-emerald-700"
-                            }`}>
-                            Total Hours: {total}
-                          </span>
-                        </div>
-
-                        <div className="overflow-x-auto rounded-xl border border-slate-200">
-                          <table className="w-full text-sm border-collapse">
-                            <thead>
-                              <tr className="bg-slate-100 text-slate-700">
-                                <Th>Work Mode</Th>
-                                <Th>Project</Th>
-                                <Th>Task</Th>
-                                <Th>Book Element</Th>
-                                <Th>Chapters</Th>
-                                <Th>Hours Spent</Th>
-                                <Th>No. of Units</Th>
-                                <Th>Unit Type</Th>
-                                <Th>Status</Th>
-                                <Th>Due On</Th>
-                                <Th>Details</Th>
-                                <Th>Audit Status</Th>
-                                <Th>Action</Th>
-                              </tr>
-                            </thead>
-                            <tbody>
-                              {logs.map((log) => (
-                                <tr key={log._id} className={`${rowClassForAudit(log.auditStatus || log.audit_status)} border-t`}>
-                                  <Td>{log.workMode || log.work_mode}</Td>
-                                  <Td className="max-w-[260px] truncate" title={log.projectName || log.project_name}>
-                                    {log.projectName || log.project_name}
-                                  </Td>
-                                  <Td>{log.task || log.task_name}</Td>
-                                  <Td>{log.bookElement || log.book_element}</Td>
-                                  <Td>{log.chapterNo || log.chapter_number}</Td>
-                                  <Td>{log.hoursSpent || log.hours_spent}</Td>
-                                  <Td>{log.noOfUnits || log.number_of_units}</Td>
-                                  <Td>{log.unitType || log.unit_type}</Td>
-                                  <Td>{log.status}</Td>
-                                  <Td>{formatISOToHuman(log.dueOn || log.due_on)}</Td>
-                                  <Td className="max-w-[220px] whitespace-normal break-words">
-                                    {log.details || "-"}
-                                  </Td>
-                                  <Td>
-                                    <AuditBadge status={log.auditStatus || log.audit_status} />
-                                  </Td>
-                                  <Td>
-                                    <div className="flex gap-2">
-                                      <button
-                                        className="inline-flex items-center justify-center bg-blue-600 hover:bg-blue-700 text-white px-2.5 py-1.5 rounded-md"
-                                        onClick={() => handleOpenEdit(log, dateKey)}
-                                        title="Edit"
-                                      >
-                                        <Pencil size={16} />
-                                      </button>
-                                      <button
-                                        className="inline-flex items-center justify-center bg-rose-600 hover:bg-rose-700 text-white px-2.5 py-1.5 rounded-md"
-                                        onClick={() => handleDelete(log)}
-                                        title="Delete"
-                                      >
-                                        <Trash2 size={16} />
-                                      </button>
-                                    </div>
-                                  </Td>
-                                </tr>
-                              ))}
-                            </tbody>
-                          </table>
-                        </div>
-
-                        {/* Add Entry CTA for this employee & date */}
-                        <div className="mt-3 flex justify-end">
-                          <button
-                            className="inline-flex items-center gap-2 px-3 py-1.5 rounded-md bg-indigo-600 text-white hover:bg-indigo-700 text-sm"
-                            onClick={() => handleOpenAdd(emp, dateKey)}
-                          >
-                            <Plus className="w-4 h-4" /> Add Entry
-                          </button>
-                        </div>
+                          );
+                        })}
                       </div>
                     ))}
                   </div>
 
-                  {/* Mobile grouped cards */}
+                  {/* Mobile grouped cards by Team > Employee */}
                   <div className="lg:hidden p-3 sm:p-4 space-y-4 sm:space-y-6">
-                    {filtered.map(({ emp, logs, total }) => (
-                      <div key={emp} className="rounded-lg border border-slate-200 overflow-hidden">
-                        <div className="flex items-center justify-between px-3 sm:px-4 py-3 bg-slate-50/70">
-                          <div className="flex items-center gap-3 min-w-0 flex-1">
-                            <div className="w-8 h-8 rounded-full bg-indigo-100 text-indigo-700 flex items-center justify-center font-semibold text-xs flex-shrink-0">
-                              {emp.split(" ").map((x) => x[0] || "").join("").slice(0, 2).toUpperCase()}
-                            </div>
-                            <div className="min-w-0 flex-1">
-                              <div className="text-sm font-semibold text-slate-900 truncate">{emp}</div>
-                              <div className="text-xs text-slate-500">
-                                {logs.length} {logs.length === 1 ? "entry" : "entries"}
-                              </div>
-                            </div>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <span className={`px-2 py-1 rounded-full text-xs font-semibold ${total > 7.5 ? "bg-rose-100 text-rose-700" :
-                              total >= 7 ? "bg-amber-100 text-amber-700" :
-                                "bg-emerald-100 text-emerald-700"
-                              }`}>
-                              {total}h
-                            </span>
-                            <button
-                              className="inline-flex items-center gap-2 px-3 py-1.5 rounded-md bg-indigo-600 text-white hover:bg-indigo-700 text-xs"
-                              onClick={() => handleOpenAdd(emp, dateKey)}
-                            >
-                              <Plus className="w-4 h-4" />
-                              Add
-                            </button>
-                          </div>
+                    {Object.keys(processedGrouped).map((team) => (
+                      <div key={team} className="rounded-lg border border-slate-200 overflow-hidden">
+                        {/* Team Header */}
+                        <div className={`px-3 sm:px-4 py-2 ${getTeamColorClass(team)}`}>
+                          <h3 className="text-sm font-semibold">{team}</h3>
                         </div>
 
-                        <div className="divide-y">
-                          {logs.map((log) => (
-                            <article key={log._id} className={`p-3 sm:p-4 ${rowClassForAudit(log.auditStatus || log.audit_status)}`}>
-                              <div className="flex items-start justify-between mb-3">
-                                <div className="min-w-0 flex-1 pr-3">
-                                  <h3 className="text-sm sm:text-[15px] font-semibold text-slate-900 truncate" title={log.projectName || log.project_name}>
-                                    {log.projectName || log.project_name}
-                                  </h3>
-                                  <p className="text-xs text-slate-500 mt-0.5">
-                                    {log.task || log.task_name} · {log.bookElement || log.book_element} · {log.chapterNo || log.chapter_number}
-                                  </p>
-                                </div>
-                                <AuditBadge status={log.auditStatus || log.audit_status} />
-                              </div>
+                        {/* Employees in this team */}
+                        {Object.keys(processedGrouped[team]).map((emp) => {
+                          const logs = processedGrouped[team][emp];
+                          const totalHours = calculateTotalHours(logs);
+                          const hoursBgColor = getHoursBgColor(totalHours);
 
-                              <dl className="grid grid-cols-2 gap-x-3 sm:gap-x-4 gap-y-2 text-xs sm:text-[13px] mb-4">
-                                <Info label="Work Mode" value={log.workMode || log.work_mode} />
-                                <Info label="Hours" value={log.hoursSpent || log.hours_spent} />
-                                <Info label="Units" value={`${log.noOfUnits || log.number_of_units} ${log.unitType || log.unit_type || ""}`} />
-                                <Info label="Status" value={log.status} />
-                                <Info label="Due On" value={formatISOToHuman(log.dueOn || log.due_on)} />
-                                {log.details && (
-                                  <div className="col-span-2">
-                                    <dt className="text-slate-500">Details</dt>
-                                    <dd className="text-slate-800 break-words">{log.details}</dd>
+                          return (
+                            <div key={emp} className="border-t first:border-t-0">
+                              <div className="flex items-center justify-between px-3 sm:px-4 py-3 bg-slate-50/70">
+                                <div className="flex items-center gap-3 min-w-0 flex-1">
+                                  <div className="w-8 h-8 rounded-full bg-indigo-100 text-indigo-700 flex items-center justify-center font-semibold text-xs flex-shrink-0">
+                                    {emp.split(" ").map((x) => x[0] || "").join("").slice(0, 2).toUpperCase()}
                                   </div>
-                                )}
-                              </dl>
-
-                              <div className="flex flex-wrap gap-2">
-                                <button
-                                  className="inline-flex items-center gap-1 bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded-lg text-sm flex-1 min-w-0"
-                                  onClick={() => handleOpenEdit(log, dateKey)}
-                                >
-                                  <Pencil size={16} />
-                                  <span>Edit</span>
-                                </button>
-                                <button
-                                  className="inline-flex items-center gap-1 bg-rose-600 hover:bg-rose-700 text-white px-3 py-2 rounded-lg text-sm flex-1 min-w-0"
-                                  onClick={() => handleDelete(log)}
-                                >
-                                  <Trash2 size={16} />
-                                  <span>Delete</span>
-                                </button>
+                                  <div className="min-w-0 flex-1">
+                                    <div className="text-sm font-semibold text-slate-900 truncate">{emp}</div>
+                                    <div className="text-xs text-slate-500">
+                                      {logs.length} {logs.length === 1 ? "entry" : "entries"}
+                                    </div>
+                                  </div>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                  <span className={`px-2 py-1 rounded-full text-xs font-semibold ${hoursBgColor}`}>
+                                    {totalHours.toFixed(1)}h
+                                  </span>
+                                  <button
+                                    className="inline-flex items-center gap-2 px-3 py-1.5 rounded-md bg-indigo-600 text-white hover:bg-indigo-700 text-xs"
+                                    onClick={() => handleOpenAdd(emp, dateKey)}
+                                  >
+                                    <Plus className="w-4 h-4" />
+                                    Add
+                                  </button>
+                                </div>
                               </div>
-                            </article>
-                          ))}
-                        </div>
+
+                              <div className="divide-y">
+                                {logs.map((log) => (
+                                  <article key={log._id} className={`p-3 sm:p-4 ${rowClassForAudit(log.auditStatus || log.audit_status)}`}>
+                                    <div className="flex items-start justify-between mb-3">
+                                      <div className="min-w-0 flex-1 pr-3">
+                                        <h3 className="text-sm sm:text-[15px] font-semibold text-slate-900 truncate" title={log.projectName || log.project_name}>
+                                          {highlightText(log.projectName || log.project_name, globalSearch)}
+                                        </h3>
+                                        <p className="text-xs text-slate-500 mt-0.5">
+                                          {highlightText(log.task || log.task_name, globalSearch)} · {highlightText(log.bookElement || log.book_element, globalSearch)} · {highlightText(log.chapterNo || log.chapter_number, globalSearch)}
+                                        </p>
+                                      </div>
+                                      <AuditBadge status={log.auditStatus || log.audit_status} />
+                                    </div>
+
+                                    <dl className="grid grid-cols-2 gap-x-3 sm:gap-x-4 gap-y-2 text-xs sm:text-[13px] mb-4">
+                                      <Info label="Work Mode" value={highlightText(log.workMode || log.work_mode, globalSearch)} />
+                                      <Info label="Hours" value={highlightText(log.hoursSpent || log.hours_spent, globalSearch)} />
+                                      <Info label="Units" value={highlightText(`${log.noOfUnits || log.number_of_units} ${log.unitType || log.unit_type || ""}`, globalSearch)} />
+                                      <Info label="Status" value={highlightText(log.status, globalSearch)} />
+                                      <Info label="Due On" value={formatISOToHuman(log.dueOn || log.due_on)} />
+                                      {log.details && (
+                                        <div className="col-span-2">
+                                          <dt className="text-slate-500">Details</dt>
+                                          <dd className="text-slate-800 break-words">{highlightText(log.details, globalSearch)}</dd>
+                                        </div>
+                                      )}
+                                    </dl>
+
+                                    <div className="flex flex-wrap gap-2">
+                                      <button
+                                        className="inline-flex items-center gap-1 bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded-lg text-sm flex-1 min-w-0"
+                                        onClick={() => handleOpenEdit(log, dateKey)}
+                                      >
+                                        <Pencil size={16} />
+                                        <span>Edit</span>
+                                      </button>
+                                      <button
+                                        className="inline-flex items-center gap-1 bg-rose-600 hover:bg-rose-700 text-white px-3 py-2 rounded-lg text-sm flex-1 min-w-0"
+                                        onClick={() => handleDelete(log)}
+                                      >
+                                        <Trash2 size={16} />
+                                        <span>Delete</span>
+                                      </button>
+                                    </div>
+                                  </article>
+                                ))}
+                              </div>
+                            </div>
+                          );
+                        })}
                       </div>
                     ))}
                   </div>
@@ -3142,22 +3486,22 @@ export default function AdminEditWorklogEntries() {
               <ErrorText text={formErrors.workMode} />
             </Field>
 
-            <Field label="Project Name *">
+            <Field label="Project ID *">
               <div className="relative" ref={suggestRef}>
                 <input
                   type="text"
                   className={`w-full h-9 rounded-lg border px-3 text-sm ${formErrors.projectValid ? "border-rose-500" : ""}`}
                   value={editForm.projectName}
                   onChange={(e) => setEditForm((f) => ({ ...f, projectName: e.target.value }))}
-                  placeholder="Type project name…"
+                  placeholder="Type project ID…"
                 />
                 {loadingSuggestions && <Loader2 className="absolute right-3 top-2.5 w-4 h-4 animate-spin text-slate-400" />}
                 {showSuggest && suggestions.length > 0 && (
                   <ul className="absolute z-50 mt-1 w-full bg-white border rounded-lg shadow-lg max-h-64 overflow-auto">
                     {suggestions.map((s) => (
                       <li key={s.id} onClick={() => selectProjectIntoForm(s, "edit")} className="px-3 py-2 hover:bg-indigo-50 cursor-pointer text-sm">
-                        <div className="font-medium">{s.name}</div>
-                        <div className="text-xs text-slate-500">{s.id}</div>
+                        <div className="font-medium">{s.id}</div>
+                        <div className="text-xs text-slate-500">{s.name}</div>
                       </li>
                     ))}
                   </ul>
@@ -3231,21 +3575,21 @@ export default function AdminEditWorklogEntries() {
               <ErrorText text={formErrors.workMode} />
             </Field>
 
-            <Field label="Project Name *">
+            <Field label="Project ID *">
               <div className="relative" ref={suggestRef}>
                 <input
                   type="text"
                   className={`w-full h-9 rounded-lg border px-3 text-sm ${formErrors.projectValid ? "border-rose-500" : ""}`}
                   value={addForm.projectName}
                   onChange={(e) => setAddForm((f) => ({ ...f, projectName: e.target.value }))}
-                  placeholder="Type project name…"
+                  placeholder="Type project ID…"
                 />
                 {showSuggest && suggestions.length > 0 && (
                   <ul className="absolute z-50 mt-1 w-full bg-white border rounded-lg shadow-lg max-h-64 overflow-auto">
                     {suggestions.map((s) => (
                       <li key={s.id} onClick={() => selectProjectIntoForm(s, "add")} className="px-3 py-2 hover:bg-indigo-50 cursor-pointer text-sm">
-                        <div className="font-medium">{s.name}</div>
-                        <div className="text-xs text-slate-500">{s.id}</div>
+                        <div className="font-medium">{s.id}</div>
+                        <div className="text-xs text-slate-500">{s.name}</div>
                       </li>
                     ))}
                   </ul>
@@ -3318,21 +3662,21 @@ export default function AdminEditWorklogEntries() {
               <Select value={addForm.workMode} onChange={(v) => setAddForm((f) => ({ ...f, workMode: v }))} options={["", ...WORK_MODES]} />
             </Field>
 
-            <Field label="Project Name *">
+            <Field label="Project ID *">
               <div className="relative" ref={suggestRef}>
                 <input
                   type="text"
                   className="w-full h-9 rounded-lg border px-3 text-sm"
                   value={addForm.projectName}
                   onChange={(e) => setAddForm((f) => ({ ...f, projectName: e.target.value }))}
-                  placeholder="Type project name…"
+                  placeholder="Type project ID…"
                 />
                 {showSuggest && suggestions.length > 0 && (
                   <ul className="absolute z-50 mt-1 w-full bg-white border rounded-lg shadow-lg max-h-64 overflow-auto">
                     {suggestions.map((s) => (
                       <li key={s.id} onClick={() => selectProjectIntoForm(s, "add")} className="px-3 py-2 hover:bg-indigo-50 cursor-pointer text-sm">
-                        <div className="font-medium">{s.name}</div>
-                        <div className="text-xs text-slate-500">{s.id}</div>
+                        <div className="font-medium">{s.id}</div>
+                        <div className="text-xs text-slate-500">{s.name}</div>
                       </li>
                     ))}
                   </ul>
@@ -3390,13 +3734,11 @@ export default function AdminEditWorklogEntries() {
   );
 }
 
-/* =============== SidebarLinks (UNCHANGED from AdminDashboard except labels) =============== */
-/* =================== SIDEBAR =================== */
+/* =============== SidebarLinks =============== */
 function SidebarLinks({ navigate, location, close }) {
   const [openWorklogs, setOpenWorklogs] = useState(false);
   const [openProjects, setOpenProjects] = useState(false);
 
-  // Keep sections open if child page active
   useEffect(() => {
     if (location.pathname.includes("worklog")) setOpenWorklogs(true);
     if (location.pathname.includes("project") || location.pathname.includes("abbreviations"))
@@ -3482,7 +3824,7 @@ function SidebarLinks({ navigate, location, close }) {
                 Add Abbreviations
               </button>
               <button
-                className={`text-left hover:gray-700 p-2 rounded-lg transition-colors ${location.pathname.includes("add-project") ? "bg-gray-700" : ""
+                className={`text-left hover:bg-gray-700 p-2 rounded-lg transition-colors ${location.pathname.includes("add-project") ? "bg-gray-700" : ""
                   }`}
                 onClick={() => handleNavigation("/admin/add-project")}
               >

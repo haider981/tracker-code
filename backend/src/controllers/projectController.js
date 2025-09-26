@@ -1,5 +1,4 @@
-// const { PrismaClient } = require("@prisma/client");
-// const prisma = new PrismaClient();
+// const prisma = require("../config/prisma");
 
 // // GET /api/projects?search=query
 // const getProjects = async (req, res) => {
@@ -20,97 +19,30 @@
 //         },
 //       };
 //     } else {
-//       // Enhanced search for project name
-//       const searchTerms = search.trim().split(/\s+/); // Split by whitespace
-      
-//       if (searchTerms.length === 1) {
-//         // Single term search
-//         where = {
-//           project_name: {
-//             contains: search.trim(),
-//             mode: "insensitive",
-//           },
-//         };
-//       } else {
-//         // Multiple terms - all must be present (AND logic)
-//         where = {
-//           AND: searchTerms.map(term => ({
-//             project_name: {
-//               contains: term,
-//               mode: "insensitive",
-//             },
-//           })),
-//         };
-//       }
-//     }
-
-//     console.log("Search query:", search);
-//     console.log("Where clause:", JSON.stringify(where, null, 2));
-
-//     const projects = await prisma.ProjectRecords.findMany({
-//       where,
-//       orderBy: { project_name: "asc" },
-//       take: 50, // limit results
-//     });
-    
-//     res.json({ success: true, projects });
-//   } catch (err) {
-//     console.error("Error fetching projects:", err);
-//     res.status(500).json({ success: false, message: "Server error" });
-//   }
-// };
-
-// module.exports = { getProjects };
-
-// const { PrismaClient } = require("@prisma/client");
-// const prisma = new PrismaClient();
-
-// // GET /api/projects?search=query
-// const getProjects = async (req, res) => {
-//   try {
-//     const search = req.query.q || "";      // text to search
-//     const by = req.query.by || "name";     // default search by name
-
-//     let where = {};
-
-//     if (search.trim() === "") {
-//       // If no search term, return all projects
-//       where = {};
-//     } else if (by === "id") {
+//       // First check for exact match (direct project name)
 //       where = {
-//         projectid: {
-//           contains: search.trim(),
+//         project_name: {
+//           equals: search.trim(),
 //           mode: "insensitive",
 //         },
 //       };
-//     } else if (by === "all") {
-//       // Search in both projectid and project_name
+
+//       // If not exact match, fallback to partial contains logic
 //       const searchTerms = search.trim().split(/\s+/);
 
 //       if (searchTerms.length === 1) {
 //         where = {
 //           OR: [
-//             {
-//               projectid: {
-//                 contains: search.trim(),
-//                 mode: "insensitive",
-//               },
-//             },
-//             {
-//               project_name: {
-//                 contains: search.trim(),
-//                 mode: "insensitive",
-//               },
-//             },
+//             { project_name: { equals: search.trim(), mode: "insensitive" } },
+//             { project_name: { contains: search.trim(), mode: "insensitive" } },
 //           ],
 //         };
 //       } else {
-//         // Multiple terms - all must be present in project_name
 //         where = {
 //           OR: [
 //             {
-//               projectid: {
-//                 contains: search.trim(),
+//               project_name: {
+//                 equals: search.trim(),
 //                 mode: "insensitive",
 //               },
 //             },
@@ -123,29 +55,6 @@
 //               })),
 //             },
 //           ],
-//         };
-//       }
-//     } else {
-//       // Enhanced search for project name
-//       const searchTerms = search.trim().split(/\s+/); // Split by whitespace
-      
-//       if (searchTerms.length === 1) {
-//         // Single term search
-//         where = {
-//           project_name: {
-//             contains: search.trim(),
-//             mode: "insensitive",
-//           },
-//         };
-//       } else {
-//         // Multiple terms - all must be present (AND logic)
-//         where = {
-//           AND: searchTerms.map(term => ({
-//             project_name: {
-//               contains: term,
-//               mode: "insensitive",
-//             },
-//           })),
 //         };
 //       }
 //     }
@@ -169,8 +78,8 @@
 // module.exports = { getProjects };
 
 
-// const { PrismaClient } = require("@prisma/client");
-// const prisma = new PrismaClient();
+
+// const prisma = require("../config/prisma");
 
 // // GET /api/projects?search=query
 // const getProjects = async (req, res) => {
@@ -183,99 +92,96 @@
 //     if (search.trim() === "") {
 //       // If no search term, return all projects
 //       where = {};
-//     } else if (by === "id") {
-//       where = {
-//         projectid: {
-//           contains: search.trim(),
-//           mode: "insensitive",
-//         },
-//       };
-//     } else if (by === "all") {
-//       // Search in both projectid and project_name
-//       const cleanedSearch = search.trim().replace(/_/g, " "); // handle underscores
-//       const searchTerms = cleanedSearch.split(/\s+/);
-
-//       if (searchTerms.length === 1) {
-//         where = {
-//           OR: [
-//             {
-//               projectid: {
-//                 contains: search.trim(),
-//                 mode: "insensitive",
-//               },
-//             },
-//             {
-//               project_name: {
-//                 contains: cleanedSearch,
-//                 mode: "insensitive",
-//               },
-//             },
-//           ],
-//         };
-//       } else {
-//         // Multiple terms - all must be present in project_name
-//         where = {
-//           OR: [
-//             {
-//               projectid: {
-//                 contains: search.trim(),
-//                 mode: "insensitive",
-//               },
-//             },
-//             {
-//               AND: searchTerms.map(term => ({
-//                 project_name: {
-//                   contains: term,
-//                   mode: "insensitive",
-//                 },
-//               })),
-//             },
-//           ],
-//         };
-//       }
 //     } else {
-//       // Enhanced search for project name
-//       const cleanedSearch = search.trim().replace(/_/g, " "); // handle underscores
-//       const searchTerms = cleanedSearch.split(/\s+/);
-
-//       if (searchTerms.length === 1) {
-//         // Single term search
-//         where = {
-//           project_name: {
-//             contains: cleanedSearch,
-//             mode: "insensitive",
-//           },
-//         };
-//       } else {
-//         // Multiple terms - all must be present (AND logic)
-//         where = {
-//           AND: searchTerms.map(term => ({
-//             project_name: {
-//               contains: term,
+//       const searchTerm = search.trim();
+      
+//       // Search in multiple fields to catch both project IDs and descriptions
+//       where = {
+//         OR: [
+//           // Search in project_id field (for codes like FK_1st_CBSE_SST_FKSST_(Eng)_26-27)
+//           {
+//             project_id: {
+//               contains: searchTerm,
 //               mode: "insensitive",
 //             },
-//           })),
+//           },
+//           // Search in project_name field 
+//           {
+//             project_name: {
+//               contains: searchTerm,
+//               mode: "insensitive",
+//             },
+//           },
+//           // Search in projectid field (if it's different)
+//           {
+//             project_id: {
+//               contains: searchTerm,
+//               mode: "insensitive",
+//             },
+//           },
+//         ],
+//       };
+      
+//       // If searching by specific field
+//       if (by === "id") {
+//         where = {
+//           OR: [
+//             {
+//               project_id: {
+//                 contains: searchTerm,
+//                 mode: "insensitive",
+//               },
+//             },
+//             {
+//               project_id: {
+//                 contains: searchTerm,
+//                 mode: "insensitive",
+//               },
+//             },
+//           ],
 //         };
 //       }
 //     }
 
+//     console.log("Search query:", search);
+//     console.log("Where clause:", JSON.stringify(where, null, 2));
+
 //     const projects = await prisma.ProjectRecords.findMany({
 //       where,
 //       orderBy: { project_name: "asc" },
-//       take: 50, // limit results
+//       take: 100,
 //     });
     
-//     res.json({ success: true, projects });
+//     console.log(`Found ${projects.length} projects matching "${search}"`);
+    
+//     // Sort results - prioritize matches in project_id over project_name
+//     const sortedProjects = projects.sort((a, b) => {
+//       const searchLower = search.toLowerCase();
+      
+//       // Check if search term appears in project_id (higher priority)
+//       const aHasInId = (a.project_id || a.projectid || "").toLowerCase().includes(searchLower);
+//       const bHasInId = (b.project_id || b.projectid || "").toLowerCase().includes(searchLower);
+      
+//       if (aHasInId && !bHasInId) return -1;
+//       if (bHasInId && !aHasInId) return 1;
+      
+//       // If both or neither have it in ID, sort alphabetically
+//       return (a.project_name || "").localeCompare(b.project_name || "");
+//     });
+    
+//     res.json({ success: true, projects: sortedProjects });
 //   } catch (err) {
 //     console.error("Error fetching projects:", err);
-//     res.status(500).json({ success: false, message: "Server error" });
+//     res.status(500).json({ 
+//       success: false, 
+//       message: "Server error", 
+//       error: err.message 
+//     });
 //   }
 // };
 
 // module.exports = { getProjects };
 
-// const { PrismaClient } = require("@prisma/client");
-// const prisma = new PrismaClient();
 
 const prisma = require("../config/prisma");
 
@@ -291,51 +197,102 @@ const getProjects = async (req, res) => {
       // If no search term, return all projects
       where = {};
     } else if (by === "id") {
+      // Search specifically in ID fields only
       where = {
-        projectid: {
-          contains: search.trim(),
-          mode: "insensitive",
-        },
+        OR: [
+          {
+            project_id: {
+              contains: search.trim(),
+              mode: "insensitive",
+            },
+          },
+          {
+            project_id: {
+              contains: search.trim(),
+              mode: "insensitive",
+            },
+          },
+        ],
       };
     } else {
-      // First check for exact match (direct project name)
-      where = {
+      // Combined search logic for both project IDs and names
+      const searchTerm = search.trim();
+      const searchTerms = searchTerm.split(/\s+/);
+      
+      // Build comprehensive search conditions
+      const searchConditions = [];
+      
+      // 1. Search in project ID fields (for codes like FK_1st_CBSE_SST_FKSST_(Eng)_26-27)
+      searchConditions.push(
+        {
+          project_id: {
+            contains: searchTerm,
+            mode: "insensitive",
+          },
+        },
+        {
+          project_id: {
+            contains: searchTerm,
+            mode: "insensitive",
+          },
+        }
+      );
+      
+      // 2. Exact match in project_name (highest priority for names)
+      searchConditions.push({
         project_name: {
-          equals: search.trim(),
+          equals: searchTerm,
           mode: "insensitive",
         },
-      };
-
-      // If not exact match, fallback to partial contains logic
-      const searchTerms = search.trim().split(/\s+/);
-
+      });
+      
+      // 3. Contains search in project_name
+      searchConditions.push({
+        project_name: {
+          contains: searchTerm,
+          mode: "insensitive",
+        },
+      });
+      
+      // 4. Multi-term search logic
       if (searchTerms.length === 1) {
-        where = {
-          OR: [
-            { project_name: { equals: search.trim(), mode: "insensitive" } },
-            { project_name: { contains: search.trim(), mode: "insensitive" } },
-          ],
-        };
+        // Single term - already covered above
       } else {
-        where = {
-          OR: [
-            {
-              project_name: {
-                equals: search.trim(),
-                mode: "insensitive",
-              },
+        // Multiple terms - all terms must be present in project_name (AND logic)
+        searchConditions.push({
+          AND: searchTerms.map(term => ({
+            project_name: {
+              contains: term,
+              mode: "insensitive",
             },
-            {
-              AND: searchTerms.map(term => ({
-                project_name: {
+          })),
+        });
+        
+        // Also search for each term individually in project IDs
+        searchTerms.forEach(term => {
+          if (term.length >= 2) { // Only search terms with 2+ characters
+            searchConditions.push(
+              {
+                project_id: {
                   contains: term,
                   mode: "insensitive",
                 },
-              })),
-            },
-          ],
-        };
+              },
+              {
+                project_id: {
+                  contains: term,
+                  mode: "insensitive",
+                },
+              }
+            );
+          }
+        });
       }
+      
+      // Combine all conditions with OR
+      where = {
+        OR: searchConditions,
+      };
     }
 
     console.log("Search query:", search);
@@ -347,7 +304,41 @@ const getProjects = async (req, res) => {
       take: 50, // limit results
     });
     
-    res.json({ success: true, projects });
+    console.log(`Found ${projects.length} projects matching "${search}"`);
+    
+    // Enhanced sorting for relevance
+    const sortedProjects = projects.sort((a, b) => {
+      const searchLower = search.toLowerCase();
+      const aName = (a.project_name || "").toLowerCase();
+      const bName = (b.project_name || "").toLowerCase();
+      const aId = (a.project_id || a.project_id || "").toLowerCase();
+      const bId = (b.project_id || b.project_id || "").toLowerCase();
+      
+      // 1. Exact match in project_name gets highest priority
+      if (aName === searchLower && bName !== searchLower) return -1;
+      if (bName === searchLower && aName !== searchLower) return 1;
+      
+      // 2. Exact match in project_id gets second priority
+      if (aId === searchLower && bId !== searchLower) return -1;
+      if (bId === searchLower && aId !== searchLower) return 1;
+      
+      // 3. Contains in project_id gets third priority (for SST, CBSE, etc.)
+      if (aId.includes(searchLower) && !bId.includes(searchLower)) return -1;
+      if (bId.includes(searchLower) && !aId.includes(searchLower)) return 1;
+      
+      // 4. Project_name starts with search term
+      if (aName.startsWith(searchLower) && !bName.startsWith(searchLower)) return -1;
+      if (bName.startsWith(searchLower) && !aName.startsWith(searchLower)) return 1;
+      
+      // 5. Contains in project_name
+      if (aName.includes(searchLower) && !bName.includes(searchLower)) return -1;
+      if (bName.includes(searchLower) && !aName.includes(searchLower)) return 1;
+      
+      // 6. Default alphabetical sort
+      return aName.localeCompare(bName);
+    });
+    
+    res.json({ success: true, projects: sortedProjects });
   } catch (err) {
     console.error("Error fetching projects:", err);
     res.status(500).json({ success: false, message: "Server error" });
@@ -355,4 +346,3 @@ const getProjects = async (req, res) => {
 };
 
 module.exports = { getProjects };
-

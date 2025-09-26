@@ -2056,6 +2056,23 @@ export default function AdminProjectRequests() {
           </div>
         </div>
       </nav>
+      {/* Mobile Menu Dropdown - ADD THIS SECTION */}
+      {mobileMenuOpen && (
+        <div className="md:hidden fixed top-16 left-0 right-0 z-40 bg-slate-800 text-white shadow-xl">
+          <div className="px-4 py-4 space-y-3">
+            <div className="flex items-center space-x-3 pb-3 border-b border-slate-600">
+              <img src={user.picture} alt={user.name} className="w-8 h-8 rounded-full border-2 border-slate-600" />
+              <div>
+                <div className="text-sm font-medium">{user.name}</div>
+                <div className="text-xs text-slate-300">{user.email}</div>
+              </div>
+            </div>
+            <button onClick={handleLogout} className="w-full bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg text-sm">
+              Logout
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Sidebar */}
       {sidebarOpen && (

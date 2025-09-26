@@ -94,13 +94,13 @@
 //         }
 //     }, [user]);
 
-//     const handleLogout = () => {
-//         localStorage.removeItem("authToken");
-//         if (window.google?.accounts?.id) {
-//             window.google.accounts.id.disableAutoSelect();
-//         }
-//         navigate("/");
-//     };
+    // const handleLogout = () => {
+    //     localStorage.removeItem("authToken");
+    //     if (window.google?.accounts?.id) {
+    //         window.google.accounts.id.disableAutoSelect();
+    //     }
+    //     navigate("/");
+    // };
 
 //     const handleNavigation = (path) => {
 //         navigate(path);

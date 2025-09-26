@@ -830,6 +830,18 @@ const createWorklogEntry = async (req, res) => {
   try {
     const data = req.body;
 
+    const employee = await prisma.users.findFirst({
+      where: { name: data.employeeName },
+      select: { team: true }
+    });
+
+    if (!employee) {
+      return res.status(400).json({ 
+        success: false, 
+        message: `Employee '${data.employeeName}' not found` 
+      });
+    }
+
     const newWorklog = await prisma.masterDatabase.create({
       data: {
         name: data.employeeName,
@@ -846,7 +858,7 @@ const createWorklogEntry = async (req, res) => {
         due_on: new Date(data.dueOn),
         details: data.details,
         audit_status: data.auditStatus,
-        team: data.team, 
+        team: employee.team, 
       },
     });
 

@@ -9,31 +9,6 @@ export default function AdminDashboard() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [user, setUser] = useState(null);
 
-  // ---- Mock data (replace with API later) ----
-  const attendance = {
-    leave: 8,
-    wfh: 12,
-    halfleave1: 2,
-    halfleave2: 3,
-    wfh1: 4,
-    wfh2: 3,
-  };
-
-  const recentWorklogs = [
-    { id: 1, date: "2025-08-22", employee: "Rohan K.", project: "UNI_Sem3_GJU_MacEco_BA_(Eng)_25-26", task: "SET", hours: 4, status: "In Progress" },
-    { id: 2, date: "2025-08-22", employee: "Naina S.", project: "UNI_Sem3_KU_MacEco_BA_(Eng)_25-26", task: "COM", hours: 2.5, status: "Completed" },
-    { id: 3, date: "2025-08-21", employee: "Arjun M.", project: "GJU_Micro_BSc_(Eng)_25-26", task: "CR2", hours: 3, status: "Delayed" },
-    { id: 4, date: "2025-08-21", employee: "Isha T.", project: "KU_Eco_BA_(Eng)_25-26", task: "FER", hours: 1.5, status: "In Progress" },
-    { id: 5, date: "2025-08-20", employee: "Ritika P.", project: "StateBoard_Physics_XI", task: "FINAL", hours: 5, status: "Completed" },
-  ];
-
-  const upcoming = [
-    { id: "p1", name: "UNI_Sem3_GJU_MacEco_BA_(Eng)_25-26", due: "2025-09-02" },
-    { id: "p2", name: "UNI_Sem3_KU_MacEco_BA_(Eng)_25-26", due: "2025-09-06" },
-    { id: "p3", name: "StateBoard_Physics_XI", due: "2025-09-12" },
-    { id: "p4", name: "CBSE_Math_X", due: "2025-09-18" },
-  ];
-
   // 🔑 Check token and set user
   useEffect(() => {
     const token = localStorage.getItem("authToken");
@@ -71,7 +46,10 @@ export default function AdminDashboard() {
   if (!user) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-slate-100">
-        <p>Loading...</p>
+        <div className="flex items-center space-x-3">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
+          <p className="text-slate-600 font-medium">Loading...</p>
+        </div>
       </div>
     );
   }
@@ -104,10 +82,7 @@ export default function AdminDashboard() {
                   <div className="text-xs text-slate-300">{user.email}</div>
                 </div>
               </div>
-              <button
-                onClick={handleLogout}
-                className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg text-sm"
-              >
+              <button onClick={handleLogout} className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg text-sm">
                 Logout
               </button>
             </div>
@@ -132,13 +107,30 @@ export default function AdminDashboard() {
         </div>
       </nav>
 
+      {/* Mobile Menu Dropdown */}
+      {mobileMenuOpen && (
+        <div className="md:hidden fixed top-16 left-0 right-0 z-40 bg-slate-800 text-white shadow-xl">
+          <div className="px-4 py-4 space-y-3">
+            <div className="flex items-center space-x-3 pb-3 border-b border-slate-600">
+              <img src={user.picture} alt={user.name} className="w-8 h-8 rounded-full border-2 border-slate-600" />
+              <div>
+                <div className="text-sm font-medium">{user.name}</div>
+                <div className="text-xs text-slate-300">{user.email}</div>
+              </div>
+            </div>
+            <button onClick={handleLogout} className="w-full bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg text-sm">
+              Logout
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Sidebar */}
       {sidebarOpen && (
         <div className="fixed inset-0 z-40 lg:hidden">
           <div className="fixed inset-0 bg-black bg-opacity-50" onClick={() => setSidebarOpen(false)} />
           <aside className="fixed top-16 left-0 h-[calc(100vh-4rem)] w-80 bg-gray-800 text-white shadow-xl overflow-y-auto">
             <SidebarLinks navigate={navigate} location={useLocation()} close={() => setSidebarOpen(false)} />
-
           </aside>
         </div>
       )}
@@ -146,66 +138,89 @@ export default function AdminDashboard() {
         <SidebarLinks navigate={navigate} location={useLocation()} />
       </aside>
 
-
       {/* Main content */}
       <main className="lg:ml-72 pt-20 p-6">
-        <div className="relative">
-          <div className="absolute inset-0 bg-gradient-to-br from-indigo-50 via-slate-100 to-rose-50" />
-          <div className="relative max-w-[1700px] mx-auto px-6 py-8 space-y-8">
-            {/* Stat cards */}
-            <section className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-              <StatCard title="Employees" value="120" accent="from-indigo-500/30 to-purple-500/30" />
-              <StatCard title="Worklog Entries" value="20,000" accent="from-emerald-500/30 to-teal-500/30" />
-              <StatCard title="Active Projects" value="150" accent="from-pink-500/30 to-fuchsia-500/30" />
-              <StatCard title="Total Working Hours" value="58,000 hrs" accent="from-amber-500/30 to-orange-500/30" />
-            </section>
+        <div className="relative min-h-screen">
+          {/* Smooth, uniform background */}
+          <div className="absolute inset-0 bg-gradient-to-b from-slate-50 to-slate-100" />
+          
+          <div className="relative max-w-7xl mx-auto px-6 py-6">
+            
+            {/* Welcome Section */}
+            <div className="text-center mb-6">
+              <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold bg-gradient-to-r from-slate-800 via-blue-700 to-slate-800 bg-clip-text text-transparent mb-3 leading-tight">
+                Welcome back, {user.name.split(' ')[0]}! 👋
+              </h1>
+              <p className="text-base md:text-lg text-slate-600 max-w-2xl mx-auto leading-relaxed">
+                Manage your team's worklogs, projects, and employee data from your centralized admin portal
+              </p>
+            </div>
 
-            {/* Attendance + Deadlines */}
-            <section className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <AttendanceCard attendance={attendance} />
-              <DeadlinesList items={upcoming} />
-            </section>
+            {/* Admin Portal Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 lg:gap-8">
+              
+              {/* Approve Worklogs */}
+              <AdminPortalCard
+                title="Approve Worklogs"
+                description="Review, approve, reject, re-approve and re-reject employee worklog entries with full oversight control."
+                icon="✅"
+                gradient="from-emerald-500/20 via-teal-500/20 to-cyan-500/20"
+                borderGradient="from-emerald-400 to-teal-500"
+                onClick={() => navigate("/admin/approve-worklogs")}
+              />
 
-            {/* Recent Worklogs */}
-            <section className="bg-white rounded-2xl border border-slate-200 shadow-xl p-4 sm:p-6">
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="text-lg font-semibold text-slate-800">Recent Worklogs</h2>
-                <button
-                  onClick={() => navigate("/admin/approve-worklogs")}
-                  className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-sm font-semibold bg-indigo-600 text-white hover:bg-indigo-700"
-                >
-                  View all →
-                </button>
-              </div>
-              <div className="overflow-x-auto">
-                <table className="min-w-full text-sm">
-                  <thead>
-                    <tr className="text-left text-slate-500">
-                      <th className="py-2 pr-6">Date</th>
-                      <th className="py-2 pr-6">Employee</th>
-                      <th className="py-2 pr-6">Project</th>
-                      <th className="py-2 pr-6">Task</th>
-                      <th className="py-2 pr-6">Hours</th>
-                      <th className="py-2 pr-6">Status</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {recentWorklogs.map((r, idx) => (
-                      <tr key={r.id} className={`border-t ${idx % 2 === 1 ? "bg-slate-50/60" : ""}`}>
-                        <td className="py-3 pr-6 whitespace-nowrap">{r.date}</td>
-                        <td className="py-3 pr-6 whitespace-nowrap">{r.employee}</td>
-                        <td className="py-3 pr-6">{r.project}</td>
-                        <td className="py-3 pr-6 whitespace-nowrap">{r.task}</td>
-                        <td className="py-3 pr-6 whitespace-nowrap">{r.hours}</td>
-                        <td className="py-3 pr-6 whitespace-nowrap">
-                          <StatusBadge value={r.status} />
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </section>
+              {/* Edit Worklogs */}
+              <AdminPortalCard
+                title="Edit Worklogs"
+                description="Comprehensive worklog management: edit existing entries, delete incorrect records, or add new entries for employees."
+                icon="✏️"
+                gradient="from-blue-500/20 via-indigo-500/20 to-purple-500/20"
+                borderGradient="from-blue-400 to-indigo-500"
+                onClick={() => navigate("/admin/edit-worklog-entries")}
+              />
+
+              {/* Manage Employees */}
+              <AdminPortalCard
+                title="Manage Employees"
+                description="Complete employee database control: update names, emails, SPOC details, team assignments, roles, and add/remove employees."
+                icon="👥"
+                gradient="from-violet-500/20 via-purple-500/20 to-fuchsia-500/20"
+                borderGradient="from-violet-400 to-purple-500"
+                onClick={() => navigate("/admin/handle-employees")}
+              />
+
+              {/* Add Abbreviations */}
+              <AdminPortalCard
+                title="Add Abbreviations"
+                description="Maintain project abbreviation dictionary: create new abbreviations, edit existing ones, or remove outdated entries."
+                icon="📝"
+                gradient="from-amber-500/20 via-orange-500/20 to-red-500/20"
+                borderGradient="from-amber-400 to-orange-500"
+                onClick={() => navigate("/admin/add-abbreviations")}
+              />
+
+              {/* Add Project */}
+              <AdminPortalCard
+                title="Add Project"
+                description="Create and configure new projects with detailed specifications, timelines, and team assignments for streamlined workflow."
+                icon="🚀"
+                gradient="from-pink-500/20 via-rose-500/20 to-red-500/20"
+                borderGradient="from-pink-400 to-rose-500"
+                onClick={() => navigate("/admin/add-project")}
+              />
+
+              {/* Project Requests */}
+              <AdminPortalCard
+                title="Project Requests"
+                description="Review and process SPOC project requests: approve new project proposals or reject submissions with detailed feedback."
+                icon="📋"
+                gradient="from-teal-500/20 via-green-500/20 to-emerald-500/20"
+                borderGradient="from-teal-400 to-green-500"
+                onClick={() => navigate("/admin/project-requests")}
+              />
+            </div>
+
+
           </div>
         </div>
       </main>
@@ -213,8 +228,7 @@ export default function AdminDashboard() {
   );
 }
 
-/* Collapsible Sidebar Links with auto-open */
-/* =================== SIDEBAR =================== */
+/* Sidebar Links Component */
 function SidebarLinks({ navigate, location, close }) {
   const [openWorklogs, setOpenWorklogs] = useState(false);
   const [openProjects, setOpenProjects] = useState(false);
@@ -235,10 +249,8 @@ function SidebarLinks({ navigate, location, close }) {
     <div className="p-6">
       <h2 className="text-xl font-bold text-white mb-6">Menu</h2>
       <nav className="flex flex-col space-y-2">
-
         <button
-          className={`text-left hover:bg-gray-700 p-3 rounded-lg transition-colors ${location.pathname === "/admin-dashboard" ? "bg-gray-700" : ""
-            }`}
+          className={`text-left hover:bg-gray-700 p-3 rounded-lg transition-colors ${location.pathname === "/admin-dashboard" ? "bg-gray-700" : ""}`}
           onClick={() => handleNavigation("/admin-dashboard")}
         >
           Home
@@ -258,15 +270,13 @@ function SidebarLinks({ navigate, location, close }) {
           {openWorklogs && (
             <div className="ml-4 mt-2 flex flex-col space-y-2 animate-fadeIn">
               <button
-                className={`text-left hover:bg-gray-700 p-2 rounded-lg transition-colors ${location.pathname.includes("approve-worklogs") ? "bg-gray-700" : ""
-                  }`}
+                className={`text-left hover:bg-gray-700 p-2 rounded-lg transition-colors ${location.pathname.includes("approve-worklogs") ? "bg-gray-700" : ""}`}
                 onClick={() => handleNavigation("/admin/approve-worklogs")}
               >
                 Approve Worklogs
               </button>
               <button
-                className={`text-left hover:bg-gray-700 p-2 rounded-lg transition-colors ${location.pathname.includes("edit-worklog-entries") ? "bg-gray-700" : ""
-                  }`}
+                className={`text-left hover:bg-gray-700 p-2 rounded-lg transition-colors ${location.pathname.includes("edit-worklog-entries") ? "bg-gray-700" : ""}`}
                 onClick={() => handleNavigation("/admin/edit-worklog-entries")}
               >
                 Edit Worklogs
@@ -277,8 +287,7 @@ function SidebarLinks({ navigate, location, close }) {
 
         {/* Employees */}
         <button
-          className={`text-left hover:bg-gray-700 p-3 rounded-lg transition-colors ${location.pathname.includes("handle-employees") ? "bg-gray-700" : ""
-            }`}
+          className={`text-left hover:bg-gray-700 p-3 rounded-lg transition-colors ${location.pathname.includes("handle-employees") ? "bg-gray-700" : ""}`}
           onClick={() => handleNavigation("/admin/handle-employees")}
         >
           Manage Employees
@@ -298,22 +307,19 @@ function SidebarLinks({ navigate, location, close }) {
           {openProjects && (
             <div className="ml-4 mt-2 flex flex-col space-y-2 animate-fadeIn">
               <button
-                className={`text-left hover:bg-gray-700 p-2 rounded-lg transition-colors ${location.pathname.includes("add-abbreviations") ? "bg-gray-700" : ""
-                  }`}
+                className={`text-left hover:bg-gray-700 p-2 rounded-lg transition-colors ${location.pathname.includes("add-abbreviations") ? "bg-gray-700" : ""}`}
                 onClick={() => handleNavigation("/admin/add-abbreviations")}
               >
                 Add Abbreviations
               </button>
               <button
-                className={`text-left hover:bg-gray-700 p-2 rounded-lg transition-colors ${location.pathname.includes("add-project") ? "bg-gray-700" : ""
-                  }`}
+                className={`text-left hover:bg-gray-700 p-2 rounded-lg transition-colors ${location.pathname.includes("add-project") ? "bg-gray-700" : ""}`}
                 onClick={() => handleNavigation("/admin/add-project")}
               >
                 Add Project
               </button>
               <button
-                className={`text-left hover:bg-gray-700 p-2 rounded-lg transition-colors ${location.pathname.includes("project-requests") ? "bg-gray-700" : ""
-                  }`}
+                className={`text-left hover:bg-gray-700 p-2 rounded-lg transition-colors ${location.pathname.includes("project-requests") ? "bg-gray-700" : ""}`}
                 onClick={() => handleNavigation("/admin/project-requests")}
               >
                 Project Requests
@@ -326,98 +332,55 @@ function SidebarLinks({ navigate, location, close }) {
   );
 }
 
-/* ----- Sub Components ----- */
-function StatCard({ title, value, accent }) {
+/* Admin Portal Card Component */
+function AdminPortalCard({ title, description, icon, gradient, borderGradient, onClick }) {
   return (
-    <div className="relative rounded-2xl p-6 backdrop-blur-xl bg-white/40 border border-white/30 shadow-xl overflow-hidden">
-      <div className={`absolute -top-10 -right-10 w-48 h-48 rounded-full bg-gradient-to-br ${accent} blur-2xl opacity-80`} />
-      <div className="relative">
-        <p className="text-sm font-medium text-slate-700/90">{title}</p>
-        <p className="text-4xl font-bold text-slate-900 mt-1">{value}</p>
+    <div 
+      className="group relative rounded-3xl p-8 backdrop-blur-xl bg-white/80 border border-white/60 shadow-xl overflow-hidden transform transition-all duration-500 hover:scale-[1.02] lg:hover:scale-105 hover:shadow-2xl active:scale-[0.98] hover:bg-white/90 active:bg-white/95 touch-manipulation"
+    >
+      {/* Gradient Background */}
+      <div className={`absolute -top-20 -right-20 w-40 h-40 rounded-full bg-gradient-to-br ${gradient} blur-2xl opacity-40 group-hover:opacity-80 group-active:opacity-70 transition-all duration-500`} />
+      
+      {/* Secondary Gradient */}
+      <div className={`absolute -bottom-10 -left-10 w-32 h-32 rounded-full bg-gradient-to-tr ${gradient} blur-xl opacity-20 group-hover:opacity-40 group-active:opacity-30 transition-all duration-500`} />
+      
+      {/* Border Gradient - Enhanced */}
+      <div className={`absolute inset-0 rounded-3xl bg-gradient-to-r ${borderGradient} opacity-0 group-hover:opacity-40 group-active:opacity-30 transition-all duration-500 p-[2px]`}>
+        <div className="w-full h-full rounded-3xl bg-white/80 backdrop-blur-xl" />
+      </div>
+      
+      {/* Subtle Inner Glow - Enhanced */}
+      <div className="absolute inset-0 rounded-3xl bg-gradient-to-br from-white/30 via-white/10 to-transparent opacity-0 group-hover:opacity-100 group-active:opacity-80 transition-all duration-500" />
+      
+      <div className="relative z-10">
+        {/* Icon Container */}
+        <div className="mb-6">
+          <div className={`inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br ${gradient} shadow-lg transform group-hover:scale-110 group-hover:rotate-3 group-active:scale-105 group-active:rotate-1 transition-all duration-500`}>
+            <span className="text-2xl filter drop-shadow-sm">{icon}</span>
+          </div>
+        </div>
+        
+        <h3 className="text-xl font-bold text-slate-900 mb-4 group-hover:text-slate-800 group-active:text-slate-700 transition-colors duration-300 leading-tight">
+          {title}
+        </h3>
+        
+        <p className="text-sm text-slate-600 leading-relaxed mb-8 group-hover:text-slate-700 group-active:text-slate-800 transition-colors duration-300">
+          {description}
+        </p>
+        
+        {/* Action Button */}
+        <div className="flex items-center justify-center">
+          <button 
+            onClick={onClick}
+            className="w-full inline-flex items-center justify-center space-x-2 px-6 py-4 bg-slate-900/10 rounded-2xl text-sm font-bold text-slate-800 transition-all duration-300 hover:bg-slate-900 hover:text-white active:scale-95 active:bg-slate-800 shadow-lg hover:shadow-xl backdrop-blur-sm border border-slate-200/50 group-hover:border-slate-300 touch-manipulation"
+          >
+            <span>Manage</span>
+            <svg className="w-4 h-4 transform group-hover:translate-x-1 group-active:translate-x-0.5 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+            </svg>
+          </button>
+        </div>
       </div>
     </div>
   );
-}
-
-function AttendanceCard({ attendance }) {
-  return (
-    <div className="rounded-2xl p-6 backdrop-blur-xl bg-white/60 border border-white/40 shadow-xl">
-      <h3 className="text-lg font-semibold text-slate-800 mb-3">Today's Attendance</h3>
-      <div className="grid grid-cols-2 gap-3">
-        <AttendanceItem label="Full Day Leave" value={attendance.leave} color="bg-rose-800" />
-        <AttendanceItem label="WFH" value={attendance.wfh} color="bg-emerald-600" />
-        <AttendanceItem label="1st Half Leave" value={attendance.halfleave1} color="bg-violet-600" />
-        <AttendanceItem label="2nd Half Leave" value={attendance.halfleave2} color="bg-red-600" />
-        <AttendanceItem label="1st Half WFH" value={attendance.wfh1} color="bg-orange-600" />
-        <AttendanceItem label="2nd Half WFH" value={attendance.wfh2} color="bg-blue-600" />
-      </div>
-      <button
-        onClick={() => window.location.assign("/admin/calendar")}
-        className="inline-flex items-center gap-1 mt-4 px-3 py-1.5 rounded-full text-sm font-semibold bg-indigo-600 text-white hover:bg-indigo-700"
-      >
-        Open calendar →
-      </button>
-    </div>
-  );
-}
-
-function AttendanceItem({ label, value, color }) {
-  return (
-    <div className="flex items-center justify-between rounded-xl bg-white/50 border border-white/30 px-4 py-3 shadow">
-      <span className="text-sm text-slate-700 font-medium">{label}</span>
-      <span className={`text-base font-bold text-white px-2.5 py-1 rounded-full ${color}`}>
-        {value}
-      </span>
-    </div>
-  );
-}
-
-function DeadlinesList({ items = [] }) {
-  const today = new Date();
-  const daysLeft = (due) => {
-    const d = new Date(due);
-    return Math.ceil((d - today) / (1000 * 60 * 60 * 24));
-  };
-  const tone = (n) =>
-    n <= 3
-      ? "bg-rose-100 text-rose-700"
-      : n <= 7
-        ? "bg-amber-100 text-amber-700"
-        : "bg-emerald-100 text-emerald-700";
-
-  return (
-    <div className="rounded-2xl p-6 backdrop-blur-xl bg-white/60 border border-white/40 shadow-xl">
-      <h3 className="text-lg font-semibold text-slate-800 mb-3">Upcoming Deadlines</h3>
-      <ul className="space-y-3">
-        {items.map((p) => {
-          const n = daysLeft(p.due);
-          return (
-            <li key={p.id} className="flex items-center justify-between rounded-xl bg-white/50 border border-white/30 px-4 py-3 shadow">
-              <div>
-                <p className="text-sm font-medium text-slate-800">{p.name}</p>
-                <p className="text-xs text-slate-600">Due {p.due}</p>
-              </div>
-              <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${tone(n)}`}>{n} days</span>
-            </li>
-          );
-        })}
-      </ul>
-      <button
-        onClick={() => window.location.assign("/admin/projects")}
-        className="inline-flex items-center gap-1 mt-4 px-3 py-1.5 rounded-full text-sm font-semibold bg-indigo-600 text-white hover:bg-indigo-700"
-      >
-        Manage projects →
-      </button>
-    </div>
-  );
-}
-
-function StatusBadge({ value }) {
-  const map = {
-    "Completed": "bg-emerald-100 text-emerald-700",
-    "In Progress": "bg-indigo-100 text-indigo-700",
-    "Delayed": "bg-rose-100 text-rose-700",
-  };
-  const cls = map[value] || "bg-slate-100 text-slate-700";
-  return <span className={`px-2.5 py-1 rounded-full text-xs font-semibold ${cls}`}>{value}</span>;
 }
