@@ -41,6 +41,7 @@ export default function Login() {
         email: decoded.email,
         role: decoded.role,
         team: decoded.team,
+        sub_team: decoded.sub_team,
         picture: decoded.picture
       };
 

@@ -173,6 +173,7 @@ const getUsers = async (req, res) => {
         spoc_name: true,
         spoc_email: true,
         team: true,
+        sub_team: true,
         role: true,
       }
     });
@@ -191,7 +192,7 @@ const getUsers = async (req, res) => {
 // ✅ Add employee with enhanced duplicate prevention
 const addUser = async (req, res) => {
   try {
-    const { name, email, spoc_name, spoc_email, team, role } = req.body;
+    const { name, email, spoc_name, spoc_email, team, sub_team, role } = req.body;
 
     // Required field validation
     if (!name || !email || !team) {
@@ -234,6 +235,7 @@ const addUser = async (req, res) => {
       name: name.trim(),
       email: email.trim().toLowerCase(),
       team: team.trim(),
+      sub_team: sub_team.trim(),
       role: role || "Employee"
     };
 
@@ -279,7 +281,7 @@ const addUser = async (req, res) => {
 const updateUser = async (req, res) => {
   try {
     const { id } = req.params;
-    const { name, email, spoc_name, spoc_email, team, role } = req.body;
+    const { name, email, spoc_name, spoc_email, team, sub_team, role } = req.body;
 
     // Validate ID format
     const userId = Number(id);
@@ -330,6 +332,7 @@ const updateUser = async (req, res) => {
       name: name.trim(),
       email: email.trim().toLowerCase(),
       team: team.trim(),
+      sub_team: sub_team.trim(),
       role: role || "Employee"
     };
 

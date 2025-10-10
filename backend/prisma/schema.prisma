@@ -20,6 +20,7 @@ model Users {
   spoc_name  String?
   spoc_email String?
   team  String
+  sub_team String
   role  String?
 }
 
@@ -50,6 +51,11 @@ model MasterDatabase {
   audit_status     String?
   name             String
   team             String
+
+  added_by_admin     Boolean   @default(false)
+  edited_by_admin    Boolean   @default(false) 
+  admin_action_by    String?   // admin's name/email
+  admin_action_date  DateTime?
 
   @@map("MasterDatabase")
   
@@ -99,4 +105,13 @@ model Abbreviations {
   segment      String  
 
   @@map("Abbreviations")
+}
+
+model TeamWiseDropdowns {
+  id           Int     @id @default(autoincrement())
+  values       String
+  column_header String
+  team         String
+
+  @@map("TeamWiseDropdowns")
 }

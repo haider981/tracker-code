@@ -47,7 +47,8 @@ const {
   deleteTodaysWorklog, 
   getTodaysWorklog, 
   bulkSaveTodaysWorklog,
-  resubmitRejectedWorklog 
+  resubmitRejectedWorklog,
+  getTeamWiseDropdowns
 } = require("../controllers/worklogController");
 
 // Final submission routes (existing)
@@ -63,5 +64,6 @@ router.post("/today/bulk", authenticateToken, bulkSaveTodaysWorklog);
 
 // NEW: Resubmission route
 router.put("/resubmit/:id", authenticateToken, resubmitRejectedWorklog);
+router.get("/team-dropdowns",authenticateToken,getTeamWiseDropdowns);
 
 module.exports = router;

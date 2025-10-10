@@ -17,6 +17,7 @@ const adminProjectRequestRoutes = require('./routes/adminProjectRequestRoutes');
 const adminAddProjectRoutes = require('./routes/adminAddProjectRoutes');
 const abbreviationsRoutes = require('./routes/abbreviationsRoutes');
 const adminAddAbbreviationRoutes = require('./routes/adminAddAbbreviationRoutes');
+const teamWiseDropdownRoutes = require('./routes/teamWiseDropdownRoutes');
 
 const { initializeScheduledJobs, stopAllScheduledJobs } = require('./services/schedulerService');
 
@@ -43,6 +44,7 @@ app.use('/api/admin', adminAddProjectRoutes);
 app.use('/api/admin/projects', adminProjectRequestRoutes);
 app.use('/api/admin/abbreviations', abbreviationsRoutes);
 app.use('/api/abbreviations', adminAddAbbreviationRoutes);
+app.use('/api/teamwise-dropdowns', teamWiseDropdownRoutes);
 
 
 const scheduledJobs = initializeScheduledJobs();

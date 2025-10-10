@@ -1974,7 +1974,13 @@ function SidebarLinks({ navigate, location, close }) {
         >
           Manage Employees
         </button>
-
+          {/* Teams */}
+         <button
+          className={`text-left hover:bg-gray-700 p-3 rounded-lg transition-colors ${location.pathname.includes("handle-employees") ? "bg-gray-700" : ""}`}
+          onClick={() => handleNavigation("/admin/team-wise-dropdowns")}
+        >
+          Team-wise Dropdowns
+        </button>
         {/* Projects */}
         <div>
           <button

@@ -72,9 +72,9 @@
 //                     'Authorization': `Bearer ${localStorage.getItem('authToken')}`
 //                 }
 //             });
-            
+
 //             const result = await response.json();
-            
+
 //             if (result.success) {
 //                 setRequests(result.data);
 //             } else {
@@ -94,13 +94,13 @@
 //         }
 //     }, [user]);
 
-    // const handleLogout = () => {
-    //     localStorage.removeItem("authToken");
-    //     if (window.google?.accounts?.id) {
-    //         window.google.accounts.id.disableAutoSelect();
-    //     }
-    //     navigate("/");
-    // };
+// const handleLogout = () => {
+//     localStorage.removeItem("authToken");
+//     if (window.google?.accounts?.id) {
+//         window.google.accounts.id.disableAutoSelect();
+//     }
+//     navigate("/");
+// };
 
 //     const handleNavigation = (path) => {
 //         navigate(path);
@@ -631,13 +631,13 @@
 //         if (!segment || !classSem || !board || !subject || !series || !medium || !session) {
 //             return "";
 //         }
-        
+
 //         const subjectMappings = getSubjectMappings();
 //         const seriesMappings = getSeriesMappings();
-        
+
 //         const fullSubject = subjectMappings[subject] || subject;
 //         const fullSeries = seriesMappings[series] || series;
-        
+
 //         return `${segment} ${classSem} ${board} ${fullSubject} ${fullSeries} ${medium} ${session}`;
 //     };
 
@@ -660,7 +660,7 @@
 
 //         const projectId = [segment, classSem, board, subject, series, medium, session].join("_");
 //         const projectName = generateProjectName();
-        
+
 //         const payload = { 
 //             project_id: projectId, 
 //             project_name: projectName, 
@@ -683,10 +683,10 @@
 
 //             if (result.success) {
 //                 setMsg(`Project created successfully!\nProject ID: ${projectId}\nProject Name: ${projectName}\nStatus: Approved`);
-                
+
 //                 // Refresh the projects list
 //                 await fetchProjects();
-                
+
 //                 // Reset form
 //                 setSegment("Select");
 //                 setClassSem("");
@@ -1263,7 +1263,7 @@
 //     // Filter options based on query - search both abbreviation and full name
 //     const filtered = useMemo(() => {
 //         if (!query) return options;
-        
+
 //         return options.filter((abbrev) => {
 //             const fullName = mappings[abbrev] || abbrev;
 //             return abbrev.toLowerCase().includes(query.toLowerCase()) || 
@@ -1434,9 +1434,9 @@ export default function AdminAddProject() {
                     'Authorization': `Bearer ${localStorage.getItem('authToken')}`
                 }
             });
-            
+
             const result = await response.json();
-            
+
             if (result.success) {
                 setSegments(result.data);
             } else {
@@ -1464,7 +1464,7 @@ export default function AdminAddProject() {
         }
 
         setLoadingAbbreviations(true);
-        
+
         try {
             const response = await fetch(`${API_BASE_URL}/admin/abbreviations/${selectedSegment}`, {
                 method: 'GET',
@@ -1473,9 +1473,9 @@ export default function AdminAddProject() {
                     'Authorization': `Bearer ${localStorage.getItem('authToken')}`
                 }
             });
-            
+
             const result = await response.json();
-            
+
             if (result.success) {
                 setAbbreviationsData(result.data);
             } else {
@@ -1517,9 +1517,9 @@ export default function AdminAddProject() {
                     'Authorization': `Bearer ${localStorage.getItem('authToken')}`
                 }
             });
-            
+
             const result = await response.json();
-            
+
             if (result.success) {
                 setRequests(result.data);
             } else {
@@ -1564,7 +1564,7 @@ export default function AdminAddProject() {
         if (!segment || !classSem || !board || !subject || !series || !medium || !session) {
             return "";
         }
-        
+
         // Find full names from abbreviations data
         const getFullName = (abbreviation, type) => {
             const items = abbreviationsData[type] || [];
@@ -1574,7 +1574,7 @@ export default function AdminAddProject() {
 
         const fullSubject = getFullName(subject, 'subject');
         const fullSeries = getFullName(series, 'series');
-        
+
         return `${segment} ${classSem} ${board} ${fullSubject} ${fullSeries} ${medium} ${session}`;
     };
 
@@ -1587,7 +1587,7 @@ export default function AdminAddProject() {
         setSeries("");
         setMedium("");
         setSession("");
-        
+
         // Fetch new abbreviations data for selected segment
         fetchAbbreviationsData(v);
     };
@@ -1603,10 +1603,10 @@ export default function AdminAddProject() {
 
         const projectId = [segment, classSem, board, subject, series, medium, session].join("_");
         const projectName = generateProjectName();
-        
-        const payload = { 
-            project_id: projectId, 
-            project_name: projectName, 
+
+        const payload = {
+            project_id: projectId,
+            project_name: projectName,
             due_date: dueDate,
             status: "Approved" // Admin projects are always approved by default
         };
@@ -1626,10 +1626,10 @@ export default function AdminAddProject() {
 
             if (result.success) {
                 setMsg(`Project created successfully!\nProject ID: ${projectId}\nProject Name: ${projectName}\nStatus: Approved`);
-                
+
                 // Refresh the projects list
                 await fetchProjects();
-                
+
                 // Reset form
                 setSegment("Select");
                 setClassSem("");
@@ -1639,7 +1639,7 @@ export default function AdminAddProject() {
                 setMedium("");
                 setSession("");
                 setDueDate("");
-                
+
                 // Reset abbreviations data
                 setAbbreviationsData({
                     classSem: [],
@@ -2097,6 +2097,14 @@ function SidebarLinks({ navigate, location, close }) {
                     Manage Employees
                 </button>
 
+                {/* Teams */}
+                <button
+                    className={`text-left hover:bg-gray-700 p-3 rounded-lg transition-colors ${location.pathname.includes("handle-employees") ? "bg-gray-700" : ""}`}
+                    onClick={() => handleNavigation("/admin/team-wise-dropdowns")}
+                >
+                    Team-wise Dropdowns
+                </button>
+
                 {/* Projects */}
                 <div>
                     <button
@@ -2240,10 +2248,10 @@ function EnhancedSearchableDropdown({ value, onChange, data = [], placeholder, i
     // Filter data based on query - search both abbreviation and full name
     const filtered = useMemo(() => {
         if (!query) return data;
-        
+
         return data.filter((item) => {
-            return item.abbreviation.toLowerCase().includes(query.toLowerCase()) || 
-                   item.fullName.toLowerCase().includes(query.toLowerCase());
+            return item.abbreviation.toLowerCase().includes(query.toLowerCase()) ||
+                item.fullName.toLowerCase().includes(query.toLowerCase());
         });
     }, [query, data]);
 
