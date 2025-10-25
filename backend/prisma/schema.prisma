@@ -93,8 +93,22 @@ model TodaysWorklog {
   name            String
   team            String   
   created_at      DateTime  @default(now())
-  
-  @@index([name, date])
+
+  is_entry_request       Boolean?  @default(false)
+  request_status         String?
+  late_reason            String?   
+  reviewed_at            DateTime?
+  reviewed_by            String?
+
+  added_by_admin         Boolean?  @default(false)
+  admin_action_by        String?
+  admin_action_date      DateTime?
+
+  @@index([name, date])                                    
+  @@index([name, is_entry_request, request_status])      
+  @@index([name, date, is_entry_request])                
+  @@index([team, date]) 
+
   @@map("TodaysWorklog")
 }
 

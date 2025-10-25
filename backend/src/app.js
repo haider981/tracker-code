@@ -18,6 +18,7 @@ const adminAddProjectRoutes = require('./routes/adminAddProjectRoutes');
 const abbreviationsRoutes = require('./routes/abbreviationsRoutes');
 const adminAddAbbreviationRoutes = require('./routes/adminAddAbbreviationRoutes');
 const teamWiseDropdownRoutes = require('./routes/teamWiseDropdownRoutes');
+const addEntryRequestRoutes = require('./routes/addEntryRequestRoutes');
 
 const { initializeScheduledJobs, stopAllScheduledJobs } = require('./services/schedulerService');
 
@@ -32,7 +33,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use("/api/auth", authRoutes);
 app.use("/api/user", userRoutes);
 app.use("/api/projects", projectRoutes);
-app.use('/api/spoc', spocRoutes);
+app.use('/api/spoc', spocRoutes);~
 app.use("/api/worklogs", worklogRoutes);
 app.use("/api/spoc/projects",spocAddProjectRoutes);
 app.use("/api/shifts", markShiftRoutes);
@@ -45,6 +46,7 @@ app.use('/api/admin/projects', adminProjectRequestRoutes);
 app.use('/api/admin/abbreviations', abbreviationsRoutes);
 app.use('/api/abbreviations', adminAddAbbreviationRoutes);
 app.use('/api/teamwise-dropdowns', teamWiseDropdownRoutes);
+app.use('/api/entry-requests', addEntryRequestRoutes);
 
 
 const scheduledJobs = initializeScheduledJobs();

@@ -68,26 +68,17 @@
 //   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 //   const [tokenExpired, setTokenExpired] = useState(false);
 
+//   // Team-wise dropdown state - MUST BE BEFORE useMemo that uses it
+//   const [teamDropdowns, setTeamDropdowns] = useState({
+//     bookElements: [],
+//     taskNames: [],
+//     chapterNumbers: []
+//   });
+//   const [loadingDropdowns, setLoadingDropdowns] = useState(false);
+
 //   // Cache/auto-submit UI state
 //   const [cacheInfo, setCacheInfo] = useState({ count: 0, expiresAt: null, timeLeft: "" });
 //   const [autoSubmitCountdown, setAutoSubmitCountdown] = useState("");
-
-//   // --- Static options ---
-//   const WORK_MODES = ["In Office", "WFH", "On Duty", "Half Day", "OT Home", "OT Office", "Night"];
-//   const STATUS = ["In Progress", "Delayed", "Completed", "Not approved"];
-//   const HOURS = ["0.5", "1", "1.5", "2", "2.5", "3", "3.5", "4", "4.5", "5", "5.5", "6", "6.5", "7", "7.5", "8"];
-//   const TASKS = ["CMPL-MS", "VRF-MS", "DRF", "TAL", "R1", "R2", "R3", "R4", "CR", "FER", "SET", "FINAL", "MEET", "QRY", "Coord", "GLANCE", "Research", "Analysis", "KT", "Interview", "PLAN", "UPL"];
-//   const BASE_BOOK_ELEMENTS = ["Theory", "Exercise", "Chapter", "Full book", "Mind Map", "Diagram", "Solution", "Booklet", "Full Video", "AVLR-VO", "DLR", "Lesson Plan", "Miscellaneous", "AVLR-Ideation", "Marketing", "Development", "Recruitment", "References", "Frames", "Papers", "Projects", "Lesson Plan"];
-//   const BASE_CHAPTER_NUMBERS = ["Title", "Syllabus", "Content", "Projects", "Papers", "Miscellaneous", "Appendix", "Full Book",
-//     ...Array.from({ length: 40 }, (_, i) => String(i + 1))
-//   ];
-
-//   const UNITS = [
-//     { label: "pages", value: "pages" },
-//     { label: "frames", value: "frames" },
-//     { label: "seconds", value: "seconds" },
-//     { label: "general", value: "general" },
-//   ];
 
 //   // --- Form state ---
 //   const [workMode, setWorkMode] = useState("");
@@ -121,7 +112,7 @@
 //   const [editSourceIndex, setEditSourceIndex] = useState(-1);
 
 //   // NEW — Rejected → Edit → Resubmit flow
-//   const [resubmitTarget, setResubmitTarget] = useState(null); // { id, date, originalRow }
+//   const [resubmitTarget, setResubmitTarget] = useState(null);
 //   const [resubmitCountdown, setResubmitCountdown] = useState("");
 
 //   /* ==============================
@@ -161,12 +152,131 @@
 //     }
 //   }, [navigate]);
 
+//   /* ==============================
+//      FETCH TEAM-WISE DROPDOWNS
+//      ============================== */
+//   const fetchTeamWiseDropdowns = useCallback(async () => {
+//     if (!checkTokenValidity()) return;
 
+//     console.log("📡 Fetching team-wise dropdowns...");
+//     setLoadingDropdowns(true);
+//     try {
+//       const { data } = await axios.get("/worklogs/team-dropdowns");
+//       console.log("📥 Raw API Response:", JSON.stringify(data, null, 2));
+
+//       if (data?.success && data?.dropdowns) {
+//         console.log("✅ API Success! Dropdowns received:");
+//         console.log("  - bookElements:", data.dropdowns.bookElements?.length || 0);
+//         console.log("  - taskNames:", data.dropdowns.taskNames?.length || 0);
+//         console.log("  - chapterNumbers:", data.dropdowns.chapterNumbers?.length || 0);
+        
+//         setTeamDropdowns({
+//           bookElements: data.dropdowns.bookElements || [],
+//           taskNames: data.dropdowns.taskNames || [],
+//           chapterNumbers: data.dropdowns.chapterNumbers || []
+//         });
+        
+//         console.log("✅ State updated successfully!");
+//       } else {
+//         console.log("⚠️ API returned success: false or no dropdowns");
+//         setTeamDropdowns({
+//           bookElements: [],
+//           taskNames: [],
+//           chapterNumbers: []
+//         });
+//       }
+//     } catch (error) {
+//       if (error.response?.status === 401) {
+//         checkTokenValidity();
+//         return;
+//       }
+//       console.error("❌ Failed to load team dropdowns:", error);
+//       setTeamDropdowns({
+//         bookElements: [],
+//         taskNames: [],
+//         chapterNumbers: []
+//       });
+//     } finally {
+//       setLoadingDropdowns(false);
+//       console.log("📊 Final teamDropdowns state will be:", teamDropdowns);
+//     }
+//   }, [checkTokenValidity]);
+
+//   /* ==============================
+//      STATIC OPTIONS (never change)
+//      ============================== */
+//   const WORK_MODES = ["In Office", "WFH", "On Duty", "Half Day", "OT Home", "OT Office", "Night"];
+//   const STATUS = ["In Progress", "Delayed", "Completed", "Not approved"];
+//   const HOURS = ["0.5", "1", "1.5", "2", "2.5", "3", "3.5", "4", "4.5", "5", "5.5", "6", "6.5", "7", "7.5", "8"];
+//   const UNITS = [
+//     { label: "pages", value: "pages" },
+//     { label: "frames", value: "frames" },
+//     { label: "seconds", value: "seconds" },
+//     { label: "general", value: "general" },
+//   ];
+
+//   /* ==============================
+//      DYNAMIC OPTIONS (based on team)
+//      ============================== */
+//   const TASKS = useMemo(() => {
+//     console.log("🔄 [TASKS useMemo] Running...");
+//     console.log("  Current teamDropdowns.taskNames:", teamDropdowns.taskNames);
+//     console.log("  Length:", teamDropdowns.taskNames?.length);
+    
+//     if (teamDropdowns.taskNames && teamDropdowns.taskNames.length > 0) {
+//       console.log("✅ [TASKS] Using team-specific values:", teamDropdowns.taskNames);
+//       return teamDropdowns.taskNames;
+//     }
+    
+//     console.log("⚠️ [TASKS] Using default hardcoded values");
+//     return ["CMPL-MS", "VRF-MS", "DRF", "TAL", "R1", "R2", "R3", "R4", "CR", "FER", "SET", "FINAL", "MEET", "QRY", "Coord", "GLANCE", "Research", "Analysis", "KT", "Interview", "PLAN", "UPL"];
+//   }, [teamDropdowns.taskNames]);
+
+//   const BASE_BOOK_ELEMENTS = useMemo(() => {
+//     console.log("🔄 [BOOK_ELEMENTS useMemo] Running...");
+//     console.log("  Current teamDropdowns.bookElements:", teamDropdowns.bookElements);
+//     console.log("  Length:", teamDropdowns.bookElements?.length);
+    
+//     if (teamDropdowns.bookElements && teamDropdowns.bookElements.length > 0) {
+//       console.log("✅ [BOOK_ELEMENTS] Using team-specific values:", teamDropdowns.bookElements);
+//       return teamDropdowns.bookElements;
+//     }
+    
+//     console.log("⚠️ [BOOK_ELEMENTS] Using default hardcoded values");
+//     return ["Theory", "Exercise", "Chapter", "Full book", "Mind Map", "Diagram", "Solution", "Booklet", "Full Video", "AVLR-VO", "DLR", "Lesson Plan", "Miscellaneous", "AVLR-Ideation", "Marketing", "Development", "Recruitment", "References", "Frames", "Papers", "Projects"];
+//   }, [teamDropdowns.bookElements]);
+
+//   const BASE_CHAPTER_NUMBERS = useMemo(() => {
+//     console.log("🔄 [CHAPTER_NUMBERS useMemo] Running...");
+//     console.log("  Current teamDropdowns.chapterNumbers:", teamDropdowns.chapterNumbers);
+//     console.log("  Length:", teamDropdowns.chapterNumbers?.length);
+    
+//     if (teamDropdowns.chapterNumbers && teamDropdowns.chapterNumbers.length > 0) {
+//       console.log("✅ [CHAPTER_NUMBERS] Using team-specific values:", teamDropdowns.chapterNumbers);
+//       return teamDropdowns.chapterNumbers;
+//     }
+    
+//     console.log("⚠️ [CHAPTER_NUMBERS] Using default hardcoded values");
+//     return ["Title", "Syllabus", "Content", "Projects", "Papers", "Miscellaneous", "Appendix", "Full Book",
+//       ...Array.from({ length: 40 }, (_, i) => String(i + 1))
+//     ];
+//   }, [teamDropdowns.chapterNumbers]);
+
+//   // Debug effect to log whenever teamDropdowns changes
+//   useEffect(() => {
+//     console.log("🔔 teamDropdowns STATE CHANGED:", {
+//       bookElements: teamDropdowns.bookElements.length,
+//       taskNames: teamDropdowns.taskNames.length,
+//       chapterNumbers: teamDropdowns.chapterNumbers.length
+//     });
+//     console.log("📋 Current TASKS array:", TASKS);
+//     console.log("📚 Current BASE_BOOK_ELEMENTS array:", BASE_BOOK_ELEMENTS);
+//     console.log("🔢 Current BASE_CHAPTER_NUMBERS array:", BASE_CHAPTER_NUMBERS);
+//   }, [teamDropdowns, TASKS, BASE_BOOK_ELEMENTS, BASE_CHAPTER_NUMBERS]);
 
 //   /* ==============================
 //      DATABASE OPERATIONS FOR TODAY'S WORKLOG
 //      ============================== */
-//   // FIXED: Load today's entries from database
 //   const loadTodaysWorklogFromDB = useCallback(async () => {
 //     if (!checkTokenValidity()) return;
 
@@ -188,8 +298,6 @@
 //           status: entry.status,
 //           dueOn: entry.due_on ? new Date(entry.due_on).toISOString().slice(0, 10) : "",
 //           remarks: entry.details || "",
-
-//           // ADD ADMIN ACTION FIELDS:
 //           adminAction: entry.added_by_admin ? 'added' : (entry.edited_by_admin ? 'edited' : 'none'),
 //           adminActionBy: entry.admin_action_by || null,
 //           adminActionDate: entry.admin_action_date || null
@@ -210,7 +318,6 @@
 //     }
 //   }, [checkTokenValidity]);
 
-//   // FIXED: Save single entry to database
 //   const saveTodaysEntryToDB = useCallback(async (entry) => {
 //     if (!checkTokenValidity()) return null;
 
@@ -231,8 +338,6 @@
 //           status: data.entry.status,
 //           dueOn: data.entry.due_on ? new Date(data.entry.due_on).toISOString().slice(0, 10) : "",
 //           remarks: data.entry.details || "",
-
-//           // ADD ADMIN ACTION FIELDS:
 //           adminAction: data.entry.added_by_admin ? 'added' : (data.entry.edited_by_admin ? 'edited' : 'none'),
 //           adminActionBy: data.entry.admin_action_by || null,
 //           adminActionDate: data.entry.admin_action_date || null
@@ -249,7 +354,6 @@
 //     return null;
 //   }, [checkTokenValidity]);
 
-//   // FIXED: Update entry in database
 //   const updateTodaysEntryInDB = useCallback(async (id, entry) => {
 //     if (!checkTokenValidity()) return null;
 
@@ -270,8 +374,6 @@
 //           status: data.entry.status,
 //           dueOn: data.entry.due_on ? new Date(data.entry.due_on).toISOString().slice(0, 10) : "",
 //           remarks: data.entry.details || "",
-
-//           // ADD ADMIN ACTION FIELDS:
 //           adminAction: data.entry.added_by_admin ? 'added' : (data.entry.edited_by_admin ? 'edited' : 'none'),
 //           adminActionBy: data.entry.admin_action_by || null,
 //           adminActionDate: data.entry.admin_action_date || null
@@ -288,7 +390,6 @@
 //     return null;
 //   }, [checkTokenValidity]);
 
-//   // Delete entry from database
 //   const deleteTodaysEntryFromDB = useCallback(async (id) => {
 //     if (!checkTokenValidity()) return false;
 
@@ -308,7 +409,6 @@
 //   /* ==============================
 //      DATA LOADER
 //      ============================== */
-//   // FIXED: Fetch past worklogs with admin action mapping
 //   const fetchPastWorklogs = useCallback(async () => {
 //     if (!checkTokenValidity()) return;
 
@@ -333,8 +433,6 @@
 //           dueOn: r.due_on ? new Date(r.due_on).toISOString().slice(0, 10) : "",
 //           remarks: r.details || "",
 //           auditStatus: r.audit_status || "Pending",
-
-//           // ADD ADMIN ACTION FIELDS:
 //           adminAction: r.added_by_admin ? 'added' : (r.edited_by_admin ? 'edited' : 'none'),
 //           adminActionBy: r.admin_action_by || null,
 //           adminActionDate: r.admin_action_date || null
@@ -358,7 +456,7 @@
 //   }, [checkTokenValidity]);
 
 //   /* ==============================
-//      AUTO-SUBMIT HELPERS - UPDATED FOR DATABASE
+//      AUTO-SUBMIT HELPERS
 //      ============================== */
 //   const getNextAutoSubmitTime = () => {
 //     const now = new Date();
@@ -389,7 +487,6 @@
 //     if (!checkTokenValidity()) return;
 
 //     try {
-//       // Get today's entries from database for auto-submit
 //       const { data } = await axios.get("/worklogs/today");
 //       let entriesToSubmit = [];
 
@@ -413,16 +510,13 @@
 //       const payload = { entries: entriesToSubmit };
 //       const response = await axios.post("/worklogs", payload);
 
-//       // Clear today's worklog from database after successful submission
 //       if (response.data.success) {
 //         setTodayRows([]);
-
 //         if (entriesToSubmit.length > 0) {
 //           setSubmitMsg(`Auto-submitted ${response.data.inserted} entry(s) at ${AUTO_SUBMIT_TIME}!`);
 //         } else {
 //           setSubmitMsg(`Auto-submitted default "Leave" entry at ${AUTO_SUBMIT_TIME}!`);
 //         }
-
 //         await fetchPastWorklogs();
 //       }
 //     } catch (error) {
@@ -434,23 +528,17 @@
 //     }
 //   }, [checkTokenValidity, fetchPastWorklogs]);
 
-//   // Auto-submit check function
 //   const checkAutoSubmit = useCallback(() => {
 //     const now = new Date();
 //     const [targetHours, targetMinutes] = AUTO_SUBMIT_TIME.split(":").map((n) => parseInt(n, 10));
-
-//     // Create target time for today
 //     const targetTime = new Date(now);
 //     targetTime.setHours(targetHours, targetMinutes, 0, 0);
-
-//     // Check if we're within a 60-second window of the target time
 //     const timeDiff = Math.abs(now - targetTime);
-//     const isWithinWindow = timeDiff <= 60000; // 60 seconds
+//     const isWithinWindow = timeDiff <= 60000;
 
 //     if (isWithinWindow) {
 //       const today = now.toDateString();
 //       const lastSubmitDate = localStorage.getItem(AUTO_SUBMIT_KEY);
-
 //       if (lastSubmitDate !== today) {
 //         localStorage.setItem(AUTO_SUBMIT_KEY, today);
 //         performAutoSubmit();
@@ -459,7 +547,7 @@
 //   }, [performAutoSubmit]);
 
 //   /* ==============================
-//      Effects: auth, initial load, timers (FIXED)
+//      EFFECTS
 //      ============================== */
 //   useEffect(() => {
 //     const token = localStorage.getItem("authToken");
@@ -479,27 +567,28 @@
 //         email: decoded.email,
 //         role: decoded.role,
 //         team: decoded.team,
+//         sub_team: decoded.sub_team,
 //         picture: decoded.picture || `https://ui-avatars.com/api/?name=${encodeURIComponent(decoded.name)}&background=random&color=fff`,
 //       };
 //       setUser(u);
 //       axios.defaults.baseURL = API_BASE;
 //       axios.defaults.headers.common.Authorization = `Bearer ${token}`;
+
 //       fetchPastWorklogs();
+//       fetchTeamWiseDropdowns();
 //     } catch (e) {
 //       console.error("Invalid token:", e);
 //       localStorage.removeItem("authToken");
 //       navigate("/");
 //     }
-//   }, [navigate, fetchPastWorklogs, checkTokenValidity]);
+//   }, [navigate, checkTokenValidity]);
 
-//   // FIXED: Load today's worklog from database on mount - no circular dependencies
 //   useEffect(() => {
 //     if (user) {
 //       loadTodaysWorklogFromDB();
 //     }
 //   }, [user, loadTodaysWorklogFromDB]);
 
-//   // FIXED: Update cache info and set up intervals
 //   useEffect(() => {
 //     const updateCacheInfoLocal = () => {
 //       setCacheInfo({
@@ -526,7 +615,6 @@
 //     };
 //   }, [todayRows.length, checkAutoSubmit, updateAutoSubmitCountdown, checkTokenValidity]);
 
-//   // NEW: maintain countdown while editing a rejected entry (until D+4 EOD)
 //   useEffect(() => {
 //     let timer;
 //     if (resubmitTarget?.date) {
@@ -538,14 +626,12 @@
 //   }, [resubmitTarget?.date]);
 
 //   /* ==============================
-//      Actions
+//      ACTIONS
 //      ============================== */
 //   const handleLogout = () => {
-//     // Clear all local storage
 //     localStorage.removeItem("authToken");
 //     localStorage.removeItem(AUTO_SUBMIT_KEY);
 //     localStorage.removeItem(CACHE_KEY);
-
 //     if (window.google?.accounts?.id) {
 //       window.google.accounts.id.disableAutoSelect();
 //     }
@@ -554,13 +640,12 @@
 //   };
 
 //   const showFullBook = useMemo(() => ["FER", "FINAL", "COM"].includes(task), [task]);
-//   const bookElements = useMemo(() => (showFullBook ? ["Full Book", ...BASE_BOOK_ELEMENTS] : BASE_BOOK_ELEMENTS), [showFullBook]);
+//   const bookElements = useMemo(() => (showFullBook ? ["Full Book", ...BASE_BOOK_ELEMENTS] : BASE_BOOK_ELEMENTS), [showFullBook, BASE_BOOK_ELEMENTS]);
 //   const chapterNumbers = useMemo(
 //     () => (showFullBook ? BASE_CHAPTER_NUMBERS : BASE_CHAPTER_NUMBERS.filter((v) => v !== "Full Book")),
-//     [showFullBook]
+//     [showFullBook, BASE_CHAPTER_NUMBERS]
 //   );
 
-//   // Suggestions loader + validation alignment
 //   useEffect(() => {
 //     let active = true;
 //     const q = projectQuery.trim();
@@ -620,24 +705,18 @@
 //     setShowSuggest(false);
 //   };
 
-//   // ---------- VALIDATION ----------
+//   /* ==============================
+//      VALIDATION
+//      ============================== */
 //   const isEmpty = (v) => Array.isArray(v) ? v.length === 0 : (v === null || v === undefined || String(v).trim() === "");
 
-//   // Project is valid if (a) projectId was set by selecting a suggestion, OR (b) user typed an exact existing ID
-//   // Project is valid if:
-//   // 1. projectId exists (normal entry OR resubmit prefill), OR
-//   // 2. projectName exists (resubmit prefill case), OR
-//   // 3. user typed a project that matches a suggestion
 //   const projectValid =
 //     (!!projectId && String(projectId).trim() !== "") ||
 //     (!!projectName && String(projectName).trim() !== "") ||
 //     (!!projectQuery.trim() && suggestions.some(s => s.id === projectQuery.trim()));
 
-//   // Required fields (replace projectId with projectValid)
 //   const required = { workMode, projectId: projectValid ? "ok" : "", task, bookElement, chapterNumber, hoursSpent, status, unitsCount, unitsType };
 
-//   // Mark as invalid if empty string
-//   // Mark as invalid if empty (handles strings AND arrays)
 //   const invalid = Object.fromEntries(
 //     Object.entries(required).map(([k, v]) => [k, isEmpty(v)])
 //   );
@@ -664,17 +743,18 @@
 //     setResubmitCountdown("");
 //   };
 
-//   // SUBMIT: append if new; replace if editing - NOW SAVES TO DATABASE
+//   /* ==============================
+//      FORM SUBMIT
+//      ============================== */
 //   const onSubmit = async (e) => {
 //     e.preventDefault();
 //     if (!canSubmitRow || !projectValid) return;
 
-//     // If in resubmit mode, do NOT add to today's – user must click explicit Resubmit button
 //     if (resubmitTarget) return;
 
 //     const newEntry = {
 //       workMode,
-//       projectId: projectId || projectQuery.trim(), // ensure ID goes if user typed exact valid ID
+//       projectId: projectId || projectQuery.trim(),
 //       projectName: projectName || projectQuery,
 //       task,
 //       bookElement,
@@ -689,7 +769,6 @@
 
 //     try {
 //       if (editSourceIndex !== -1) {
-//         // UPDATE existing entry in database
 //         const currentRow = todayRows[editSourceIndex];
 //         if (currentRow.id) {
 //           const updatedEntry = await updateTodaysEntryInDB(currentRow.id, newEntry);
@@ -698,7 +777,6 @@
 //           }
 //         }
 //       } else {
-//         // ADD new entry to database
 //         const savedEntry = await saveTodaysEntryToDB(newEntry);
 //         if (savedEntry) {
 //           setTodayRows((prev) => [...prev, savedEntry]);
@@ -710,7 +788,9 @@
 //     }
 //   };
 
-//   // copy & delete handlers - UPDATED FOR DATABASE
+//   /* ==============================
+//      ROW ACTIONS
+//      ============================== */
 //   const copyRowToForm = (row) => {
 //     setWorkMode(row.workMode || "");
 //     setProjectId(row.projectId || "");
@@ -731,13 +811,11 @@
 //     setStatus(row.status || "");
 //     setDueOn(row.dueOn || "");
 //     setRemarks(row.remarks || "");
-//     // not in edit mode when only copying
 //     setEditSourceIndex(-1);
 //     setResubmitTarget(null);
 //     window.scrollTo({ top: 0, behavior: "smooth" });
 //   };
 
-//   // EDIT: copy into form and set edit mode
 //   const startEditViaForm = (idx, row) => {
 //     copyRowToForm(row);
 //     setEditSourceIndex(idx);
@@ -763,6 +841,9 @@
 //     }
 //   };
 
+//   /* ==============================
+//      WORKLOG SUBMISSION
+//      ============================== */
 //   async function submitTodaysWorklog() {
 //     if (todayRows.length === 0) return;
 
@@ -792,7 +873,6 @@
 //       const { data } = await axios.post("/worklogs", payload);
 //       setSubmitMsg(`Successfully submitted ${data.inserted} entry(s) to database!`);
 
-//       // Clear today's worklog (this will also clear from database via the controller)
 //       setTodayRows([]);
 //       await fetchPastWorklogs();
 //     } catch (error) {
@@ -806,7 +886,9 @@
 //     }
 //   }
 
-//   // NEW: Resubmit a rejected past entry (switch to Re-Pending)
+//   /* ==============================
+//      RESUBMISSION
+//      ============================== */
 //   const resubmitRejectedWorklog = async (id, entry) => {
 //     try {
 //       const { data } = await axios.put(`/worklogs/resubmit/${id}`, { entry });
@@ -828,7 +910,6 @@
 //       setSubmitMsg("Please fill all required fields (*) with a valid Project ID before resubmitting.");
 //       return;
 //     }
-//     // Prepare payload (same fields, Date & Audit not editable/not sent)
 //     const entry = {
 //       workMode,
 //       projectId: projectId || projectQuery.trim(),
@@ -847,7 +928,7 @@
 //   };
 
 //   /* ==============================
-//      Render
+//      RENDER
 //      ============================== */
 //   if (!user) {
 //     return (
@@ -1689,17 +1770,14 @@
 //   return `${d}d ${h}h ${m}m ${s}s left`;
 // }
 
-
 import React, { useEffect, useMemo, useRef, useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { jwtDecode } from "jwt-decode";
 import axios from "axios";
 
-// Use environment variable or fallback to localhost
 const API_BASE = "http://localhost:5000/api";
 
-// Cache configuration
-const CACHE_DURATION = 24 * 60 * 60 * 1000; // 24 hours
+const CACHE_DURATION = 24 * 60 * 60 * 1000;
 const AUTO_SUBMIT_TIME = "22:30";
 const CACHE_KEY = "worklog_cache_v2";
 const AUTO_SUBMIT_KEY = "lastAutoSubmitDate";
@@ -1753,14 +1831,13 @@ const getAdminActionRowClass = (row) => {
   return '';
 };
 
-
 export default function EmployeeDashboard() {
   const navigate = useNavigate();
   const [user, setUser] = useState(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [tokenExpired, setTokenExpired] = useState(false);
 
-  // Team-wise dropdown state - MUST BE BEFORE useMemo that uses it
   const [teamDropdowns, setTeamDropdowns] = useState({
     bookElements: [],
     taskNames: [],
@@ -1768,11 +1845,9 @@ export default function EmployeeDashboard() {
   });
   const [loadingDropdowns, setLoadingDropdowns] = useState(false);
 
-  // Cache/auto-submit UI state
   const [cacheInfo, setCacheInfo] = useState({ count: 0, expiresAt: null, timeLeft: "" });
   const [autoSubmitCountdown, setAutoSubmitCountdown] = useState("");
 
-  // --- Form state ---
   const [workMode, setWorkMode] = useState("");
   const [projectQuery, setProjectQuery] = useState("");
   const [projectId, setProjectId] = useState("");
@@ -1800,16 +1875,10 @@ export default function EmployeeDashboard() {
   const [submitting, setSubmitting] = useState(false);
   const [submitMsg, setSubmitMsg] = useState(null);
 
-  // edit via form (not inline)
   const [editSourceIndex, setEditSourceIndex] = useState(-1);
-
-  // NEW — Rejected → Edit → Resubmit flow
   const [resubmitTarget, setResubmitTarget] = useState(null);
   const [resubmitCountdown, setResubmitCountdown] = useState("");
 
-  /* ==============================
-     TOKEN VALIDATION & AUTO-LOGOUT
-     ============================== */
   const checkTokenValidity = useCallback(() => {
     const token = localStorage.getItem("authToken");
     if (!token) {
@@ -1844,33 +1913,20 @@ export default function EmployeeDashboard() {
     }
   }, [navigate]);
 
-  /* ==============================
-     FETCH TEAM-WISE DROPDOWNS
-     ============================== */
   const fetchTeamWiseDropdowns = useCallback(async () => {
     if (!checkTokenValidity()) return;
 
-    console.log("📡 Fetching team-wise dropdowns...");
     setLoadingDropdowns(true);
     try {
       const { data } = await axios.get("/worklogs/team-dropdowns");
-      console.log("📥 Raw API Response:", JSON.stringify(data, null, 2));
 
       if (data?.success && data?.dropdowns) {
-        console.log("✅ API Success! Dropdowns received:");
-        console.log("  - bookElements:", data.dropdowns.bookElements?.length || 0);
-        console.log("  - taskNames:", data.dropdowns.taskNames?.length || 0);
-        console.log("  - chapterNumbers:", data.dropdowns.chapterNumbers?.length || 0);
-        
         setTeamDropdowns({
           bookElements: data.dropdowns.bookElements || [],
           taskNames: data.dropdowns.taskNames || [],
           chapterNumbers: data.dropdowns.chapterNumbers || []
         });
-        
-        console.log("✅ State updated successfully!");
       } else {
-        console.log("⚠️ API returned success: false or no dropdowns");
         setTeamDropdowns({
           bookElements: [],
           taskNames: [],
@@ -1882,7 +1938,7 @@ export default function EmployeeDashboard() {
         checkTokenValidity();
         return;
       }
-      console.error("❌ Failed to load team dropdowns:", error);
+      console.error("Failed to load team dropdowns:", error);
       setTeamDropdowns({
         bookElements: [],
         taskNames: [],
@@ -1890,13 +1946,9 @@ export default function EmployeeDashboard() {
       });
     } finally {
       setLoadingDropdowns(false);
-      console.log("📊 Final teamDropdowns state will be:", teamDropdowns);
     }
   }, [checkTokenValidity]);
 
-  /* ==============================
-     STATIC OPTIONS (never change)
-     ============================== */
   const WORK_MODES = ["In Office", "WFH", "On Duty", "Half Day", "OT Home", "OT Office", "Night"];
   const STATUS = ["In Progress", "Delayed", "Completed", "Not approved"];
   const HOURS = ["0.5", "1", "1.5", "2", "2.5", "3", "3.5", "4", "4.5", "5", "5.5", "6", "6.5", "7", "7.5", "8"];
@@ -1907,68 +1959,29 @@ export default function EmployeeDashboard() {
     { label: "general", value: "general" },
   ];
 
-  /* ==============================
-     DYNAMIC OPTIONS (based on team)
-     ============================== */
   const TASKS = useMemo(() => {
-    console.log("🔄 [TASKS useMemo] Running...");
-    console.log("  Current teamDropdowns.taskNames:", teamDropdowns.taskNames);
-    console.log("  Length:", teamDropdowns.taskNames?.length);
-    
     if (teamDropdowns.taskNames && teamDropdowns.taskNames.length > 0) {
-      console.log("✅ [TASKS] Using team-specific values:", teamDropdowns.taskNames);
       return teamDropdowns.taskNames;
     }
-    
-    console.log("⚠️ [TASKS] Using default hardcoded values");
     return ["CMPL-MS", "VRF-MS", "DRF", "TAL", "R1", "R2", "R3", "R4", "CR", "FER", "SET", "FINAL", "MEET", "QRY", "Coord", "GLANCE", "Research", "Analysis", "KT", "Interview", "PLAN", "UPL"];
   }, [teamDropdowns.taskNames]);
 
   const BASE_BOOK_ELEMENTS = useMemo(() => {
-    console.log("🔄 [BOOK_ELEMENTS useMemo] Running...");
-    console.log("  Current teamDropdowns.bookElements:", teamDropdowns.bookElements);
-    console.log("  Length:", teamDropdowns.bookElements?.length);
-    
     if (teamDropdowns.bookElements && teamDropdowns.bookElements.length > 0) {
-      console.log("✅ [BOOK_ELEMENTS] Using team-specific values:", teamDropdowns.bookElements);
       return teamDropdowns.bookElements;
     }
-    
-    console.log("⚠️ [BOOK_ELEMENTS] Using default hardcoded values");
     return ["Theory", "Exercise", "Chapter", "Full book", "Mind Map", "Diagram", "Solution", "Booklet", "Full Video", "AVLR-VO", "DLR", "Lesson Plan", "Miscellaneous", "AVLR-Ideation", "Marketing", "Development", "Recruitment", "References", "Frames", "Papers", "Projects"];
   }, [teamDropdowns.bookElements]);
 
   const BASE_CHAPTER_NUMBERS = useMemo(() => {
-    console.log("🔄 [CHAPTER_NUMBERS useMemo] Running...");
-    console.log("  Current teamDropdowns.chapterNumbers:", teamDropdowns.chapterNumbers);
-    console.log("  Length:", teamDropdowns.chapterNumbers?.length);
-    
     if (teamDropdowns.chapterNumbers && teamDropdowns.chapterNumbers.length > 0) {
-      console.log("✅ [CHAPTER_NUMBERS] Using team-specific values:", teamDropdowns.chapterNumbers);
       return teamDropdowns.chapterNumbers;
     }
-    
-    console.log("⚠️ [CHAPTER_NUMBERS] Using default hardcoded values");
     return ["Title", "Syllabus", "Content", "Projects", "Papers", "Miscellaneous", "Appendix", "Full Book",
       ...Array.from({ length: 40 }, (_, i) => String(i + 1))
     ];
   }, [teamDropdowns.chapterNumbers]);
 
-  // Debug effect to log whenever teamDropdowns changes
-  useEffect(() => {
-    console.log("🔔 teamDropdowns STATE CHANGED:", {
-      bookElements: teamDropdowns.bookElements.length,
-      taskNames: teamDropdowns.taskNames.length,
-      chapterNumbers: teamDropdowns.chapterNumbers.length
-    });
-    console.log("📋 Current TASKS array:", TASKS);
-    console.log("📚 Current BASE_BOOK_ELEMENTS array:", BASE_BOOK_ELEMENTS);
-    console.log("🔢 Current BASE_CHAPTER_NUMBERS array:", BASE_CHAPTER_NUMBERS);
-  }, [teamDropdowns, TASKS, BASE_BOOK_ELEMENTS, BASE_CHAPTER_NUMBERS]);
-
-  /* ==============================
-     DATABASE OPERATIONS FOR TODAY'S WORKLOG
-     ============================== */
   const loadTodaysWorklogFromDB = useCallback(async () => {
     if (!checkTokenValidity()) return;
 
@@ -2098,9 +2111,6 @@ export default function EmployeeDashboard() {
     }
   }, [checkTokenValidity]);
 
-  /* ==============================
-     DATA LOADER
-     ============================== */
   const fetchPastWorklogs = useCallback(async () => {
     if (!checkTokenValidity()) return;
 
@@ -2147,9 +2157,6 @@ export default function EmployeeDashboard() {
     }
   }, [checkTokenValidity]);
 
-  /* ==============================
-     AUTO-SUBMIT HELPERS
-     ============================== */
   const getNextAutoSubmitTime = () => {
     const now = new Date();
     const target = new Date(now);
@@ -2238,9 +2245,6 @@ export default function EmployeeDashboard() {
     }
   }, [performAutoSubmit]);
 
-  /* ==============================
-     EFFECTS
-     ============================== */
   useEffect(() => {
     const token = localStorage.getItem("authToken");
     if (!token) {
@@ -2273,7 +2277,7 @@ export default function EmployeeDashboard() {
       localStorage.removeItem("authToken");
       navigate("/");
     }
-  }, [navigate, checkTokenValidity]);
+  }, [navigate, checkTokenValidity, fetchPastWorklogs, fetchTeamWiseDropdowns]);
 
   useEffect(() => {
     if (user) {
@@ -2317,9 +2321,6 @@ export default function EmployeeDashboard() {
     return () => timer && clearInterval(timer);
   }, [resubmitTarget?.date]);
 
-  /* ==============================
-     ACTIONS
-     ============================== */
   const handleLogout = () => {
     localStorage.removeItem("authToken");
     localStorage.removeItem(AUTO_SUBMIT_KEY);
@@ -2397,9 +2398,6 @@ export default function EmployeeDashboard() {
     setShowSuggest(false);
   };
 
-  /* ==============================
-     VALIDATION
-     ============================== */
   const isEmpty = (v) => Array.isArray(v) ? v.length === 0 : (v === null || v === undefined || String(v).trim() === "");
 
   const projectValid =
@@ -2435,9 +2433,6 @@ export default function EmployeeDashboard() {
     setResubmitCountdown("");
   };
 
-  /* ==============================
-     FORM SUBMIT
-     ============================== */
   const onSubmit = async (e) => {
     e.preventDefault();
     if (!canSubmitRow || !projectValid) return;
@@ -2480,9 +2475,6 @@ export default function EmployeeDashboard() {
     }
   };
 
-  /* ==============================
-     ROW ACTIONS
-     ============================== */
   const copyRowToForm = (row) => {
     setWorkMode(row.workMode || "");
     setProjectId(row.projectId || "");
@@ -2533,9 +2525,6 @@ export default function EmployeeDashboard() {
     }
   };
 
-  /* ==============================
-     WORKLOG SUBMISSION
-     ============================== */
   async function submitTodaysWorklog() {
     if (todayRows.length === 0) return;
 
@@ -2578,9 +2567,6 @@ export default function EmployeeDashboard() {
     }
   }
 
-  /* ==============================
-     RESUBMISSION
-     ============================== */
   const resubmitRejectedWorklog = async (id, entry) => {
     try {
       const { data } = await axios.put(`/worklogs/resubmit/${id}`, { entry });
@@ -2619,9 +2605,6 @@ export default function EmployeeDashboard() {
     await resubmitRejectedWorklog(resubmitTarget.id, entry);
   };
 
-  /* ==============================
-     RENDER
-     ============================== */
   if (!user) {
     return (
       <div className="min-h-screen bg-slate-100 flex items-center justify-center">
@@ -2632,13 +2615,25 @@ export default function EmployeeDashboard() {
       </div>
     );
   }
+
   return (
     <div className="min-h-screen bg-slate-100 text-slate-900 text-sm">
       {/* Enhanced Responsive Navbar */}
       <nav className="fixed top-0 left-0 right-0 z-50 bg-slate-900 text-white shadow-lg">
         <div className="flex justify-between items-center w-full px-4 sm:px-6 h-16">
-          {/* Left side - Logo/Title */}
+          {/* Left side - Sidebar Toggle & Logo/Title */}
           <div className="flex items-center space-x-2">
+            {/* Sidebar toggle button for mobile/tablet only */}
+            <button
+              onClick={() => setSidebarOpen(!sidebarOpen)}
+              className="mr-2 p-2 rounded-md text-slate-300 hover:text-white hover:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-white lg:hidden"
+            >
+              <span className="sr-only">Toggle sidebar</span>
+              <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+              </svg>
+            </button>
+
             <h1 className="text-lg sm:text-xl font-semibold tracking-tight">
               <span className="block sm:inline">Employee Dashboard</span>
               <span className="hidden sm:inline"> - Work Log</span>
@@ -2738,351 +2733,426 @@ export default function EmployeeDashboard() {
         )}
       </nav>
 
-      {/* Main */}
-      <main className="pt-20 pb-8">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          {/* New Entry */}
-          <form onSubmit={onSubmit} className="bg-white rounded-2xl shadow-xl p-4 sm:p-6 border border-slate-200">
-            <div className="flex items-start justify-between mb-3">
-              <h2 className="text-base sm:text-lg font-semibold text-slate-800">
-                {resubmitTarget ? "Edit Rejected Entry" : (editSourceIndex !== -1 ? "Edit Entry" : "New Entry")}
-              </h2>
-              <div className="text-right">
-                <span className="text-xs text-red-600">* required fields</span>
-                {cacheInfo.count > 0 && (
-                  <div className="text-xs text-blue-600 mt-1 md:hidden">
-                    {cacheInfo.count} entries stored in database
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* Resubmit banner */}
-            {resubmitTarget && (
-              <div className="mb-3 rounded-xl border border-amber-300 bg-amber-50 px-3 py-2 text-xs text-amber-900">
-                You are editing a <b>Rejected</b> entry from <b>{resubmitTarget.date}</b>. You can resubmit until <b></b>
-                <span className="ml-2 inline-flex items-center rounded-full bg-amber-100 px-2 py-[2px]">{resubmitCountdown || "calculating…"}</span>
-                <button
-                  type="button"
-                  onClick={() => clearForm()}
-                  className="ml-3 underline text-amber-900 hover:text-amber-700"
-                  title="Cancel resubmission mode"
-                >
-                  Cancel
-                </button>
-              </div>
-            )}
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              <Field label="Work Mode *">
-                <Select
-                  value={workMode}
-                  onChange={setWorkMode}
-                  options={["", ...WORK_MODES]}
-                  labels={{ "": "— Select —" }}
-                  isInvalid={invalid.workMode}
-                />
-              </Field>
-
-              <Field label="Project Search *">
-                <div className="flex gap-2 items-center">
-                  <div className="relative flex-1" ref={suggestRef}>
-                    <input
-                      type="text"
-                      placeholder="Start typing project name or ID…"
-                      className={`w-full h-9 text-sm px-3 rounded-2xl border-2 ${invalid.projectId ? "border-red-500" : "border-slate-300"} focus:border-indigo-600`}
-                      value={projectQuery}
-                      onChange={(e) => {
-                        setProjectQuery(e.target.value);
-                        setProjectId("");
-                        setProjectName("");
-                        if (!e.target.value.trim()) setDueOn("");
-                      }}
-                      onBlur={() => {
-                        // If user typed exact matching ID, set it as chosen to keep behavior consistent
-                        const exact = suggestions.find(s => s.id === projectQuery.trim());
-                        if (exact && !projectId) {
-                          selectProject(exact);
-                        }
-                      }}
-                    />
-                    {loadingSuggestions && (
-                      <div className="absolute right-3 top-2">
-                        <div className="animate-spin h-5 w-5 border-2 border-indigo-600 border-t-transparent rounded-full"></div>
-                      </div>
-                    )}
-                    {showSuggest && suggestions.length > 0 && (
-                      <ul className="absolute z-20 mt-2 max-h-64 w-full overflow-auto rounded-2xl border bg-white shadow-2xl">
-                        {suggestions.map((s) => (
-                          <li
-                            key={s.id}
-                            onClick={(e) => {
-                              e.preventDefault();
-                              e.stopPropagation();
-                              selectProject(s);
-                            }}
-                            className="px-4 py-3 text-sm hover:bg-indigo-50 cursor-pointer border-b border-slate-100 last:border-b-0"
-                          >
-                            <div className="font-medium text-slate-900">{s.id}</div>
-                            <div className="text-xs text-slate-600 mt-1">{s.name}</div>
-                            {s.dueOn && <div className="text-xs text-orange-600 mt-1">Due: {s.dueOn}</div>}
-                          </li>
-                        ))}
-                      </ul>
-                    )}
-                    {showSuggest && suggestions.length === 0 && !loadingSuggestions && projectQuery.trim() && (
-                      <div className="absolute z-20 mt-2 w-full rounded-2xl border bg-white shadow-2xl px-4 py-3 text-sm text-slate-500">
-                        No projects found for "{projectQuery}"
-                      </div>
-                    )}
-                  </div>
+      {/* Layout Container */}
+      <div className="pt-16 flex">
+        {/* Mobile Sidebar Overlay and Sidebar */}
+        {sidebarOpen && (
+          <div className="fixed inset-0 z-40 lg:hidden">
+            {/* Backdrop */}
+            <div className="fixed inset-0 bg-black bg-opacity-50" onClick={() => setSidebarOpen(false)} />
+            {/* Mobile Sidebar */}
+            <aside className="fixed top-16 left-0 h-[calc(100vh-4rem)] w-80 bg-gray-800 text-white shadow-xl transform transition-transform duration-300 ease-in-out overflow-y-auto">
+              <div className="p-6">
+                <div className="flex items-center justify-between mb-8">
+                  <h2 className="text-xl font-bold text-white">Menu</h2>
+                  <button
+                    onClick={() => setSidebarOpen(false)}
+                    className="p-2 rounded-md text-gray-300 hover:text-white hover:bg-gray-700"
+                  >
+                    <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
                 </div>
-              </Field>
+                <nav className="flex flex-col space-y-4">
+                  <button
+                    className="text-left hover:bg-gray-700 p-3 rounded-lg bg-gray-700 transition-colors duration-200 text-white w-full"
+                    onClick={() => {
+                      navigate("/employee-dashboard");
+                      setSidebarOpen(false);
+                    }}
+                  >
+                    Home
+                  </button>
+                  <button
+                    className="text-left hover:bg-gray-700 p-3 rounded-lg transition-colors duration-200 text-white w-full"
+                    onClick={() => {
+                      navigate("/employee/add-entry-request");
+                      setSidebarOpen(false);
+                    }}
+                  >
+                    Missing Entry Request
+                  </button>
+                  <button
+                    className="text-left hover:bg-gray-700 p-3 rounded-lg transition-colors duration-200 text-white w-full"
+                    onClick={() => {
+                      navigate("/employee/notifications");
+                      setSidebarOpen(false);
+                    }}
+                  >
+                    Notifications
+                  </button>
+                </nav>
+              </div>
+            </aside>
+          </div>
+        )}
 
-              <Field label="Task *">
-                <Select
-                  value={task}
-                  onChange={setTask}
-                  options={["", ...TASKS]}
-                  labels={{ "": "— Select —" }}
-                  isInvalid={invalid.task}
-                />
-              </Field>
-
-              <Field label="Book Element *">
-                <Select
-                  value={bookElement}
-                  onChange={setBookElement}
-                  options={["", ...bookElements]}
-                  labels={{ "": "— Select —" }}
-                  isInvalid={invalid.bookElement}
-                />
-              </Field>
-
-              <Field label="Chapter No. *">
-                <MultiSelectChips
-                  value={chapterNumber}
-                  onChange={setChapterNumber}
-                  options={chapterNumbers}
-                  placeholder="Select chapter(s)…"
-                  isInvalid={invalid.chapterNumber}
-                />
-              </Field>
-
-              <Field label="Hours Spent *">
-                <Select
-                  value={hoursSpent}
-                  onChange={setHoursSpent}
-                  options={["", ...HOURS]}
-                  labels={{ "": "— Select —" }}
-                  isInvalid={invalid.hoursSpent}
-                />
-              </Field>
-
-              <Field label="No. of Units *">
-                <div className="flex gap-2 items-start">
-                  <input
-                    type="number"
-                    className={`flex-1 h-9 text-sm px-3 rounded-2xl border-2 ${invalid.unitsCount ? "border-red-500" : "border-slate-300"
-                      } focus:border-indigo-600`}
-                    placeholder="e.g., 10"
-                    value={unitsCount}
-                    onChange={(e) => setUnitsCount(e.target.value)}
-                  />
-                  <div className="w-28">
-                    <Select
-                      value={unitsType}
-                      onChange={setUnitsType}
-                      options={UNITS.map((u) => u.value)}
-                      labels={UNITS.reduce((m, u) => {
-                        m[u.value] = u.label;
-                        return m;
-                      }, {})}
-                      isInvalid={invalid.unitsType}
-                    />
-                  </div>
-                </div>
-              </Field>
-
-              <Field label="Status *">
-                <Select
-                  value={status}
-                  onChange={setStatus}
-                  options={["", ...STATUS]}
-                  labels={{ "": "— Select —" }}
-                  isInvalid={invalid.status}
-                />
-              </Field>
-
-              <Field label="Due On">
-                <input
-                  type="date"
-                  className="w-full h-9 text-sm px-3 rounded-2xl border-2 border-slate-300 focus:border-indigo-600"
-                  value={dueOn}
-                  onChange={(e) => setDueOn(e.target.value)}
-                />
-                {dueOn && <div className="mt-1 text-xs text-slate-600">Due: {new Date(dueOn).toLocaleDateString()}</div>}
-              </Field>
-
-              <Field label="Details">
-                <textarea
-                  className="w-full min-h-[140px] text-sm px-3 py-2 rounded-2xl border-2 border-slate-300 focus:border-indigo-600"
-                  value={remarks}
-                  onChange={(e) => setRemarks(e.target.value)}
-                  placeholder="Add any additional notes..."
-                />
-              </Field>
+        {/* Desktop Sidebar - Hidden on mobile, visible on lg+ */}
+        <aside className="hidden lg:block fixed top-16 left-0 h-[calc(100vh-4rem)] w-72 bg-gray-800 text-white shadow-xl overflow-y-auto">
+          <div className="p-6">
+            <div className="mb-8">
+              <h2 className="text-xl font-bold text-white">Menu</h2>
             </div>
-
-            <div className="mt-4 flex flex-col sm:flex-row items-center justify-end gap-3">
+            <nav className="flex flex-col space-y-4">
               <button
-                type="button"
-                onClick={clearForm}
-                className="w-full sm:w-auto px-4 py-1.5 rounded-2xl border-2 border-slate-300 hover:bg-slate-50 transition-colors"
+                className="text-left hover:bg-gray-700 p-3 rounded-lg bg-gray-700 transition-colors duration-200 text-white w-full"
+                onClick={() => navigate("/employee-dashboard")}
               >
-                Clear
+                Home
               </button>
+              <button
+                className="text-left hover:bg-gray-700 p-3 rounded-lg transition-colors duration-200 text-white w-full"
+                onClick={() => navigate("/employee/add-entry-request")}
+              >
+                Missing Entry Request
+              </button>
+              <button
+                className="text-left hover:bg-gray-700 p-3 rounded-lg transition-colors duration-200 text-white w-full"
+                onClick={() => navigate("/employee/notification-employee")}
+              >
+                Notifications
+              </button>
+            </nav>
+          </div>
+        </aside>
 
-              {/* Resubmit button only in resubmit mode */}
+        {/* Main content with proper margin for sidebar */}
+        <main className={`flex-1 transition-all duration-300 ease-in-out lg:ml-72 overflow-y-auto`}>
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">{/* New Entry */}
+            <form onSubmit={onSubmit} className="bg-white rounded-2xl shadow-xl p-4 sm:p-6 border border-slate-200">
+              <div className="flex items-start justify-between mb-3">
+                <h2 className="text-base sm:text-lg font-semibold text-slate-800">
+                  {resubmitTarget ? "Edit Rejected Entry" : (editSourceIndex !== -1 ? "Edit Entry" : "New Entry")}
+                </h2>
+                <div className="text-right">
+                  <span className="text-xs text-red-600">* required fields</span>
+                  {cacheInfo.count > 0 && (
+                    <div className="text-xs text-blue-600 mt-1 md:hidden">
+                      {cacheInfo.count} entries stored in database
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Resubmit banner */}
               {resubmitTarget && (
-                <button
-                  type="button"
-                  onClick={onClickResubmit}
-                  className="w-full sm:w-auto px-5 py-1.5 rounded-2xl text-white bg-amber-600 hover:bg-amber-700 transition-colors"
-                  title="Send this corrected entry back to SPOC for Re-Approval/Re-Rejection"
-                  disabled={!canSubmitRow || !projectValid}
-                >
-                  Resubmit Entry {resubmitCountdown ? `(${resubmitCountdown})` : ""}
-                </button>
+                <div className="mb-3 rounded-xl border border-amber-300 bg-amber-50 px-3 py-2 text-xs text-amber-900">
+                  You are editing a <b>Rejected</b> entry from <b>{resubmitTarget.date}</b>. You can resubmit until{" "}
+                  <span className="ml-2 inline-flex items-center rounded-full bg-amber-100 px-2 py-[2px]">{resubmitCountdown || "calculating…"}</span>
+                  <button
+                    type="button"
+                    onClick={() => clearForm()}
+                    className="ml-3 underline text-amber-900 hover:text-amber-700"
+                    title="Cancel resubmission mode"
+                  >
+                    Cancel
+                  </button>
+                </div>
               )}
 
-              <button
-                type="submit"
-                disabled={!canSubmitRow || !projectValid || !!resubmitTarget /* block mixing modes */}
-                className={`w-full sm:w-auto px-5 py-1.5 rounded-2xl text-white transition-colors ${canSubmitRow && projectValid && !resubmitTarget
-                  ? "bg-indigo-700 hover:bg-indigo-800"
-                  : "bg-slate-400 cursor-not-allowed"
-                  }`}
-              >
-                {editSourceIndex !== -1 ? "Update Entry" : "Add to Today's Worklog"}
-              </button>
-            </div>
-          </form>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                <Field label="Work Mode *">
+                  <Select
+                    value={workMode}
+                    onChange={setWorkMode}
+                    options={["", ...WORK_MODES]}
+                    labels={{ "": "— Select —" }}
+                    isInvalid={invalid.workMode}
+                  />
+                </Field>
 
-          {/* Today's Worklog */}
-          <section className="mt-8 space-y-6">
-            {loadingToday ? (
-              <Feedback message="Loading today's worklog..." />
-            ) : todayRows.length > 0 ? (
-              <>
-                <EditableBlock
-                  title="Today's Worklog"
-                  rows={todayRows}
-                  onCopyRow={copyRowToForm}
-                  onStartEdit={startEditViaForm}
-                  onDeleteRow={deleteRowAt}
-                  lists={{ WORK_MODES, TASKS, STATUS, HOURS, UNITS }}
+                <Field label="Project Search *">
+                  <div className="flex gap-2 items-center">
+                    <div className="relative flex-1" ref={suggestRef}>
+                      <input
+                        type="text"
+                        placeholder="Start typing project name or ID…"
+                        className={`w-full h-9 text-sm px-3 rounded-2xl border-2 ${invalid.projectId ? "border-red-500" : "border-slate-300"} focus:border-indigo-600`}
+                        value={projectQuery}
+                        onChange={(e) => {
+                          setProjectQuery(e.target.value);
+                          setProjectId("");
+                          setProjectName("");
+                          if (!e.target.value.trim()) setDueOn("");
+                        }}
+                        onBlur={() => {
+                          const exact = suggestions.find(s => s.id === projectQuery.trim());
+                          if (exact && !projectId) {
+                            selectProject(exact);
+                          }
+                        }}
+                      />
+                      {loadingSuggestions && (
+                        <div className="absolute right-3 top-2">
+                          <div className="animate-spin h-5 w-5 border-2 border-indigo-600 border-t-transparent rounded-full"></div>
+                        </div>
+                      )}
+                      {showSuggest && suggestions.length > 0 && (
+                        <ul className="absolute z-20 mt-2 max-h-64 w-full overflow-auto rounded-2xl border bg-white shadow-2xl">
+                          {suggestions.map((s) => (
+                            <li
+                              key={s.id}
+                              onClick={(e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                selectProject(s);
+                              }}
+                              className="px-4 py-3 text-sm hover:bg-indigo-50 cursor-pointer border-b border-slate-100 last:border-b-0"
+                            >
+                              <div className="font-medium text-slate-900">{s.id}</div>
+                              <div className="text-xs text-slate-600 mt-1">{s.name}</div>
+                              {s.dueOn && <div className="text-xs text-orange-600 mt-1">Due: {s.dueOn}</div>}
+                            </li>
+                          ))}
+                        </ul>
+                      )}
+                      {showSuggest && suggestions.length === 0 && !loadingSuggestions && projectQuery.trim() && (
+                        <div className="absolute z-20 mt-2 w-full rounded-2xl border bg-white shadow-2xl px-4 py-3 text-sm text-slate-500">
+                          No projects found for "{projectQuery}"
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </Field>
+
+                <Field label="Task *">
+                  <Select
+                    value={task}
+                    onChange={setTask}
+                    options={["", ...TASKS]}
+                    labels={{ "": "— Select —" }}
+                    isInvalid={invalid.task}
+                  />
+                </Field>
+
+                <Field label="Book Element *">
+                  <Select
+                    value={bookElement}
+                    onChange={setBookElement}
+                    options={["", ...bookElements]}
+                    labels={{ "": "— Select —" }}
+                    isInvalid={invalid.bookElement}
+                  />
+                </Field>
+
+                <Field label="Chapter No. *">
+                  <MultiSelectChips
+                    value={chapterNumber}
+                    onChange={setChapterNumber}
+                    options={chapterNumbers}
+                    placeholder="Select chapter(s)…"
+                    isInvalid={invalid.chapterNumber}
+                  />
+                </Field>
+
+                <Field label="Hours Spent *">
+                  <Select
+                    value={hoursSpent}
+                    onChange={setHoursSpent}
+                    options={["", ...HOURS]}
+                    labels={{ "": "— Select —" }}
+                    isInvalid={invalid.hoursSpent}
+                  />
+                </Field>
+
+                <Field label="No. of Units *">
+                  <div className="flex gap-2 items-start">
+                    <input
+                      type="number"
+                      className={`flex-1 h-9 text-sm px-3 rounded-2xl border-2 ${invalid.unitsCount ? "border-red-500" : "border-slate-300"
+                        } focus:border-indigo-600`}
+                      placeholder="e.g., 10"
+                      value={unitsCount}
+                      onChange={(e) => setUnitsCount(e.target.value)}
+                    />
+                    <div className="w-28">
+                      <Select
+                        value={unitsType}
+                        onChange={setUnitsType}
+                        options={UNITS.map((u) => u.value)}
+                        labels={UNITS.reduce((m, u) => {
+                          m[u.value] = u.label;
+                          return m;
+                        }, {})}
+                        isInvalid={invalid.unitsType}
+                      />
+                    </div>
+                  </div>
+                </Field>
+
+                <Field label="Status *">
+                  <Select
+                    value={status}
+                    onChange={setStatus}
+                    options={["", ...STATUS]}
+                    labels={{ "": "— Select —" }}
+                    isInvalid={invalid.status}
+                  />
+                </Field>
+
+                <Field label="Due On">
+                  <input
+                    type="date"
+                    className="w-full h-9 text-sm px-3 rounded-2xl border-2 border-slate-300 focus:border-indigo-600"
+                    value={dueOn}
+                    onChange={(e) => setDueOn(e.target.value)}
+                  />
+                  {dueOn && <div className="mt-1 text-xs text-slate-600">Due: {new Date(dueOn).toLocaleDateString()}</div>}
+                </Field>
+
+                <Field label="Details">
+                  <textarea
+                    className="w-full min-h-[140px] text-sm px-3 py-2 rounded-2xl border-2 border-slate-300 focus:border-indigo-600"
+                    value={remarks}
+                    onChange={(e) => setRemarks(e.target.value)}
+                    placeholder="Add any additional notes..."
+                  />
+                </Field>
+              </div>
+
+              <div className="mt-4 flex flex-col sm:flex-row items-center justify-end gap-3">
+                <button
+                  type="button"
+                  onClick={clearForm}
+                  className="w-full sm:w-auto px-4 py-1.5 rounded-2xl border-2 border-slate-300 hover:bg-slate-50 transition-colors"
+                >
+                  Clear
+                </button>
+
+                {resubmitTarget && (
+                  <button
+                    type="button"
+                    onClick={onClickResubmit}
+                    className="w-full sm:w-auto px-5 py-1.5 rounded-2xl text-white bg-amber-600 hover:bg-amber-700 transition-colors"
+                    title="Send this corrected entry back to SPOC for Re-Approval/Re-Rejection"
+                    disabled={!canSubmitRow || !projectValid}
+                  >
+                    Resubmit Entry {resubmitCountdown ? `(${resubmitCountdown})` : ""}
+                  </button>
+                )}
+
+                <button
+                  type="submit"
+                  disabled={!canSubmitRow || !projectValid || !!resubmitTarget}
+                  className={`w-full sm:w-auto px-5 py-1.5 rounded-2xl text-white transition-colors ${canSubmitRow && projectValid && !resubmitTarget
+                    ? "bg-indigo-700 hover:bg-indigo-800"
+                    : "bg-slate-400 cursor-not-allowed"
+                    }`}
+                >
+                  {editSourceIndex !== -1 ? "Update Entry" : "Add to Today's Worklog"}
+                </button>
+              </div>
+            </form>
+
+            {/* Today's Worklog */}
+            <section className="mt-8 space-y-6">
+              {loadingToday ? (
+                <Feedback message="Loading today's worklog..." />
+              ) : todayRows.length > 0 ? (
+                <>
+                  <EditableBlock
+                    title="Today's Worklog"
+                    rows={todayRows}
+                    onCopyRow={copyRowToForm}
+                    onStartEdit={startEditViaForm}
+                    onDeleteRow={deleteRowAt}
+                    lists={{ WORK_MODES, TASKS, STATUS, HOURS, UNITS }}
+                    getAdminActionBadge={getAdminActionBadge}
+                    getAdminActionRowClass={getAdminActionRowClass}
+                  />
+                  <div className="text-xs text-slate-600 text-center bg-blue-50 border border-blue-200 rounded-2xl px-3 py-2">
+                    Your entries are saved in database and will auto-submit at 10:30 PM (in {autoSubmitCountdown})
+                  </div>
+                </>
+              ) : (
+                <Feedback message={submitMsg || "No entries for today yet."} />
+              )}
+
+              <div className="flex items-center justify-center">
+                <button
+                  onClick={submitTodaysWorklog}
+                  disabled={submitting || todayRows.length === 0}
+                  className="px-5 py-1.5 rounded-2xl text-white bg-emerald-700 disabled:opacity-60 hover:bg-emerald-800 transition-colors"
+                >
+                  {submitting ? "Submitting…" : "Submit Today's Worklog"}
+                </button>
+              </div>
+
+              {submitMsg && <Feedback message={submitMsg} />}
+              {pastError && <Feedback message={pastError} />}
+              {loadingPast && <Feedback message="Loading past 7 days worklog..." />}
+              {!pastError && !loadingPast && pastRows.length === 0 && <Feedback message="No entries in the last 7 days." />}
+
+              {pastRows.some(r => r.auditStatus === "Rejected" && withinDplus4(r.date)) && (
+                <div className="rounded-2xl border border-amber-200 bg-amber-50 p-3">
+                  <div className="text-sm font-semibold text-amber-900 mb-2">Rejected entries you can still edit</div>
+                  <div className="space-y-2">
+                    {pastRows
+                      .filter(r => r.auditStatus === "Rejected" && withinDplus4(r.date))
+                      .map((r) => (
+                        <div key={r.id} className="flex items-center justify-between bg-white rounded-xl border border-amber-200 px-3 py-2 text-xs">
+                          <div className="flex-1">
+                            <div className="font-medium text-slate-900">{r.projectId || r.projectName}</div>
+                            <div className="text-slate-600">
+                              {r.date} · {r.task} · {r.bookElement} · Ch {r.chapterNo || "-"}
+                              {getAdminActionBadge(r)}
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-3">
+                            <span className="text-amber-700">{countdownToDplus4(r.date)}</span>
+                            <button
+                              className="px-3 py-1 rounded-lg bg-indigo-600 text-white hover:bg-indigo-700"
+                              onClick={() => {
+                                setWorkMode(r.workMode || "");
+                                setProjectId(r.projectId || "");
+                                setProjectQuery(r.projectId || r.projectName || "");
+                                setProjectName(r.projectName || "");
+                                setTask(r.task || "");
+                                setBookElement(r.bookElement || "");
+                                setChapterNumber(
+                                  typeof r.chapterNo === "string"
+                                    ? r.chapterNo.split(",").map((c) => c.trim()).filter(Boolean)
+                                    : Array.isArray(r.chapterNo) ? r.chapterNo : []
+                                );
+                                setHoursSpent(r.hoursSpent !== undefined && r.hoursSpent !== null ? String(r.hoursSpent) : "");
+                                setUnitsCount(r.noOfUnits !== undefined && r.noOfUnits !== null ? String(r.noOfUnits) : "");
+                                setUnitsType(r.unitsType || "pages");
+                                setStatus(r.status || "");
+                                setDueOn(r.dueOn || "");
+                                setRemarks(r.remarks || "");
+                                setEditSourceIndex(-1);
+                                setResubmitTarget({ id: r.id, date: r.date, originalRow: r });
+                                window.scrollTo({ top: 0, behavior: "smooth" });
+                              }}
+                            >
+                              Edit & Resubmit
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                  </div>
+                </div>
+              )}
+
+              {pastRows.length > 0 && (
+                <DataBlock
+                  title={`Past 7 Days Worklog (${pastRows.length} entries)`}
+                  rows={pastRows}
+                  subtle
+                  hideEdit
                   getAdminActionBadge={getAdminActionBadge}
                   getAdminActionRowClass={getAdminActionRowClass}
                 />
-                <div className="text-xs text-slate-600 text-center bg-blue-50 border border-blue-200 rounded-2xl px-3 py-2">
-                  Your entries are saved in database and will auto-submit at 10:30 PM (in {autoSubmitCountdown})
-                </div>
-              </>
-            ) : (
-              <Feedback message={submitMsg || "No entries for today yet."} />
-            )}
-
-            <div className="flex items-center justify-center">
-              <button
-                onClick={submitTodaysWorklog}
-                disabled={submitting || todayRows.length === 0}
-                className="px-5 py-1.5 rounded-2xl text-white bg-emerald-700 disabled:opacity-60 hover:bg-emerald-800 transition-colors"
-              >
-                {submitting ? "Submitting…" : "Submit Today's Worklog"}
-              </button>
-            </div>
-
-            {submitMsg && <Feedback message={submitMsg} />}
-            {pastError && <Feedback message={pastError} />}
-            {loadingPast && <Feedback message="Loading past 7 days worklog..." />}
-            {!pastError && !loadingPast && pastRows.length === 0 && <Feedback message="No entries in the last 7 days." />}
-
-            {/* 🔔 Rejected panel — placed ABOVE the Past 7 Days table as requested */}
-            {pastRows.some(r => r.auditStatus === "Rejected" && withinDplus4(r.date)) && (
-              <div className="rounded-2xl border border-amber-200 bg-amber-50 p-3">
-                <div className="text-sm font-semibold text-amber-900 mb-2">Rejected entries you can still edit</div>
-                <div className="space-y-2">
-                  // In the Rejected panel section, update the entry display:
-                  {pastRows
-                    .filter(r => r.auditStatus === "Rejected" && withinDplus4(r.date))
-                    .map((r) => (
-                      <div key={r.id} className="flex items-center justify-between bg-white rounded-xl border border-amber-200 px-3 py-2 text-xs">
-                        <div className="flex-1">
-                          <div className="font-medium text-slate-900">{r.projectId || r.projectName}</div>
-                          <div className="text-slate-600">
-                            {r.date} · {r.task} · {r.bookElement} · Ch {r.chapterNo || "-"}
-                            {getAdminActionBadge(r)}
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-3">
-                          <span className="text-amber-700">{countdownToDplus4(r.date)}</span>
-                          <button
-                            className="px-3 py-1 rounded-lg bg-indigo-600 text-white hover:bg-indigo-700"
-                            onClick={() => {
-                              // Prefill the top form for resubmission
-                              setWorkMode(r.workMode || "");
-                              setProjectId(r.projectId || "");
-                              setProjectQuery(r.projectId || r.projectName || "");
-                              setProjectName(r.projectName || "");
-                              setTask(r.task || "");
-                              setBookElement(r.bookElement || "");
-                              setChapterNumber(
-                                typeof r.chapterNo === "string"
-                                  ? r.chapterNo.split(",").map((c) => c.trim()).filter(Boolean)
-                                  : Array.isArray(r.chapterNo) ? r.chapterNo : []
-                              );
-                              setHoursSpent(r.hoursSpent !== undefined && r.hoursSpent !== null ? String(r.hoursSpent) : "");
-                              setUnitsCount(r.noOfUnits !== undefined && r.noOfUnits !== null ? String(r.noOfUnits) : "");
-                              setUnitsType(r.unitsType || "pages");
-                              setStatus(r.status || "");
-                              setDueOn(r.dueOn || "");
-                              setRemarks(r.remarks || "");
-                              setEditSourceIndex(-1);
-                              setResubmitTarget({ id: r.id, date: r.date, originalRow: r });
-                              window.scrollTo({ top: 0, behavior: "smooth" });
-                            }}
-                          >
-                            Edit & Resubmit
-                          </button>
-                        </div>
-                      </div>
-                    ))}
-                </div>
-              </div>
-            )}
-
-            {/* Past worklogs */}
-            {pastRows.length > 0 && (
-              <DataBlock
-                title={`Past 7 Days Worklog (${pastRows.length} entries)`}
-                rows={pastRows}
-                subtle
-                hideEdit
-                getAdminActionBadge={getAdminActionBadge}
-                getAdminActionRowClass={getAdminActionRowClass}
-              />
-            )}
-          </section>
-        </div>
-      </main>
+              )}
+            </section>
+          </div>
+        </main>
+      </div>
     </div>
   );
 }
 
-/* ==============================
-   UI Helpers
-   ============================== */
 function Field({ label, children }) {
   return (
     <label className="block">
@@ -3236,10 +3306,7 @@ function MultiSelectChips({ value = [], onChange, options = [], placeholder = "S
   );
 }
 
-/* ==============================
-   Tables & Blocks
-   ============================== */
-function DataBlock({ title, rows, subtle = false, hideEdit = false, onStartEdit }) {
+function DataBlock({ title, rows, subtle = false, hideEdit = false, onStartEdit, getAdminActionBadge, getAdminActionRowClass }) {
   return (
     <div className={`rounded-2xl border ${subtle ? "border-slate-200 bg-white" : "border-slate-300 bg-slate-50"} shadow-sm`}>
       <div className="px-3 py-2 border-b border-slate-200 flex items-center justify-between">
@@ -3307,9 +3374,7 @@ function DataBlock({ title, rows, subtle = false, hideEdit = false, onStartEdit 
   );
 }
 
-function EditableBlock({ title, rows, onStartEdit, onDeleteRow, onCopyRow, lists }) {
-  const { } = lists;
-
+function EditableBlock({ title, rows, onStartEdit, onDeleteRow, onCopyRow, lists, getAdminActionBadge, getAdminActionRowClass }) {
   return (
     <div className="rounded-2xl border border-slate-300 bg-slate-50 shadow-sm">
       <div className="px-3 py-2 border-b border-slate-200 flex items-center justify-between">
@@ -3400,9 +3465,6 @@ function Feedback({ message }) {
   return <div className={`rounded-2xl border px-3 py-2 text-xs ${bgColor}`}>{message}</div>;
 }
 
-/* ==============================
-   Data
-   ============================== */
 const TODAY_HEADERS = [
   "Work Mode",
   "Project Name",
@@ -3433,9 +3495,6 @@ const PAST_HEADERS = [
   "Audit Status",
 ];
 
-/* ==============================
-   Rejection window helpers
-   ============================== */
 function withinDplus4(dateStr) {
   if (!dateStr) return false;
   const D = new Date(`${dateStr}T00:00:00.000Z`);
