@@ -312,7 +312,7 @@ const submitEntryRequest = async (req, res) => {
         status: status,
         due_on: dueOn ? new Date(dueOn) : null,
         details: remarks || null,
-        audit_status: "Pending",
+        audit_status: "Approved",
         name: userName,
         team: userTeam,
         created_at: new Date(),

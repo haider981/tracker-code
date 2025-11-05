@@ -19,6 +19,10 @@ const abbreviationsRoutes = require('./routes/abbreviationsRoutes');
 const adminAddAbbreviationRoutes = require('./routes/adminAddAbbreviationRoutes');
 const teamWiseDropdownRoutes = require('./routes/teamWiseDropdownRoutes');
 const addEntryRequestRoutes = require('./routes/addEntryRequestRoutes');
+const addEntryRequestSpocRoutes = require('./routes/addEntryRequestSpocRoutes');
+const spocApproveMissingRequestRoutes = require('./routes/spocApproveMissingRequestRoutes');
+const adminPushMissingRequestRoutes = require('./routes/adminPushMissingRequestRoutes');
+const adminAddUnitTypeRoutes = require('./routes/adminAddUnitTypeRoutes');
 
 const { initializeScheduledJobs, stopAllScheduledJobs } = require('./services/schedulerService');
 
@@ -47,6 +51,10 @@ app.use('/api/admin/abbreviations', abbreviationsRoutes);
 app.use('/api/abbreviations', adminAddAbbreviationRoutes);
 app.use('/api/teamwise-dropdowns', teamWiseDropdownRoutes);
 app.use('/api/entry-requests', addEntryRequestRoutes);
+app.use('/api/spoc/entry-requests', addEntryRequestSpocRoutes);
+app.use('/api/spoc/request', spocApproveMissingRequestRoutes);
+app.use('/api/admin/request', adminPushMissingRequestRoutes);
+app.use('/api/admin/unit', adminAddUnitTypeRoutes);
 
 
 const scheduledJobs = initializeScheduledJobs();

@@ -56,6 +56,10 @@ model MasterDatabase {
   edited_by_admin    Boolean   @default(false) 
   admin_action_by    String?   // admin's name/email
   admin_action_date  DateTime?
+  is_entry_request   Boolean   @default(false)
+
+  created_at         DateTime
+  submitted_at       DateTime  @default(now())
 
   @@map("MasterDatabase")
   
@@ -90,6 +94,7 @@ model TodaysWorklog {
   status          String?
   due_on          DateTime? 
   details         String?  
+  audit_status    String?
   name            String
   team            String   
   created_at      DateTime  @default(now())
@@ -129,4 +134,15 @@ model TeamWiseDropdowns {
   team         String
 
   @@map("TeamWiseDropdowns")
+}
+
+model UnitType {
+  id           Int      @id @default(autoincrement())
+  book_element String
+  task_name         String
+  unit_type    String?
+  created_at   DateTime @default(now())
+  created_by   String
+
+  @@map("UnitType")
 }
