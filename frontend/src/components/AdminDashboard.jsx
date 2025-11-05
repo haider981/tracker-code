@@ -256,6 +256,12 @@ function SidebarLinks({ navigate, location, close }) {
         >
           Home
         </button>
+        <button
+          className={`text-left hover:bg-gray-700 p-3 rounded-lg transition-colors ${location.pathname === "add-unit-type" ? "bg-gray-700" : ""}`}
+          onClick={() => handleNavigation("/admin/add-unit-type")}
+        >
+          Add Unit Type
+        </button>
 
         {/* Worklogs */}
         <div>
@@ -292,6 +298,13 @@ function SidebarLinks({ navigate, location, close }) {
           onClick={() => handleNavigation("/admin/handle-employees")}
         >
           Manage Employees
+        </button>
+          <button
+          className={`text-left hover:bg-gray-700 p-3 rounded-lg transition-colors ${location.pathname.includes("push-missing-request") ? "bg-gray-700" : ""
+            }`}
+          onClick={() => { navigate("/admin/push-missing-request"); close(); }}
+        >
+          Push Missing Requests
         </button>
            {/* Teams */}
          <button

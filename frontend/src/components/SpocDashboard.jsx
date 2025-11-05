@@ -5891,11 +5891,20 @@ function SidebarLinks({ navigate, location, close }) {
                 }`}
                 onClick={() => handleNavigation("/spoc/missing-entry-status", true)}
               >
-                View Request Status
+                Approve Missing Entry
               </button>
             </div>
           )}
         </div>
+        {/* Add Project */}
+        <button
+          className={`text-left hover:bg-gray-700 p-3 rounded-lg transition-colors ${
+            location.pathname.includes("/spoc/add-project") ? "bg-gray-700" : ""
+          }`}
+          onClick={() => handleNavigation("/spoc/add-project")}
+        >
+          Add Project
+        </button>
 
         {/* Mark Extra Shift */}
         <button
@@ -5907,16 +5916,6 @@ function SidebarLinks({ navigate, location, close }) {
           onClick={() => handleNavigation("/spoc/mark-night-shift")}
         >
           Mark Extra Shift
-        </button>
-
-        {/* Add Project */}
-        <button
-          className={`text-left hover:bg-gray-700 p-3 rounded-lg transition-colors ${
-            location.pathname.includes("/spoc/add-project") ? "bg-gray-700" : ""
-          }`}
-          onClick={() => handleNavigation("/spoc/add-project")}
-        >
-          Add Project
         </button>
       </nav>
     </div>

@@ -1688,7 +1688,6 @@ const TEAM_COLORS = {
   CSMA_Science: "bg-violet-100 border-violet-300 text-violet-800",
   CSMA_Intern: "bg-fuchsia-100 border-fuchsia-300 text-fuchsia-800",
   Animation_Maths: "bg-rose-100 border-rose-300 text-rose-800",
-  InternScience: "bg-sky-100 border-sky-300 text-sky-800",
   "University&_Titles": "bg-stone-100 border-stone-300 text-stone-800",
 };
 
@@ -3288,6 +3287,13 @@ function SidebarLinks({ navigate, location, close }) {
           onClick={() => handleNavigation("/admin/handle-employees")}
         >
           Manage Employees
+        </button>
+          <button
+          className={`text-left hover:bg-gray-700 p-3 rounded-lg transition-colors ${location.pathname.includes("push-missing-request") ? "bg-gray-700" : ""
+            }`}
+          onClick={() => { navigate("/admin/push-missing-request"); close(); }}
+        >
+          Push Missing Requests
         </button>
         {/* Teams */}
          <button

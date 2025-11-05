@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from "react";
 import { jwtDecode } from "jwt-decode";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 
 export default function MarkNightShift() {
     const navigate = useNavigate();
+    const location = useLocation();
     const [user, setUser] = useState(null);
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -527,106 +528,35 @@ export default function MarkNightShift() {
 
             {/* Layout */}
             <div className="pt-16 flex w-full">
-                {/* Mobile sidebar */}
+                {/* Mobile Sidebar Overlay and Sidebar */}
                 {sidebarOpen && (
                     <div className="fixed inset-0 z-40 lg:hidden">
-                        <div
-                            className="fixed inset-0 bg-black bg-opacity-50"
-                            onClick={() => setSidebarOpen(false)}
-                        />
+                        <div className="fixed inset-0 bg-black bg-opacity-50" onClick={() => setSidebarOpen(false)} />
                         <aside className="fixed top-16 left-0 h-[calc(100vh-4rem)] w-80 bg-gray-800 text-white shadow-xl overflow-y-auto">
-                            <div className="p-6">
-                                <h2 className="text-xl font-bold mb-8">Menu</h2>
-                                <nav className="flex flex-col space-y-4">
-                                    <button
-                                        className="hover:bg-gray-700 p-3 rounded-lg text-left"
-                                        onClick={() => {
-                                            navigate("/spoc-dashboard");
-                                            setSidebarOpen(false);
-                                        }}
-                                    >
-                                        Home
-                                    </button>
-                                    <button
-                                        className="hover:bg-gray-700 p-3 rounded-lg text-left"
-                                        onClick={() => {
-                                            navigate("/spoc/approve-worklogs");
-                                            setSidebarOpen(false);
-                                        }}
-                                    >
-                                        Approve Worklogs
-                                    </button>
-                                    <button
-                                        className="hover:bg-gray-700 p-3 rounded-lg text-left"
-                                        onClick={() => {
-                                            navigate("/spoc/add-project");
-                                            setSidebarOpen(false);
-                                        }}
-                                    >
-                                        Add Project
-                                    </button>
-                                    <button
-                                        className="bg-gray-700 p-3 rounded-lg text-left"
-                                        onClick={() => {
-                                            navigate("/spoc/mark-night-shift");
-                                            setSidebarOpen(false);
-                                        }}
-                                    >
-                                        Mark Extra Shift
-                                    </button>
-                                </nav>
-                            </div>
+                            <SidebarLinks navigate={navigate} location={location} close={() => setSidebarOpen(false)} />
                         </aside>
                     </div>
                 )}
 
-                {/* Desktop sidebar */}
+                {/* Desktop Sidebar - Hidden on mobile, visible on lg+ */}
                 <aside className="hidden lg:block fixed top-16 left-0 h-[calc(100vh-4rem)] w-72 bg-gray-800 text-white shadow-xl overflow-y-auto">
-                    <div className="p-6">
-                        <h2 className="text-xl font-bold mb-8">Menu</h2>
-                        <nav className="flex flex-col space-y-4">
-                            <button
-                                className="hover:bg-gray-700 p-3 rounded-lg text-left"
-                                onClick={() => navigate("/spoc-dashboard")}
-                            >
-                                Home
-                            </button>
-                            <button
-                                className="hover:bg-gray-700 p-3 rounded-lg text-left"
-                                onClick={() => navigate("/spoc/approve-worklogs")}
-                            >
-                                Approve Worklogs
-                            </button>
-                            <button
-                                className="hover:bg-gray-700 p-3 rounded-lg text-left"
-                                onClick={() => navigate("/spoc/add-project")}
-                            >
-                                Add Project
-                            </button>
-                            <button
-                                className="bg-gray-700 p-3 rounded-lg text-left"
-                                onClick={() => navigate("/spoc/mark-night-shift")}
-                            >
-                                Mark Extra Shift
-                            </button>
-                        </nav>
-                    </div>
+                    <SidebarLinks navigate={navigate} location={location} />
                 </aside>
 
                 {/* Main Content */}
-                <main className="flex-1 lg:ml-72 overflow-y-auto">
-                    <div className="p-4 sm:p-6">
+                <main className="flex-1 lg:ml-72 overflow-y-auto w-full min-w-0">
+                    <div className="p-4 sm:p-6 w-full">
                         {/* Error Display */}
                         {error && (
-                            <div className="mb-6 p-4 bg-red-100 border border-red-400 text-red-700 rounded-lg">
+                            <div className="mb-6 p-4 bg-red-100 border border-red-400 text-red-700 rounded-lg w-full">
                                 {error}
                             </div>
                         )}
 
                         {/* Main Content Layout */}
-                        <div className="space-y-6">
+                        <div className="space-y-6 w-full">
                             {/* TOP SECTION - Employee Selection */}
-                            <div className="bg-white rounded-lg shadow p-4 lg:p-6">
+                            <div className="bg-white rounded-lg shadow p-4 lg:p-6 w-full">
                                 <h2 className="text-xl font-semibold mb-4 text-gray-800">Mark New Shifts</h2>
 
                                 {/* Loading state for employees */}
@@ -645,7 +575,7 @@ export default function MarkNightShift() {
                                 ) : (
                                     <>
                                         {/* Desktop Table View */}
-                                        <div className="hidden sm:block overflow-x-auto">
+                                        <div className="hidden sm:block overflow-x-auto w-full">
                                             <table className="w-full text-left border-collapse">
                                                 <thead>
                                                     <tr>
@@ -953,3 +883,113 @@ export default function MarkNightShift() {
         </div>
     );
 }
+/* Sidebar Links Component for SPOC Dashboard */
+function SidebarLinks({ navigate, location, close }) {
+    const [openMissingEntry, setOpenMissingEntry] = useState(false);
+
+    // Keep sections open if child page active
+    useEffect(() => {
+        if (location.pathname.includes("missing-entry")) {
+            setOpenMissingEntry(true);
+        }
+    }, [location]);
+
+    const handleNavigation = (path, isChildOfMissingEntry = false) => {
+        navigate(path);
+
+        // Only close the dropdown if navigating away from missing entry section
+        if (!isChildOfMissingEntry && !path.includes("missing-entry")) {
+            setOpenMissingEntry(false);
+        }
+
+        if (close) close();
+    };
+
+    const toggleMissingEntry = () => {
+        setOpenMissingEntry(!openMissingEntry);
+    };
+
+    // Check if we're on home page and NOT on any missing entry page
+    const isHomePage = location.pathname === "/spoc-dashboard";
+    const isMissingEntryPage = location.pathname.includes("missing-entry");
+
+    return (
+        <div className="p-6">
+            <h2 className="text-xl font-bold text-white mb-6">Menu</h2>
+            <nav className="flex flex-col space-y-2">
+                {/* Home */}
+                <button
+                    className={`text-left hover:bg-gray-700 p-3 rounded-lg transition-colors ${isHomePage && !isMissingEntryPage ? "bg-gray-700" : ""
+                        }`}
+                    onClick={() => handleNavigation("/spoc-dashboard")}
+                >
+                    Home
+                </button>
+
+                {/* Approve Worklogs */}
+                <button
+                    className={`text-left hover:bg-gray-700 p-3 rounded-lg transition-colors ${location.pathname.includes("approve-worklogs") ? "bg-gray-700" : ""
+                        }`}
+                    onClick={() => handleNavigation("/spoc/approve-worklogs")}
+                >
+                    Approve Worklogs
+                </button>
+
+                {/* Missing Entry - COLLAPSIBLE SECTION */}
+                <div>
+                    <button
+                        className={`w-full flex justify-between items-center hover:bg-gray-700 p-3 rounded-lg transition-colors ${isMissingEntryPage && !location.pathname.includes("missing-entry-request") && !location.pathname.includes("missing-entry-status")
+                            ? "bg-gray-700"
+                            : ""
+                            }`}
+                        onClick={toggleMissingEntry}
+                    >
+                        <span>Missing Entry</span>
+                        <span className="transition-transform duration-200">
+                            {openMissingEntry ? "▾" : "▸"}
+                        </span>
+                    </button>
+                    {openMissingEntry && (
+                        <div className="ml-4 mt-2 flex flex-col space-y-2 animate-fadeIn">
+                            <button
+                                className={`text-left hover:bg-gray-700 p-2 rounded-lg transition-colors ${location.pathname.includes("missing-entry-request") ? "bg-gray-700" : ""
+                                    }`}
+                                onClick={() => handleNavigation("/spoc/missing-entry-request", true)}
+                            >
+                                Request Missing Entry
+                            </button>
+                            <button
+                                className={`text-left hover:bg-gray-700 p-2 rounded-lg transition-colors ${location.pathname.includes("missing-entry-status") ? "bg-gray-700" : ""
+                                    }`}
+                                onClick={() => handleNavigation("/spoc/missing-entry-status", true)}
+                            >
+                                View Request Status
+                            </button>
+                        </div>
+                    )}
+                </div>
+
+                {/* Add Project */}
+                <button
+                    className={`text-left hover:bg-gray-700 p-3 rounded-lg transition-colors ${location.pathname.includes("/spoc/add-project") ? "bg-gray-700" : ""
+                        }`}
+                    onClick={() => handleNavigation("/spoc/add-project")}
+                >
+                    Add Project
+                </button>
+
+                {/* Mark Extra Shift */}
+                <button
+                    className={`text-left hover:bg-gray-700 p-3 rounded-lg transition-colors ${location.pathname.includes("mark-night-shift") || location.pathname.includes("mark-extra-shift")
+                        ? "bg-gray-700"
+                        : ""
+                        }`}
+                    onClick={() => handleNavigation("/spoc/mark-night-shift")}
+                >
+                    Mark Extra Shift
+                </button>
+            </nav>
+        </div>
+    );
+}
+

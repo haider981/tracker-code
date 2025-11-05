@@ -758,6 +758,13 @@ function SidebarLinks({ navigate, location, close }) {
         >
           Manage Employees
         </button>
+         <button
+          className={`text-left hover:bg-gray-700 p-3 rounded-lg transition-colors ${location.pathname.includes("push-missing-request") ? "bg-gray-700" : ""
+            }`}
+          onClick={() => handleNavigation("/admin/push-missing-request")}
+        >
+          Push Missing Requests
+        </button>
           {/* Teams */}
          <button
           className={`text-left hover:bg-gray-700 p-3 rounded-lg transition-colors ${location.pathname.includes("handle-employees") ? "bg-gray-700" : ""}`}

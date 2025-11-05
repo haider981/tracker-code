@@ -50,9 +50,6 @@ import SpocAddProject from "./components/SpocAddProject";
 import SpocApproveWorklogs from "./components/SpocApproveWorklogs";
 import MarkNightShift from "./components/MarkNightShift";
 
-import AddEntryRequestSpoc from "./components/AddEntryRequestSpoc";
-import SpocViewRequests from "./components/SpocViewRequests";
-
 import AdminDashboard from "./components/AdminDashboard";
 import AdminAddProject from "./components/AdminAddProject";
 import AdminAddAbbreviations from "./components/AdminAddAbbreviations";
@@ -62,8 +59,12 @@ import AdminApproveWorklogs from "./components/AdminApproveWorklogs";
 import AdminEditWorklogEntries from "./components/AdminEditWorklogEntries";
 import ProtectedRoute from "./components/ProtectedRoute";
 import TeamWiseDropdowns from "./components/TeamWiseDropdowns";
-import AddEntryRequestEmp from "./components/AddEntryRequestEmp";
 
+import AddEntryRequestEmp from "./components/AddEntryRequestEmp";
+import AddEntryRequestSpoc from "./components/AddEntryRequestSpoc";
+import SpocViewRequests from "./components/SpocViewRequests";
+import AdminPushMissingRequest from "./components/AdminPushMissingRequest";
+import AdminAddUnitType from "./components/AdminAddUnitType";
 
 
 export default function App() {
@@ -125,7 +126,7 @@ export default function App() {
           }
         />
         <Route
-          path="/spoc/add-entry-requests"
+          path="/spoc/missing-entry-request"
           element={
             <ProtectedRoute allowedRoles={["spoc"]}>
               <AddEntryRequestSpoc />
@@ -133,7 +134,7 @@ export default function App() {
           }
         />
         <Route
-          path="/spoc/view-requests"
+          path="/spoc/missing-entry-status"
           element={
             <ProtectedRoute allowedRoles={["spoc"]}>
               <SpocViewRequests />
@@ -195,6 +196,22 @@ export default function App() {
           element={
             <ProtectedRoute allowedRoles={["admin"]}>
               <AdminEditWorklogEntries />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/push-missing-request"
+          element={
+            <ProtectedRoute allowedRoles={["admin"]}>
+              <AdminPushMissingRequest />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/add-unit-type"
+          element={
+            <ProtectedRoute allowedRoles={["admin"]}>
+              <AdminAddUnitType />
             </ProtectedRoute>
           }
         />

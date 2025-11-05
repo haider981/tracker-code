@@ -1602,11 +1602,10 @@ export default function AdminHandleEmployees() {
 function MessageAlert({ message, type, onClose }) {
   return (
     <div
-      className={`rounded-lg p-4 flex items-center justify-between ${
-        type === "success"
+      className={`rounded-lg p-4 flex items-center justify-between ${type === "success"
           ? "bg-green-50 border border-green-200"
           : "bg-red-50 border border-red-200"
-      }`}
+        }`}
     >
       <div className="flex items-start">
         {type === "success" ? (
@@ -1616,9 +1615,8 @@ function MessageAlert({ message, type, onClose }) {
         )}
         <div>
           <p
-            className={`text-sm font-medium ${
-              type === "success" ? "text-green-800" : "text-red-800"
-            }`}
+            className={`text-sm font-medium ${type === "success" ? "text-green-800" : "text-red-800"
+              }`}
           >
             {message}
           </p>
@@ -1631,11 +1629,10 @@ function MessageAlert({ message, type, onClose }) {
       </div>
       <button
         onClick={onClose}
-        className={`ml-4 ${
-          type === "success"
+        className={`ml-4 ${type === "success"
             ? "text-green-600 hover:text-green-800"
             : "text-red-600 hover:text-red-800"
-        } flex-shrink-0`}
+          } flex-shrink-0`}
       >
         <XIcon className="w-4 h-4" />
       </button>
@@ -1912,13 +1909,12 @@ function EmployeesTable({
                   <Td>{emp.sub_team || "N/A"}</Td>
                   <Td>
                     <span
-                      className={`px-2 py-1 rounded-full text-xs font-medium ${
-                        emp.role === "ADMIN"
+                      className={`px-2 py-1 rounded-full text-xs font-medium ${emp.role === "ADMIN"
                           ? "bg-red-100 text-red-800"
                           : emp.role === "Spoc"
-                          ? "bg-yellow-100 text-yellow-800"
-                          : "bg-green-100 text-green-800"
-                      }`}
+                            ? "bg-yellow-100 text-yellow-800"
+                            : "bg-green-100 text-green-800"
+                        }`}
                     >
                       {emp.role || "Employee"}
                     </span>
@@ -1980,13 +1976,12 @@ function EmployeesTable({
               <p className="text-sm">
                 <span className="font-medium">Role:</span>
                 <span
-                  className={`ml-2 px-2 py-1 rounded-full text-xs font-medium ${
-                    emp.role === "ADMIN"
+                  className={`ml-2 px-2 py-1 rounded-full text-xs font-medium ${emp.role === "ADMIN"
                       ? "bg-red-100 text-red-800"
                       : emp.role === "Spoc"
-                      ? "bg-yellow-100 text-yellow-800"
-                      : "bg-green-100 text-green-800"
-                  }`}
+                        ? "bg-yellow-100 text-yellow-800"
+                        : "bg-green-100 text-green-800"
+                    }`}
                 >
                   {emp.role || "Employee"}
                 </span>
@@ -2286,9 +2281,8 @@ function SidebarLinks({ navigate, location, close }) {
       <h2 className="text-xl font-bold text-white mb-6">Menu</h2>
       <nav className="flex flex-col space-y-2">
         <button
-          className={`text-left hover:bg-gray-700 p-3 rounded-lg transition-colors ${
-            location.pathname === "/admin-dashboard" ? "bg-gray-700" : ""
-          }`}
+          className={`text-left hover:bg-gray-700 p-3 rounded-lg transition-colors ${location.pathname === "/admin-dashboard" ? "bg-gray-700" : ""
+            }`}
           onClick={() => handleNavigation("/admin-dashboard")}
         >
           Home
@@ -2308,21 +2302,19 @@ function SidebarLinks({ navigate, location, close }) {
           {openWorklogs && (
             <div className="ml-4 mt-2 flex flex-col space-y-2 animate-fadeIn">
               <button
-                className={`text-left hover:bg-gray-700 p-2 rounded-lg transition-colors ${
-                  location.pathname.includes("approve-worklogs")
+                className={`text-left hover:bg-gray-700 p-2 rounded-lg transition-colors ${location.pathname.includes("approve-worklogs")
                     ? "bg-gray-700"
                     : ""
-                }`}
+                  }`}
                 onClick={() => handleNavigation("/admin/approve-worklogs")}
               >
                 Approve Worklogs
               </button>
               <button
-                className={`text-left hover:bg-gray-700 p-2 rounded-lg transition-colors ${
-                  location.pathname.includes("edit-worklog-entries")
+                className={`text-left hover:bg-gray-700 p-2 rounded-lg transition-colors ${location.pathname.includes("edit-worklog-entries")
                     ? "bg-gray-700"
                     : ""
-                }`}
+                  }`}
                 onClick={() => handleNavigation("/admin/edit-worklog-entries")}
               >
                 Edit Worklogs
@@ -2333,21 +2325,29 @@ function SidebarLinks({ navigate, location, close }) {
 
         {/* Employees */}
         <button
-          className={`text-left hover:bg-gray-700 p-3 rounded-lg transition-colors ${
-            location.pathname.includes("handle-employees") ? "bg-gray-700" : ""
-          }`}
+          className={`text-left hover:bg-gray-700 p-3 rounded-lg transition-colors ${location.pathname.includes("handle-employees") ? "bg-gray-700" : ""
+            }`}
           onClick={() => handleNavigation("/admin/handle-employees")}
         >
           Manage Employees
         </button>
 
-        {/* Teams */}
         <button
-          className={`text-left hover:bg-gray-700 p-3 rounded-lg transition-colors ${
-            location.pathname.includes("team-wise-dropdowns")
+          className={`text-left hover:bg-gray-700 p-3 rounded-lg transition-colors ${location.pathname.includes("push-missing-request")
               ? "bg-gray-700"
               : ""
-          }`}
+            }`}
+          onClick={() => handleNavigation("/admin/push-missing-request")}
+        >
+          Push Missing Requests
+        </button>
+
+        {/* Teams */}
+        <button
+          className={`text-left hover:bg-gray-700 p-3 rounded-lg transition-colors ${location.pathname.includes("team-wise-dropdowns")
+              ? "bg-gray-700"
+              : ""
+            }`}
           onClick={() => handleNavigation("/admin/team-wise-dropdowns")}
         >
           Team-wise Dropdowns
@@ -2367,29 +2367,26 @@ function SidebarLinks({ navigate, location, close }) {
           {openProjects && (
             <div className="ml-4 mt-2 flex flex-col space-y-2 animate-fadeIn">
               <button
-                className={`text-left hover:bg-gray-700 p-2 rounded-lg transition-colors ${
-                  location.pathname.includes("add-abbreviations")
+                className={`text-left hover:bg-gray-700 p-2 rounded-lg transition-colors ${location.pathname.includes("add-abbreviations")
                     ? "bg-gray-700"
                     : ""
-                }`}
+                  }`}
                 onClick={() => handleNavigation("/admin/add-abbreviations")}
               >
                 Add Abbreviations
               </button>
               <button
-                className={`text-left hover:bg-gray-700 p-2 rounded-lg transition-colors ${
-                  location.pathname.includes("add-project") ? "bg-gray-700" : ""
-                }`}
+                className={`text-left hover:bg-gray-700 p-2 rounded-lg transition-colors ${location.pathname.includes("add-project") ? "bg-gray-700" : ""
+                  }`}
                 onClick={() => handleNavigation("/admin/add-project")}
               >
                 Add Project
               </button>
               <button
-                className={`text-left hover:bg-gray-700 p-2 rounded-lg transition-colors ${
-                  location.pathname.includes("project-requests")
+                className={`text-left hover:bg-gray-700 p-2 rounded-lg transition-colors ${location.pathname.includes("project-requests")
                     ? "bg-gray-700"
                     : ""
-                }`}
+                  }`}
                 onClick={() => handleNavigation("/admin/project-requests")}
               >
                 Project Requests
