@@ -159,7 +159,7 @@
 //     minDate.setDate(today.getDate() - 3);
 //     const maxDate = new Date(today);
 //     maxDate.setDate(today.getDate() - 1);
-    
+
 //     return {
 //       min: minDate.toISOString().slice(0, 10),
 //       max: maxDate.toISOString().slice(0, 10)
@@ -838,12 +838,12 @@
 
 //   const handleNavigation = (path, isChildOfMissingEntry = false) => {
 //     navigate(path);
-    
+
 //     // Only close the dropdown if navigating away from missing entry section
 //     if (!isChildOfMissingEntry && !path.includes("missing-entry")) {
 //       setOpenMissingEntry(false);
 //     }
-    
+
 //     if (close) close();
 //   };
 
@@ -1322,10 +1322,10 @@
 //     if (!checkTokenValidity()) return;
 
 //     setUnitTypeLookupLoading(true);
-   
+
 //     try {
 //       console.log("Fetching unit type for:", { task: selectedTask, bookElement: selectedBookElement });
-     
+
 //       const { data } = await axios.get("/entry-requests/unit-type-lookup", {
 //         params: {
 //           task: selectedTask,
@@ -1375,7 +1375,7 @@
 
 //   useEffect(() => {
 //     if (skipUnitTypeLookup) return;
-   
+
 //     fetchUnitTypeForCombination(task, bookElement);
 //   }, [task, bookElement, fetchUnitTypeForCombination, skipUnitTypeLookup]);
 
@@ -1417,13 +1417,13 @@
 //   const getAvailableDates = () => {
 //     const dates = [];
 //     const today = new Date();
-    
+
 //     for (let i = 1; i <= 3; i++) {
 //       const date = new Date(today);
 //       date.setDate(today.getDate() - i);
 //       dates.push(date.toISOString().slice(0, 10));
 //     }
-    
+
 //     return dates;
 //   };
 
@@ -1435,7 +1435,7 @@
 //     minDate.setDate(today.getDate() - 3);
 //     const maxDate = new Date(today);
 //     maxDate.setDate(today.getDate() - 1);
-    
+
 //     return {
 //       min: minDate.toISOString().slice(0, 10),
 //       max: maxDate.toISOString().slice(0, 10)
@@ -1510,7 +1510,7 @@
 //           requestStatus: r.request_status || "Pending",
 //         }));
 //         setPastRequests(mapped);
-        
+
 //         // Extract recent projects for autocomplete
 //         const projectMap = new Map();
 //         mapped.forEach(row => {
@@ -1630,7 +1630,7 @@
 //   useEffect(() => {
 //     let active = true;
 //     const q = projectQuery.trim();
-   
+
 //     if (!q) {
 //       if (recentProjects.length > 0) {
 //         setSuggestions(recentProjects);
@@ -2039,7 +2039,7 @@
 //                         }}
 //                         onKeyDown={(e) => {
 //                           if (!showSuggest || suggestions.length === 0) return;
-                         
+
 //                           if (e.key === "ArrowDown") {
 //                             e.preventDefault();
 //                             setSelectedSuggestionIndex((prev) =>
@@ -2273,7 +2273,7 @@
 //                     rows={pendingRequests}
 //                     showStatus={false}
 //                   />
-                  
+
 //                   {showInOfficeWarning && (
 //                     <div className="rounded-2xl border border-orange-300 bg-orange-50 px-4 py-3 text-sm text-orange-900 flex items-start">
 //                       <svg className="w-5 h-5 mr-2 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
@@ -2322,12 +2322,12 @@
 
 //   const handleNavigation = (path, isChildOfMissingEntry = false) => {
 //     navigate(path);
-    
+
 //     // Only close the dropdown if navigating away from missing entry section
 //     if (!isChildOfMissingEntry && !path.includes("missing-entry")) {
 //       setOpenMissingEntry(false);
 //     }
-    
+
 //     if (close) close();
 //   };
 
@@ -2472,15 +2472,15 @@
 //   }, []);
 
 //   const deduped = useMemo(() => Array.from(new Set(options.map((o) => String(o)))), [options]);
- 
+
 //   const filtered = useMemo(() => {
 //     const q = query.trim().toLowerCase();
 //     let availableOptions = deduped.filter((o) => !value.includes(o));
-   
+
 //     if (bookElement === "Full book") {
 //       availableOptions = availableOptions.filter(o => isNaN(Number(o)));
 //     }
-   
+
 //     return availableOptions.filter((o) => (q ? o.toLowerCase().includes(q) : true));
 //   }, [deduped, value, query, bookElement]);
 
@@ -2785,7 +2785,7 @@ export default function AddEntryRequestSpoc() {
     setLoadingStats(true);
     try {
       const { data } = await axios.get("/spoc/entry-requests/monthly-stats");
-      
+
       if (data?.success) {
         setMonthlyRequestStats({
           currentMonthDays: data.currentMonthDays || 0,
@@ -2872,10 +2872,10 @@ export default function AddEntryRequestSpoc() {
     if (!checkTokenValidity()) return;
 
     setUnitTypeLookupLoading(true);
-   
+
     try {
       console.log("Fetching unit type for:", { task: selectedTask, bookElement: selectedBookElement });
-     
+
       const { data } = await axios.get("/entry-requests/unit-type-lookup", {
         params: {
           task: selectedTask,
@@ -2925,7 +2925,7 @@ export default function AddEntryRequestSpoc() {
 
   useEffect(() => {
     if (skipUnitTypeLookup) return;
-   
+
     fetchUnitTypeForCombination(task, bookElement);
   }, [task, bookElement, fetchUnitTypeForCombination, skipUnitTypeLookup]);
 
@@ -2967,13 +2967,13 @@ export default function AddEntryRequestSpoc() {
   const getAvailableDates = () => {
     const dates = [];
     const today = new Date();
-    
+
     for (let i = 1; i <= 3; i++) {
       const date = new Date(today);
       date.setDate(today.getDate() - i);
       dates.push(date.toISOString().slice(0, 10));
     }
-    
+
     return dates;
   };
 
@@ -2985,7 +2985,7 @@ export default function AddEntryRequestSpoc() {
     minDate.setDate(today.getDate() - 3);
     const maxDate = new Date(today);
     maxDate.setDate(today.getDate() - 1);
-    
+
     return {
       min: minDate.toISOString().slice(0, 10),
       max: maxDate.toISOString().slice(0, 10)
@@ -3060,7 +3060,7 @@ export default function AddEntryRequestSpoc() {
           requestStatus: r.request_status || "Pending",
         }));
         setPastRequests(mapped);
-        
+
         // Extract recent projects for autocomplete
         const projectMap = new Map();
         mapped.forEach(row => {
@@ -3181,7 +3181,7 @@ export default function AddEntryRequestSpoc() {
   useEffect(() => {
     let active = true;
     const q = projectQuery.trim();
-   
+
     if (!q) {
       if (recentProjects.length > 0) {
         setSuggestions(recentProjects);
@@ -3268,9 +3268,9 @@ export default function AddEntryRequestSpoc() {
     Object.entries(required).map(([k, v]) => [k, isEmpty(v)])
   );
 
-  const canSubmitRequest = Object.values(required).every((v) => !isEmpty(v)) && 
-                          !combinationBlocked && 
-                          !monthlyRequestStats.isLimitReached;
+  const canSubmitRequest = Object.values(required).every((v) => !isEmpty(v)) &&
+    !combinationBlocked &&
+    !monthlyRequestStats.isLimitReached;
 
   const clearForm = () => {
     setEntryDate("");
@@ -3298,7 +3298,7 @@ export default function AddEntryRequestSpoc() {
 
   const onSubmit = async (e) => {
     e.preventDefault();
-    
+
     // Check monthly limit first
     if (monthlyRequestStats.isLimitReached) {
       setSubmitMsg(`You have reached your monthly limit of ${monthlyRequestStats.monthlyLimit} days for missing entry requests. You cannot submit more requests this month.`);
@@ -3380,7 +3380,7 @@ export default function AddEntryRequestSpoc() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-100 text-slate-900 text-sm">
+    <div className="min-h-screen bg-slate-100 text-slate-900 text-sm flex flex-col">
       {/* Navbar */}
       <nav className="fixed top-0 left-0 right-0 z-50 bg-slate-900 text-white shadow-lg">
         <div className="flex justify-between items-center w-full px-4 sm:px-6 h-16">
@@ -3471,7 +3471,7 @@ export default function AddEntryRequestSpoc() {
       </nav>
 
       {/* Layout Container */}
-      <div className="pt-16 flex">
+      <div className="pt-16 flex flex-1">
         {/* Mobile Sidebar */}
         {sidebarOpen && (
           <div className="fixed inset-0 z-40 lg:hidden">
@@ -3488,8 +3488,8 @@ export default function AddEntryRequestSpoc() {
         </aside>
 
         {/* Main Content */}
-        <main className="flex-1 transition-all duration-300 ease-in-out lg:ml-72 overflow-y-auto">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <main className="flex-1 transition-all duration-300 ease-in-out lg:ml-72 overflow-y-auto h-[calc(100vh-4rem)]">
+          <div className="w-full px-4 sm:px-6 lg:px-8 py-8">
             {/* Monthly Limit Banner - Only show when limit reached, replaces the info banner */}
             {monthlyRequestStats.isLimitReached ? (
               <div className="mb-6 rounded-2xl border border-red-300 bg-red-50 p-4">
@@ -3516,11 +3516,10 @@ export default function AddEntryRequestSpoc() {
                     <p className="mb-2">You can submit entries for the past 3 days. Please provide a valid reason for the late submission. Your request will be reviewed by Admin.</p>
                     <div className="flex items-center gap-4 mt-2">
                       <span className="font-medium">Monthly Usage:</span>
-                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                        monthlyRequestStats.currentMonthDays >= monthlyRequestStats.monthlyLimit - 1
+                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${monthlyRequestStats.currentMonthDays >= monthlyRequestStats.monthlyLimit - 1
                           ? 'bg-yellow-100 text-yellow-800'
                           : 'bg-green-100 text-green-800'
-                      }`}>
+                        }`}>
                         {monthlyRequestStats.currentMonthDays} / {monthlyRequestStats.monthlyLimit} days used
                       </span>
                       {loadingStats && (
@@ -3632,7 +3631,7 @@ export default function AddEntryRequestSpoc() {
                         }}
                         onKeyDown={(e) => {
                           if (!showSuggest || suggestions.length === 0) return;
-                         
+
                           if (e.key === "ArrowDown") {
                             e.preventDefault();
                             setSelectedSuggestionIndex((prev) =>
@@ -3676,9 +3675,8 @@ export default function AddEntryRequestSpoc() {
                                 selectProject(s);
                               }}
                               onMouseEnter={() => setSelectedSuggestionIndex(index)}
-                              className={`px-4 py-3 text-sm cursor-pointer border-b border-slate-100 last:border-b-0 ${
-                                index === selectedSuggestionIndex ? 'bg-indigo-100' : 'hover:bg-indigo-50'
-                              }`}
+                              className={`px-4 py-3 text-sm cursor-pointer border-b border-slate-100 last:border-b-0 ${index === selectedSuggestionIndex ? 'bg-indigo-100' : 'hover:bg-indigo-50'
+                                }`}
                             >
                               <div className="font-medium text-slate-900">{s.id}</div>
                               <div className="text-xs text-slate-600 mt-1">{s.name}</div>
@@ -3854,11 +3852,10 @@ export default function AddEntryRequestSpoc() {
                 <button
                   type="submit"
                   disabled={!canSubmitRequest || !projectValid || submitting || monthlyRequestStats.isLimitReached}
-                  className={`w-full sm:w-auto px-5 py-1.5 rounded-2xl text-white transition-colors ${
-                    canSubmitRequest && projectValid && !submitting && !monthlyRequestStats.isLimitReached
+                  className={`w-full sm:w-auto px-5 py-1.5 rounded-2xl text-white transition-colors ${canSubmitRequest && projectValid && !submitting && !monthlyRequestStats.isLimitReached
                       ? "bg-indigo-700 hover:bg-indigo-800"
                       : "bg-slate-400 cursor-not-allowed"
-                  }`}
+                    }`}
                 >
                   {submitting ? "Submitting..." : "Submit Request"}
                 </button>
@@ -3878,7 +3875,7 @@ export default function AddEntryRequestSpoc() {
                     rows={pendingRequests}
                     showStatus={false}
                   />
-                  
+
                   {showInOfficeWarning && (
                     <div className="rounded-2xl border border-orange-300 bg-orange-50 px-4 py-3 text-sm text-orange-900 flex items-start">
                       <svg className="w-5 h-5 mr-2 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
@@ -3927,12 +3924,12 @@ function SidebarLinks({ navigate, location, close }) {
 
   const handleNavigation = (path, isChildOfMissingEntry = false) => {
     navigate(path);
-    
+
     // Only close the dropdown if navigating away from missing entry section
     if (!isChildOfMissingEntry && !path.includes("missing-entry")) {
       setOpenMissingEntry(false);
     }
-    
+
     if (close) close();
   };
 
@@ -3950,9 +3947,8 @@ function SidebarLinks({ navigate, location, close }) {
       <nav className="flex flex-col space-y-2">
         {/* Home */}
         <button
-          className={`text-left hover:bg-gray-700 p-3 rounded-lg transition-colors ${
-            isHomePage && !isMissingEntryPage ? "bg-gray-700" : ""
-          }`}
+          className={`text-left hover:bg-gray-700 p-3 rounded-lg transition-colors ${isHomePage && !isMissingEntryPage ? "bg-gray-700" : ""
+            }`}
           onClick={() => handleNavigation("/spoc-dashboard")}
         >
           Home
@@ -3960,9 +3956,8 @@ function SidebarLinks({ navigate, location, close }) {
 
         {/* Approve Worklogs */}
         <button
-          className={`text-left hover:bg-gray-700 p-3 rounded-lg transition-colors ${
-            location.pathname.includes("approve-worklogs") ? "bg-gray-700" : ""
-          }`}
+          className={`text-left hover:bg-gray-700 p-3 rounded-lg transition-colors ${location.pathname.includes("approve-worklogs") ? "bg-gray-700" : ""
+            }`}
           onClick={() => handleNavigation("/spoc/approve-worklogs")}
         >
           Approve Worklogs
@@ -3971,9 +3966,8 @@ function SidebarLinks({ navigate, location, close }) {
         {/* Missing Entry - COLLAPSIBLE SECTION */}
         <div>
           <button
-            className={`w-full flex justify-between items-center hover:bg-gray-700 p-3 rounded-lg transition-colors ${
-              location.pathname.includes("missing-entry-requests") ? "bg-gray-700" : ""
-            }`}
+            className={`w-full flex justify-between items-center hover:bg-gray-700 p-3 rounded-lg transition-colors ${location.pathname.includes("missing-entry-requests") ? "bg-gray-700" : ""
+              }`}
             onClick={toggleMissingEntry}
           >
             <span>Missing Entry</span>
@@ -3983,18 +3977,16 @@ function SidebarLinks({ navigate, location, close }) {
           </button>
           {openMissingEntry && (
             <div className="ml-4 mt-2 flex flex-col space-y-2 animate-fadeIn">
-               <button
-                className={`text-left hover:bg-gray-700 p-2 rounded-lg transition-colors ${
-                  location.pathname.includes("missing-entry-request") ? "bg-gray-700" : ""
-                }`}
+              <button
+                className={`text-left hover:bg-gray-700 p-2 rounded-lg transition-colors ${location.pathname.includes("missing-entry-request") ? "bg-gray-700" : ""
+                  }`}
                 onClick={() => handleNavigation("/spoc/missing-entry-request", true)}
               >
                 Request Missing Entry
               </button>
               <button
-                className={`text-left hover:bg-gray-700 p-2 rounded-lg transition-colors ${
-                  location.pathname.includes("missing-entry-status") ? "bg-gray-700" : ""
-                }`}
+                className={`text-left hover:bg-gray-700 p-2 rounded-lg transition-colors ${location.pathname.includes("missing-entry-status") ? "bg-gray-700" : ""
+                  }`}
                 onClick={() => handleNavigation("/spoc/missing-entry-status", true)}
               >
                 Approve Missing Entry
@@ -4003,11 +3995,10 @@ function SidebarLinks({ navigate, location, close }) {
           )}
         </div>
 
-         {/* Add Project */}
+        {/* Add Project */}
         <button
-          className={`text-left hover:bg-gray-700 p-3 rounded-lg transition-colors ${
-            location.pathname.includes("/spoc/add-project") ? "bg-gray-700" : ""
-          }`}
+          className={`text-left hover:bg-gray-700 p-3 rounded-lg transition-colors ${location.pathname.includes("/spoc/add-project") ? "bg-gray-700" : ""
+            }`}
           onClick={() => handleNavigation("/spoc/add-project")}
         >
           Add Project
@@ -4015,11 +4006,10 @@ function SidebarLinks({ navigate, location, close }) {
 
         {/* Mark Extra Shift */}
         <button
-          className={`text-left hover:bg-gray-700 p-3 rounded-lg transition-colors ${
-            location.pathname.includes("mark-night-shift") || location.pathname.includes("mark-extra-shift")
+          className={`text-left hover:bg-gray-700 p-3 rounded-lg transition-colors ${location.pathname.includes("mark-night-shift") || location.pathname.includes("mark-extra-shift")
               ? "bg-gray-700"
               : ""
-          }`}
+            }`}
           onClick={() => handleNavigation("/spoc/mark-night-shift")}
         >
           Mark Extra Shift
@@ -4077,15 +4067,15 @@ function MultiSelectChips({ value = [], onChange, options = [], placeholder = "S
   }, []);
 
   const deduped = useMemo(() => Array.from(new Set(options.map((o) => String(o)))), [options]);
- 
+
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
     let availableOptions = deduped.filter((o) => !value.includes(o));
-   
+
     if (bookElement === "Full book") {
       availableOptions = availableOptions.filter(o => isNaN(Number(o)));
     }
-   
+
     return availableOptions.filter((o) => (q ? o.toLowerCase().includes(q) : true));
   }, [deduped, value, query, bookElement]);
 
@@ -4258,11 +4248,10 @@ function RequestsBlock({ title, rows, showStatus = false, subtle = false }) {
                 <td className="px-3 py-2 min-w-[12rem]">{r.lateReason}</td>
                 {showStatus && (
                   <td className="px-3 py-2">
-                    <span className={`inline-flex px-2 py-1 rounded-full text-xs font-medium ${
-                      r.requestStatus === 'Approved' ? 'bg-green-100 text-green-800' :
-                      r.requestStatus === 'Rejected' ? 'bg-red-100 text-red-800' :
-                      'bg-yellow-100 text-yellow-800'
-                    }`}>
+                    <span className={`inline-flex px-2 py-1 rounded-full text-xs font-medium ${r.requestStatus === 'Approved' ? 'bg-green-100 text-green-800' :
+                        r.requestStatus === 'Rejected' ? 'bg-red-100 text-red-800' :
+                          'bg-yellow-100 text-yellow-800'
+                      }`}>
                       {r.requestStatus}
                     </span>
                   </td>

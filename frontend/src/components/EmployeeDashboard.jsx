@@ -431,7 +431,7 @@
 //           status: r.status,
 //           dueOn: r.due_on ? new Date(r.due_on).toISOString().slice(0, 10) : null,
 //           remarks: r.details || null,
-          
+
 //         }));
 //       }
 
@@ -2013,10 +2013,10 @@ export default function EmployeeDashboard() {
     if (!checkTokenValidity()) return;
 
     setUnitTypeLookupLoading(true);
-   
+
     try {
       console.log("Fetching unit type for:", { task: selectedTask, bookElement: selectedBookElement });
-     
+
       const { data } = await axios.get("/worklogs/unit-type-lookup", {
         params: {
           task: selectedTask,
@@ -2068,7 +2068,7 @@ export default function EmployeeDashboard() {
   useEffect(() => {
     // Don't fetch if we're in skip mode
     if (skipUnitTypeLookup) return;
-   
+
     fetchUnitTypeForCombination(task, bookElement);
   }, [task, bookElement, fetchUnitTypeForCombination, skipUnitTypeLookup]);
 
@@ -2265,7 +2265,7 @@ export default function EmployeeDashboard() {
           adminActionDate: r.admin_action_date || null
         }));
         setPastRows(mapped);
-       
+
         // Extract recent projects for autocomplete
         const projectMap = new Map();
         mapped.forEach(row => {
@@ -2281,7 +2281,7 @@ export default function EmployeeDashboard() {
           }
         });
         setRecentProjects(Array.from(projectMap.values()).slice(0, 10));
-       
+
         if (mapped.length === 0) setPastError("No recent worklogs found.");
       } else {
         setPastRows([]);
@@ -2498,7 +2498,7 @@ export default function EmployeeDashboard() {
   const isDuplicateEntry = useCallback((newEntry, existingRows, excludeIndex = -1) => {
     return existingRows.some((row, index) => {
       if (index === excludeIndex) return false;
-     
+
       return (
         row.workMode === newEntry.workMode &&
         (row.projectId === newEntry.projectId || row.projectName === newEntry.projectName) &&
@@ -2518,7 +2518,7 @@ export default function EmployeeDashboard() {
   useEffect(() => {
     let active = true;
     const q = projectQuery.trim();
-   
+
     if (!q) {
       if (recentProjects.length > 0) {
         setSuggestions(recentProjects);
@@ -2695,7 +2695,7 @@ export default function EmployeeDashboard() {
   const copyRowToForm = (row) => {
     // Set skip flag FIRST and keep it true longer
     setSkipUnitTypeLookup(true);
-   
+
     // Set all fields in a batch
     setWorkMode(row.workMode || "");
     setProjectId(row.projectId || "");
@@ -2721,17 +2721,17 @@ export default function EmployeeDashboard() {
     setUnitTypeDisabled(false);
     setCombinationBlocked(false);
     setBlockedMessage("");
-   
+
     // Don't re-enable auto-fetch - let user manually change if needed
     // Only reset skip flag when form is cleared or new task/bookElement selected
-   
+
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   const startEditViaForm = (idx, row) => {
     // Set skip flag to prevent auto-fetch when editing
     setSkipUnitTypeLookup(true);
-   
+
     // Set all fields in a batch
     setWorkMode(row.workMode || "");
     setProjectId(row.projectId || "");
@@ -2757,10 +2757,10 @@ export default function EmployeeDashboard() {
     setUnitTypeDisabled(false);
     setCombinationBlocked(false);
     setBlockedMessage("");
-   
+
     // Don't re-enable auto-fetch - let user manually change if needed
     // Only reset skip flag when form is cleared or new task/bookElement selected
-   
+
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
@@ -2874,7 +2874,7 @@ export default function EmployeeDashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-100 text-slate-900 text-sm">
+    <div className="min-h-screen bg-slate-100 text-slate-900 text-sm flex flex-col">
       <nav className="fixed top-0 left-0 right-0 z-50 bg-slate-900 text-white shadow-lg">
         <div className="flex justify-between items-center w-full px-4 sm:px-6 h-16">
           <div className="flex items-center space-x-2">
@@ -2984,7 +2984,7 @@ export default function EmployeeDashboard() {
         )}
       </nav>
 
-      <div className="pt-16 flex">
+      <div className="pt-16 flex flex-1">
         {sidebarOpen && (
           <div className="fixed inset-0 z-40 lg:hidden">
             <div className="fixed inset-0 bg-black bg-opacity-50" onClick={() => setSidebarOpen(false)} />
@@ -3063,8 +3063,8 @@ export default function EmployeeDashboard() {
           </div>
         </aside>
 
-        <main className={`flex-1 transition-all duration-300 ease-in-out lg:ml-72 overflow-y-auto`}>
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <main className={`flex-1 transition-all duration-300 ease-in-out lg:ml-72 overflow-y-auto h-[calc(100vh-4rem)]`}>
+          <div className="w-full px-4 sm:px-6 lg:px-8 py-8">
             <form onSubmit={onSubmit} className="bg-white rounded-2xl shadow-xl p-4 sm:p-6 border border-slate-200">
               <div className="flex items-start justify-between mb-3">
                 <h2 className="text-base sm:text-lg font-semibold text-slate-800">
@@ -3170,7 +3170,7 @@ export default function EmployeeDashboard() {
                         }}
                         onKeyDown={(e) => {
                           if (!showSuggest || suggestions.length === 0) return;
-                         
+
                           if (e.key === "ArrowDown") {
                             e.preventDefault();
                             setSelectedSuggestionIndex((prev) =>
@@ -3213,9 +3213,8 @@ export default function EmployeeDashboard() {
                                 selectProject(s);
                               }}
                               onMouseEnter={() => setSelectedSuggestionIndex(index)}
-                              className={`px-4 py-3 text-sm cursor-pointer border-b border-slate-100 last:border-b-0 ${
-                                index === selectedSuggestionIndex ? 'bg-indigo-100' : 'hover:bg-indigo-50'
-                              }`}
+                              className={`px-4 py-3 text-sm cursor-pointer border-b border-slate-100 last:border-b-0 ${index === selectedSuggestionIndex ? 'bg-indigo-100' : 'hover:bg-indigo-50'
+                                }`}
                             >
                               <div className="font-medium text-slate-900">{s.id}</div>
                               <div className="text-xs text-slate-600 mt-1">{s.name}</div>
@@ -3386,11 +3385,10 @@ export default function EmployeeDashboard() {
                 <button
                   type="submit"
                   disabled={!canSubmitRow || !projectValid || !!resubmitTarget}
-                  className={`w-full sm:w-auto px-5 py-1.5 rounded-2xl text-white transition-colors ${
-                    canSubmitRow && projectValid && !resubmitTarget
+                  className={`w-full sm:w-auto px-5 py-1.5 rounded-2xl text-white transition-colors ${canSubmitRow && projectValid && !resubmitTarget
                       ? "bg-indigo-700 hover:bg-indigo-800"
                       : "bg-slate-400 cursor-not-allowed"
-                  }`}
+                    }`}
                 >
                   {editSourceIndex !== -1 ? "Update Entry" : "Add to Today's Worklog"}
                 </button>
@@ -3415,7 +3413,7 @@ export default function EmployeeDashboard() {
                   <div className="text-xs text-slate-600 text-center bg-blue-50 border border-blue-200 rounded-2xl px-3 py-2">
                     Your entries are saved in database and will auto-submit at 10:30 PM (in {autoSubmitCountdown})
                   </div>
-                 
+
                   {showInOfficeWarning && (
                     <div className="rounded-2xl border border-orange-300 bg-orange-50 px-4 py-3 text-sm text-orange-900 flex items-start">
                       <svg className="w-5 h-5 mr-2 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
@@ -3564,15 +3562,15 @@ function MultiSelectChips({ value = [], onChange, options = [], placeholder = "S
   }, []);
 
   const deduped = useMemo(() => Array.from(new Set(options.map((o) => String(o)))), [options]);
- 
+
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
     let availableOptions = deduped.filter((o) => !value.includes(o));
-   
+
     if (bookElement === "Full book") {
       availableOptions = availableOptions.filter(o => isNaN(Number(o)));
     }
-   
+
     return availableOptions.filter((o) => (q ? o.toLowerCase().includes(q) : true));
   }, [deduped, value, query, bookElement]);
 
