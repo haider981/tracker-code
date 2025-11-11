@@ -3,11 +3,9 @@
 // import { jwtDecode } from "jwt-decode";
 // import axios from "axios";
 
-// // Use environment variable or fallback to localhost
 // const API_BASE = "http://localhost:5000/api";
 
-// // Cache configuration
-// const CACHE_DURATION = 24 * 60 * 60 * 1000; // 24 hours
+// const CACHE_DURATION = 24 * 60 * 60 * 1000;
 // const AUTO_SUBMIT_TIME = "22:30";
 // const CACHE_KEY = "worklog_cache_v2";
 // const AUTO_SUBMIT_KEY = "lastAutoSubmitDate";
@@ -61,14 +59,13 @@
 //   return '';
 // };
 
-
 // export default function EmployeeDashboard() {
 //   const navigate = useNavigate();
 //   const [user, setUser] = useState(null);
 //   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+//   const [sidebarOpen, setSidebarOpen] = useState(false);
 //   const [tokenExpired, setTokenExpired] = useState(false);
 
-//   // Team-wise dropdown state - MUST BE BEFORE useMemo that uses it
 //   const [teamDropdowns, setTeamDropdowns] = useState({
 //     bookElements: [],
 //     taskNames: [],
@@ -76,11 +73,9 @@
 //   });
 //   const [loadingDropdowns, setLoadingDropdowns] = useState(false);
 
-//   // Cache/auto-submit UI state
 //   const [cacheInfo, setCacheInfo] = useState({ count: 0, expiresAt: null, timeLeft: "" });
 //   const [autoSubmitCountdown, setAutoSubmitCountdown] = useState("");
 
-//   // --- Form state ---
 //   const [workMode, setWorkMode] = useState("");
 //   const [projectQuery, setProjectQuery] = useState("");
 //   const [projectId, setProjectId] = useState("");
@@ -108,16 +103,10 @@
 //   const [submitting, setSubmitting] = useState(false);
 //   const [submitMsg, setSubmitMsg] = useState(null);
 
-//   // edit via form (not inline)
 //   const [editSourceIndex, setEditSourceIndex] = useState(-1);
-
-//   // NEW — Rejected → Edit → Resubmit flow
 //   const [resubmitTarget, setResubmitTarget] = useState(null);
 //   const [resubmitCountdown, setResubmitCountdown] = useState("");
 
-//   /* ==============================
-//      TOKEN VALIDATION & AUTO-LOGOUT
-//      ============================== */
 //   const checkTokenValidity = useCallback(() => {
 //     const token = localStorage.getItem("authToken");
 //     if (!token) {
@@ -152,33 +141,20 @@
 //     }
 //   }, [navigate]);
 
-//   /* ==============================
-//      FETCH TEAM-WISE DROPDOWNS
-//      ============================== */
 //   const fetchTeamWiseDropdowns = useCallback(async () => {
 //     if (!checkTokenValidity()) return;
 
-//     console.log("📡 Fetching team-wise dropdowns...");
 //     setLoadingDropdowns(true);
 //     try {
 //       const { data } = await axios.get("/worklogs/team-dropdowns");
-//       console.log("📥 Raw API Response:", JSON.stringify(data, null, 2));
 
 //       if (data?.success && data?.dropdowns) {
-//         console.log("✅ API Success! Dropdowns received:");
-//         console.log("  - bookElements:", data.dropdowns.bookElements?.length || 0);
-//         console.log("  - taskNames:", data.dropdowns.taskNames?.length || 0);
-//         console.log("  - chapterNumbers:", data.dropdowns.chapterNumbers?.length || 0);
-        
 //         setTeamDropdowns({
 //           bookElements: data.dropdowns.bookElements || [],
 //           taskNames: data.dropdowns.taskNames || [],
 //           chapterNumbers: data.dropdowns.chapterNumbers || []
 //         });
-        
-//         console.log("✅ State updated successfully!");
 //       } else {
-//         console.log("⚠️ API returned success: false or no dropdowns");
 //         setTeamDropdowns({
 //           bookElements: [],
 //           taskNames: [],
@@ -190,7 +166,7 @@
 //         checkTokenValidity();
 //         return;
 //       }
-//       console.error("❌ Failed to load team dropdowns:", error);
+//       console.error("Failed to load team dropdowns:", error);
 //       setTeamDropdowns({
 //         bookElements: [],
 //         taskNames: [],
@@ -198,13 +174,9 @@
 //       });
 //     } finally {
 //       setLoadingDropdowns(false);
-//       console.log("📊 Final teamDropdowns state will be:", teamDropdowns);
 //     }
 //   }, [checkTokenValidity]);
 
-//   /* ==============================
-//      STATIC OPTIONS (never change)
-//      ============================== */
 //   const WORK_MODES = ["In Office", "WFH", "On Duty", "Half Day", "OT Home", "OT Office", "Night"];
 //   const STATUS = ["In Progress", "Delayed", "Completed", "Not approved"];
 //   const HOURS = ["0.5", "1", "1.5", "2", "2.5", "3", "3.5", "4", "4.5", "5", "5.5", "6", "6.5", "7", "7.5", "8"];
@@ -215,68 +187,29 @@
 //     { label: "general", value: "general" },
 //   ];
 
-//   /* ==============================
-//      DYNAMIC OPTIONS (based on team)
-//      ============================== */
 //   const TASKS = useMemo(() => {
-//     console.log("🔄 [TASKS useMemo] Running...");
-//     console.log("  Current teamDropdowns.taskNames:", teamDropdowns.taskNames);
-//     console.log("  Length:", teamDropdowns.taskNames?.length);
-    
 //     if (teamDropdowns.taskNames && teamDropdowns.taskNames.length > 0) {
-//       console.log("✅ [TASKS] Using team-specific values:", teamDropdowns.taskNames);
 //       return teamDropdowns.taskNames;
 //     }
-    
-//     console.log("⚠️ [TASKS] Using default hardcoded values");
 //     return ["CMPL-MS", "VRF-MS", "DRF", "TAL", "R1", "R2", "R3", "R4", "CR", "FER", "SET", "FINAL", "MEET", "QRY", "Coord", "GLANCE", "Research", "Analysis", "KT", "Interview", "PLAN", "UPL"];
 //   }, [teamDropdowns.taskNames]);
 
 //   const BASE_BOOK_ELEMENTS = useMemo(() => {
-//     console.log("🔄 [BOOK_ELEMENTS useMemo] Running...");
-//     console.log("  Current teamDropdowns.bookElements:", teamDropdowns.bookElements);
-//     console.log("  Length:", teamDropdowns.bookElements?.length);
-    
 //     if (teamDropdowns.bookElements && teamDropdowns.bookElements.length > 0) {
-//       console.log("✅ [BOOK_ELEMENTS] Using team-specific values:", teamDropdowns.bookElements);
 //       return teamDropdowns.bookElements;
 //     }
-    
-//     console.log("⚠️ [BOOK_ELEMENTS] Using default hardcoded values");
 //     return ["Theory", "Exercise", "Chapter", "Full book", "Mind Map", "Diagram", "Solution", "Booklet", "Full Video", "AVLR-VO", "DLR", "Lesson Plan", "Miscellaneous", "AVLR-Ideation", "Marketing", "Development", "Recruitment", "References", "Frames", "Papers", "Projects"];
 //   }, [teamDropdowns.bookElements]);
 
 //   const BASE_CHAPTER_NUMBERS = useMemo(() => {
-//     console.log("🔄 [CHAPTER_NUMBERS useMemo] Running...");
-//     console.log("  Current teamDropdowns.chapterNumbers:", teamDropdowns.chapterNumbers);
-//     console.log("  Length:", teamDropdowns.chapterNumbers?.length);
-    
 //     if (teamDropdowns.chapterNumbers && teamDropdowns.chapterNumbers.length > 0) {
-//       console.log("✅ [CHAPTER_NUMBERS] Using team-specific values:", teamDropdowns.chapterNumbers);
 //       return teamDropdowns.chapterNumbers;
 //     }
-    
-//     console.log("⚠️ [CHAPTER_NUMBERS] Using default hardcoded values");
 //     return ["Title", "Syllabus", "Content", "Projects", "Papers", "Miscellaneous", "Appendix", "Full Book",
 //       ...Array.from({ length: 40 }, (_, i) => String(i + 1))
 //     ];
 //   }, [teamDropdowns.chapterNumbers]);
 
-//   // Debug effect to log whenever teamDropdowns changes
-//   useEffect(() => {
-//     console.log("🔔 teamDropdowns STATE CHANGED:", {
-//       bookElements: teamDropdowns.bookElements.length,
-//       taskNames: teamDropdowns.taskNames.length,
-//       chapterNumbers: teamDropdowns.chapterNumbers.length
-//     });
-//     console.log("📋 Current TASKS array:", TASKS);
-//     console.log("📚 Current BASE_BOOK_ELEMENTS array:", BASE_BOOK_ELEMENTS);
-//     console.log("🔢 Current BASE_CHAPTER_NUMBERS array:", BASE_CHAPTER_NUMBERS);
-//   }, [teamDropdowns, TASKS, BASE_BOOK_ELEMENTS, BASE_CHAPTER_NUMBERS]);
-
-//   /* ==============================
-//      DATABASE OPERATIONS FOR TODAY'S WORKLOG
-//      ============================== */
 //   const loadTodaysWorklogFromDB = useCallback(async () => {
 //     if (!checkTokenValidity()) return;
 
@@ -406,9 +339,6 @@
 //     }
 //   }, [checkTokenValidity]);
 
-//   /* ==============================
-//      DATA LOADER
-//      ============================== */
 //   const fetchPastWorklogs = useCallback(async () => {
 //     if (!checkTokenValidity()) return;
 
@@ -455,9 +385,6 @@
 //     }
 //   }, [checkTokenValidity]);
 
-//   /* ==============================
-//      AUTO-SUBMIT HELPERS
-//      ============================== */
 //   const getNextAutoSubmitTime = () => {
 //     const now = new Date();
 //     const target = new Date(now);
@@ -504,6 +431,7 @@
 //           status: r.status,
 //           dueOn: r.due_on ? new Date(r.due_on).toISOString().slice(0, 10) : null,
 //           remarks: r.details || null,
+          
 //         }));
 //       }
 
@@ -546,9 +474,6 @@
 //     }
 //   }, [performAutoSubmit]);
 
-//   /* ==============================
-//      EFFECTS
-//      ============================== */
 //   useEffect(() => {
 //     const token = localStorage.getItem("authToken");
 //     if (!token) {
@@ -581,7 +506,7 @@
 //       localStorage.removeItem("authToken");
 //       navigate("/");
 //     }
-//   }, [navigate, checkTokenValidity]);
+//   }, [navigate, checkTokenValidity, fetchPastWorklogs, fetchTeamWiseDropdowns]);
 
 //   useEffect(() => {
 //     if (user) {
@@ -625,9 +550,6 @@
 //     return () => timer && clearInterval(timer);
 //   }, [resubmitTarget?.date]);
 
-//   /* ==============================
-//      ACTIONS
-//      ============================== */
 //   const handleLogout = () => {
 //     localStorage.removeItem("authToken");
 //     localStorage.removeItem(AUTO_SUBMIT_KEY);
@@ -705,9 +627,6 @@
 //     setShowSuggest(false);
 //   };
 
-//   /* ==============================
-//      VALIDATION
-//      ============================== */
 //   const isEmpty = (v) => Array.isArray(v) ? v.length === 0 : (v === null || v === undefined || String(v).trim() === "");
 
 //   const projectValid =
@@ -743,9 +662,6 @@
 //     setResubmitCountdown("");
 //   };
 
-//   /* ==============================
-//      FORM SUBMIT
-//      ============================== */
 //   const onSubmit = async (e) => {
 //     e.preventDefault();
 //     if (!canSubmitRow || !projectValid) return;
@@ -788,9 +704,6 @@
 //     }
 //   };
 
-//   /* ==============================
-//      ROW ACTIONS
-//      ============================== */
 //   const copyRowToForm = (row) => {
 //     setWorkMode(row.workMode || "");
 //     setProjectId(row.projectId || "");
@@ -841,9 +754,6 @@
 //     }
 //   };
 
-//   /* ==============================
-//      WORKLOG SUBMISSION
-//      ============================== */
 //   async function submitTodaysWorklog() {
 //     if (todayRows.length === 0) return;
 
@@ -886,9 +796,6 @@
 //     }
 //   }
 
-//   /* ==============================
-//      RESUBMISSION
-//      ============================== */
 //   const resubmitRejectedWorklog = async (id, entry) => {
 //     try {
 //       const { data } = await axios.put(`/worklogs/resubmit/${id}`, { entry });
@@ -927,9 +834,6 @@
 //     await resubmitRejectedWorklog(resubmitTarget.id, entry);
 //   };
 
-//   /* ==============================
-//      RENDER
-//      ============================== */
 //   if (!user) {
 //     return (
 //       <div className="min-h-screen bg-slate-100 flex items-center justify-center">
@@ -940,13 +844,25 @@
 //       </div>
 //     );
 //   }
+
 //   return (
 //     <div className="min-h-screen bg-slate-100 text-slate-900 text-sm">
 //       {/* Enhanced Responsive Navbar */}
 //       <nav className="fixed top-0 left-0 right-0 z-50 bg-slate-900 text-white shadow-lg">
 //         <div className="flex justify-between items-center w-full px-4 sm:px-6 h-16">
-//           {/* Left side - Logo/Title */}
+//           {/* Left side - Sidebar Toggle & Logo/Title */}
 //           <div className="flex items-center space-x-2">
+//             {/* Sidebar toggle button for mobile/tablet only */}
+//             <button
+//               onClick={() => setSidebarOpen(!sidebarOpen)}
+//               className="mr-2 p-2 rounded-md text-slate-300 hover:text-white hover:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-white lg:hidden"
+//             >
+//               <span className="sr-only">Toggle sidebar</span>
+//               <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+//                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+//               </svg>
+//             </button>
+
 //             <h1 className="text-lg sm:text-xl font-semibold tracking-tight">
 //               <span className="block sm:inline">Employee Dashboard</span>
 //               <span className="hidden sm:inline"> - Work Log</span>
@@ -1046,351 +962,426 @@
 //         )}
 //       </nav>
 
-//       {/* Main */}
-//       <main className="pt-20 pb-8">
-//         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-//           {/* New Entry */}
-//           <form onSubmit={onSubmit} className="bg-white rounded-2xl shadow-xl p-4 sm:p-6 border border-slate-200">
-//             <div className="flex items-start justify-between mb-3">
-//               <h2 className="text-base sm:text-lg font-semibold text-slate-800">
-//                 {resubmitTarget ? "Edit Rejected Entry" : (editSourceIndex !== -1 ? "Edit Entry" : "New Entry")}
-//               </h2>
-//               <div className="text-right">
-//                 <span className="text-xs text-red-600">* required fields</span>
-//                 {cacheInfo.count > 0 && (
-//                   <div className="text-xs text-blue-600 mt-1 md:hidden">
-//                     {cacheInfo.count} entries stored in database
-//                   </div>
-//                 )}
-//               </div>
-//             </div>
-
-//             {/* Resubmit banner */}
-//             {resubmitTarget && (
-//               <div className="mb-3 rounded-xl border border-amber-300 bg-amber-50 px-3 py-2 text-xs text-amber-900">
-//                 You are editing a <b>Rejected</b> entry from <b>{resubmitTarget.date}</b>. You can resubmit until <b></b>
-//                 <span className="ml-2 inline-flex items-center rounded-full bg-amber-100 px-2 py-[2px]">{resubmitCountdown || "calculating…"}</span>
-//                 <button
-//                   type="button"
-//                   onClick={() => clearForm()}
-//                   className="ml-3 underline text-amber-900 hover:text-amber-700"
-//                   title="Cancel resubmission mode"
-//                 >
-//                   Cancel
-//                 </button>
-//               </div>
-//             )}
-
-//             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-//               <Field label="Work Mode *">
-//                 <Select
-//                   value={workMode}
-//                   onChange={setWorkMode}
-//                   options={["", ...WORK_MODES]}
-//                   labels={{ "": "— Select —" }}
-//                   isInvalid={invalid.workMode}
-//                 />
-//               </Field>
-
-//               <Field label="Project Search *">
-//                 <div className="flex gap-2 items-center">
-//                   <div className="relative flex-1" ref={suggestRef}>
-//                     <input
-//                       type="text"
-//                       placeholder="Start typing project name or ID…"
-//                       className={`w-full h-9 text-sm px-3 rounded-2xl border-2 ${invalid.projectId ? "border-red-500" : "border-slate-300"} focus:border-indigo-600`}
-//                       value={projectQuery}
-//                       onChange={(e) => {
-//                         setProjectQuery(e.target.value);
-//                         setProjectId("");
-//                         setProjectName("");
-//                         if (!e.target.value.trim()) setDueOn("");
-//                       }}
-//                       onBlur={() => {
-//                         // If user typed exact matching ID, set it as chosen to keep behavior consistent
-//                         const exact = suggestions.find(s => s.id === projectQuery.trim());
-//                         if (exact && !projectId) {
-//                           selectProject(exact);
-//                         }
-//                       }}
-//                     />
-//                     {loadingSuggestions && (
-//                       <div className="absolute right-3 top-2">
-//                         <div className="animate-spin h-5 w-5 border-2 border-indigo-600 border-t-transparent rounded-full"></div>
-//                       </div>
-//                     )}
-//                     {showSuggest && suggestions.length > 0 && (
-//                       <ul className="absolute z-20 mt-2 max-h-64 w-full overflow-auto rounded-2xl border bg-white shadow-2xl">
-//                         {suggestions.map((s) => (
-//                           <li
-//                             key={s.id}
-//                             onClick={(e) => {
-//                               e.preventDefault();
-//                               e.stopPropagation();
-//                               selectProject(s);
-//                             }}
-//                             className="px-4 py-3 text-sm hover:bg-indigo-50 cursor-pointer border-b border-slate-100 last:border-b-0"
-//                           >
-//                             <div className="font-medium text-slate-900">{s.id}</div>
-//                             <div className="text-xs text-slate-600 mt-1">{s.name}</div>
-//                             {s.dueOn && <div className="text-xs text-orange-600 mt-1">Due: {s.dueOn}</div>}
-//                           </li>
-//                         ))}
-//                       </ul>
-//                     )}
-//                     {showSuggest && suggestions.length === 0 && !loadingSuggestions && projectQuery.trim() && (
-//                       <div className="absolute z-20 mt-2 w-full rounded-2xl border bg-white shadow-2xl px-4 py-3 text-sm text-slate-500">
-//                         No projects found for "{projectQuery}"
-//                       </div>
-//                     )}
-//                   </div>
+//       {/* Layout Container */}
+//       <div className="pt-16 flex">
+//         {/* Mobile Sidebar Overlay and Sidebar */}
+//         {sidebarOpen && (
+//           <div className="fixed inset-0 z-40 lg:hidden">
+//             {/* Backdrop */}
+//             <div className="fixed inset-0 bg-black bg-opacity-50" onClick={() => setSidebarOpen(false)} />
+//             {/* Mobile Sidebar */}
+//             <aside className="fixed top-16 left-0 h-[calc(100vh-4rem)] w-80 bg-gray-800 text-white shadow-xl transform transition-transform duration-300 ease-in-out overflow-y-auto">
+//               <div className="p-6">
+//                 <div className="flex items-center justify-between mb-8">
+//                   <h2 className="text-xl font-bold text-white">Menu</h2>
+//                   <button
+//                     onClick={() => setSidebarOpen(false)}
+//                     className="p-2 rounded-md text-gray-300 hover:text-white hover:bg-gray-700"
+//                   >
+//                     <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+//                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+//                     </svg>
+//                   </button>
 //                 </div>
-//               </Field>
+//                 <nav className="flex flex-col space-y-4">
+//                   <button
+//                     className="text-left hover:bg-gray-700 p-3 rounded-lg bg-gray-700 transition-colors duration-200 text-white w-full"
+//                     onClick={() => {
+//                       navigate("/employee-dashboard");
+//                       setSidebarOpen(false);
+//                     }}
+//                   >
+//                     Home
+//                   </button>
+//                   <button
+//                     className="text-left hover:bg-gray-700 p-3 rounded-lg transition-colors duration-200 text-white w-full"
+//                     onClick={() => {
+//                       navigate("/employee/add-entry-request");
+//                       setSidebarOpen(false);
+//                     }}
+//                   >
+//                     Missing Entry Request
+//                   </button>
+//                   <button
+//                     className="text-left hover:bg-gray-700 p-3 rounded-lg transition-colors duration-200 text-white w-full"
+//                     onClick={() => {
+//                       navigate("/employee/notifications");
+//                       setSidebarOpen(false);
+//                     }}
+//                   >
+//                     Notifications
+//                   </button>
+//                 </nav>
+//               </div>
+//             </aside>
+//           </div>
+//         )}
 
-//               <Field label="Task *">
-//                 <Select
-//                   value={task}
-//                   onChange={setTask}
-//                   options={["", ...TASKS]}
-//                   labels={{ "": "— Select —" }}
-//                   isInvalid={invalid.task}
-//                 />
-//               </Field>
-
-//               <Field label="Book Element *">
-//                 <Select
-//                   value={bookElement}
-//                   onChange={setBookElement}
-//                   options={["", ...bookElements]}
-//                   labels={{ "": "— Select —" }}
-//                   isInvalid={invalid.bookElement}
-//                 />
-//               </Field>
-
-//               <Field label="Chapter No. *">
-//                 <MultiSelectChips
-//                   value={chapterNumber}
-//                   onChange={setChapterNumber}
-//                   options={chapterNumbers}
-//                   placeholder="Select chapter(s)…"
-//                   isInvalid={invalid.chapterNumber}
-//                 />
-//               </Field>
-
-//               <Field label="Hours Spent *">
-//                 <Select
-//                   value={hoursSpent}
-//                   onChange={setHoursSpent}
-//                   options={["", ...HOURS]}
-//                   labels={{ "": "— Select —" }}
-//                   isInvalid={invalid.hoursSpent}
-//                 />
-//               </Field>
-
-//               <Field label="No. of Units *">
-//                 <div className="flex gap-2 items-start">
-//                   <input
-//                     type="number"
-//                     className={`flex-1 h-9 text-sm px-3 rounded-2xl border-2 ${invalid.unitsCount ? "border-red-500" : "border-slate-300"
-//                       } focus:border-indigo-600`}
-//                     placeholder="e.g., 10"
-//                     value={unitsCount}
-//                     onChange={(e) => setUnitsCount(e.target.value)}
-//                   />
-//                   <div className="w-28">
-//                     <Select
-//                       value={unitsType}
-//                       onChange={setUnitsType}
-//                       options={UNITS.map((u) => u.value)}
-//                       labels={UNITS.reduce((m, u) => {
-//                         m[u.value] = u.label;
-//                         return m;
-//                       }, {})}
-//                       isInvalid={invalid.unitsType}
-//                     />
-//                   </div>
-//                 </div>
-//               </Field>
-
-//               <Field label="Status *">
-//                 <Select
-//                   value={status}
-//                   onChange={setStatus}
-//                   options={["", ...STATUS]}
-//                   labels={{ "": "— Select —" }}
-//                   isInvalid={invalid.status}
-//                 />
-//               </Field>
-
-//               <Field label="Due On">
-//                 <input
-//                   type="date"
-//                   className="w-full h-9 text-sm px-3 rounded-2xl border-2 border-slate-300 focus:border-indigo-600"
-//                   value={dueOn}
-//                   onChange={(e) => setDueOn(e.target.value)}
-//                 />
-//                 {dueOn && <div className="mt-1 text-xs text-slate-600">Due: {new Date(dueOn).toLocaleDateString()}</div>}
-//               </Field>
-
-//               <Field label="Details">
-//                 <textarea
-//                   className="w-full min-h-[140px] text-sm px-3 py-2 rounded-2xl border-2 border-slate-300 focus:border-indigo-600"
-//                   value={remarks}
-//                   onChange={(e) => setRemarks(e.target.value)}
-//                   placeholder="Add any additional notes..."
-//                 />
-//               </Field>
+//         {/* Desktop Sidebar - Hidden on mobile, visible on lg+ */}
+//         <aside className="hidden lg:block fixed top-16 left-0 h-[calc(100vh-4rem)] w-72 bg-gray-800 text-white shadow-xl overflow-y-auto">
+//           <div className="p-6">
+//             <div className="mb-8">
+//               <h2 className="text-xl font-bold text-white">Menu</h2>
 //             </div>
-
-//             <div className="mt-4 flex flex-col sm:flex-row items-center justify-end gap-3">
+//             <nav className="flex flex-col space-y-4">
 //               <button
-//                 type="button"
-//                 onClick={clearForm}
-//                 className="w-full sm:w-auto px-4 py-1.5 rounded-2xl border-2 border-slate-300 hover:bg-slate-50 transition-colors"
+//                 className="text-left hover:bg-gray-700 p-3 rounded-lg bg-gray-700 transition-colors duration-200 text-white w-full"
+//                 onClick={() => navigate("/employee-dashboard")}
 //               >
-//                 Clear
+//                 Home
 //               </button>
+//               <button
+//                 className="text-left hover:bg-gray-700 p-3 rounded-lg transition-colors duration-200 text-white w-full"
+//                 onClick={() => navigate("/employee/add-entry-request")}
+//               >
+//                 Missing Entry Request
+//               </button>
+//               <button
+//                 className="text-left hover:bg-gray-700 p-3 rounded-lg transition-colors duration-200 text-white w-full"
+//                 onClick={() => navigate("/employee/notification-employee")}
+//               >
+//                 Notifications
+//               </button>
+//             </nav>
+//           </div>
+//         </aside>
 
-//               {/* Resubmit button only in resubmit mode */}
+//         {/* Main content with proper margin for sidebar */}
+//         <main className={`flex-1 transition-all duration-300 ease-in-out lg:ml-72 overflow-y-auto`}>
+//           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">{/* New Entry */}
+//             <form onSubmit={onSubmit} className="bg-white rounded-2xl shadow-xl p-4 sm:p-6 border border-slate-200">
+//               <div className="flex items-start justify-between mb-3">
+//                 <h2 className="text-base sm:text-lg font-semibold text-slate-800">
+//                   {resubmitTarget ? "Edit Rejected Entry" : (editSourceIndex !== -1 ? "Edit Entry" : "New Entry")}
+//                 </h2>
+//                 <div className="text-right">
+//                   <span className="text-xs text-red-600">* required fields</span>
+//                   {cacheInfo.count > 0 && (
+//                     <div className="text-xs text-blue-600 mt-1 md:hidden">
+//                       {cacheInfo.count} entries stored in database
+//                     </div>
+//                   )}
+//                 </div>
+//               </div>
+
+//               {/* Resubmit banner */}
 //               {resubmitTarget && (
-//                 <button
-//                   type="button"
-//                   onClick={onClickResubmit}
-//                   className="w-full sm:w-auto px-5 py-1.5 rounded-2xl text-white bg-amber-600 hover:bg-amber-700 transition-colors"
-//                   title="Send this corrected entry back to SPOC for Re-Approval/Re-Rejection"
-//                   disabled={!canSubmitRow || !projectValid}
-//                 >
-//                   Resubmit Entry {resubmitCountdown ? `(${resubmitCountdown})` : ""}
-//                 </button>
+//                 <div className="mb-3 rounded-xl border border-amber-300 bg-amber-50 px-3 py-2 text-xs text-amber-900">
+//                   You are editing a <b>Rejected</b> entry from <b>{resubmitTarget.date}</b>. You can resubmit until{" "}
+//                   <span className="ml-2 inline-flex items-center rounded-full bg-amber-100 px-2 py-[2px]">{resubmitCountdown || "calculating…"}</span>
+//                   <button
+//                     type="button"
+//                     onClick={() => clearForm()}
+//                     className="ml-3 underline text-amber-900 hover:text-amber-700"
+//                     title="Cancel resubmission mode"
+//                   >
+//                     Cancel
+//                   </button>
+//                 </div>
 //               )}
 
-//               <button
-//                 type="submit"
-//                 disabled={!canSubmitRow || !projectValid || !!resubmitTarget /* block mixing modes */}
-//                 className={`w-full sm:w-auto px-5 py-1.5 rounded-2xl text-white transition-colors ${canSubmitRow && projectValid && !resubmitTarget
-//                   ? "bg-indigo-700 hover:bg-indigo-800"
-//                   : "bg-slate-400 cursor-not-allowed"
-//                   }`}
-//               >
-//                 {editSourceIndex !== -1 ? "Update Entry" : "Add to Today's Worklog"}
-//               </button>
-//             </div>
-//           </form>
+//               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+//                 <Field label="Work Mode *">
+//                   <Select
+//                     value={workMode}
+//                     onChange={setWorkMode}
+//                     options={["", ...WORK_MODES]}
+//                     labels={{ "": "— Select —" }}
+//                     isInvalid={invalid.workMode}
+//                   />
+//                 </Field>
 
-//           {/* Today's Worklog */}
-//           <section className="mt-8 space-y-6">
-//             {loadingToday ? (
-//               <Feedback message="Loading today's worklog..." />
-//             ) : todayRows.length > 0 ? (
-//               <>
-//                 <EditableBlock
-//                   title="Today's Worklog"
-//                   rows={todayRows}
-//                   onCopyRow={copyRowToForm}
-//                   onStartEdit={startEditViaForm}
-//                   onDeleteRow={deleteRowAt}
-//                   lists={{ WORK_MODES, TASKS, STATUS, HOURS, UNITS }}
+//                 <Field label="Project Search *">
+//                   <div className="flex gap-2 items-center">
+//                     <div className="relative flex-1" ref={suggestRef}>
+//                       <input
+//                         type="text"
+//                         placeholder="Start typing project name or ID…"
+//                         className={`w-full h-9 text-sm px-3 rounded-2xl border-2 ${invalid.projectId ? "border-red-500" : "border-slate-300"} focus:border-indigo-600`}
+//                         value={projectQuery}
+//                         onChange={(e) => {
+//                           setProjectQuery(e.target.value);
+//                           setProjectId("");
+//                           setProjectName("");
+//                           if (!e.target.value.trim()) setDueOn("");
+//                         }}
+//                         onBlur={() => {
+//                           const exact = suggestions.find(s => s.id === projectQuery.trim());
+//                           if (exact && !projectId) {
+//                             selectProject(exact);
+//                           }
+//                         }}
+//                       />
+//                       {loadingSuggestions && (
+//                         <div className="absolute right-3 top-2">
+//                           <div className="animate-spin h-5 w-5 border-2 border-indigo-600 border-t-transparent rounded-full"></div>
+//                         </div>
+//                       )}
+//                       {showSuggest && suggestions.length > 0 && (
+//                         <ul className="absolute z-20 mt-2 max-h-64 w-full overflow-auto rounded-2xl border bg-white shadow-2xl">
+//                           {suggestions.map((s) => (
+//                             <li
+//                               key={s.id}
+//                               onClick={(e) => {
+//                                 e.preventDefault();
+//                                 e.stopPropagation();
+//                                 selectProject(s);
+//                               }}
+//                               className="px-4 py-3 text-sm hover:bg-indigo-50 cursor-pointer border-b border-slate-100 last:border-b-0"
+//                             >
+//                               <div className="font-medium text-slate-900">{s.id}</div>
+//                               <div className="text-xs text-slate-600 mt-1">{s.name}</div>
+//                               {s.dueOn && <div className="text-xs text-orange-600 mt-1">Due: {s.dueOn}</div>}
+//                             </li>
+//                           ))}
+//                         </ul>
+//                       )}
+//                       {showSuggest && suggestions.length === 0 && !loadingSuggestions && projectQuery.trim() && (
+//                         <div className="absolute z-20 mt-2 w-full rounded-2xl border bg-white shadow-2xl px-4 py-3 text-sm text-slate-500">
+//                           No projects found for "{projectQuery}"
+//                         </div>
+//                       )}
+//                     </div>
+//                   </div>
+//                 </Field>
+
+//                 <Field label="Task *">
+//                   <Select
+//                     value={task}
+//                     onChange={setTask}
+//                     options={["", ...TASKS]}
+//                     labels={{ "": "— Select —" }}
+//                     isInvalid={invalid.task}
+//                   />
+//                 </Field>
+
+//                 <Field label="Book Element *">
+//                   <Select
+//                     value={bookElement}
+//                     onChange={setBookElement}
+//                     options={["", ...bookElements]}
+//                     labels={{ "": "— Select —" }}
+//                     isInvalid={invalid.bookElement}
+//                   />
+//                 </Field>
+
+//                 <Field label="Chapter No. *">
+//                   <MultiSelectChips
+//                     value={chapterNumber}
+//                     onChange={setChapterNumber}
+//                     options={chapterNumbers}
+//                     placeholder="Select chapter(s)…"
+//                     isInvalid={invalid.chapterNumber}
+//                   />
+//                 </Field>
+
+//                 <Field label="Hours Spent *">
+//                   <Select
+//                     value={hoursSpent}
+//                     onChange={setHoursSpent}
+//                     options={["", ...HOURS]}
+//                     labels={{ "": "— Select —" }}
+//                     isInvalid={invalid.hoursSpent}
+//                   />
+//                 </Field>
+
+//                 <Field label="No. of Units *">
+//                   <div className="flex gap-2 items-start">
+//                     <input
+//                       type="number"
+//                       className={`flex-1 h-9 text-sm px-3 rounded-2xl border-2 ${invalid.unitsCount ? "border-red-500" : "border-slate-300"
+//                         } focus:border-indigo-600`}
+//                       placeholder="e.g., 10"
+//                       value={unitsCount}
+//                       onChange={(e) => setUnitsCount(e.target.value)}
+//                     />
+//                     <div className="w-28">
+//                       <Select
+//                         value={unitsType}
+//                         onChange={setUnitsType}
+//                         options={UNITS.map((u) => u.value)}
+//                         labels={UNITS.reduce((m, u) => {
+//                           m[u.value] = u.label;
+//                           return m;
+//                         }, {})}
+//                         isInvalid={invalid.unitsType}
+//                       />
+//                     </div>
+//                   </div>
+//                 </Field>
+
+//                 <Field label="Status *">
+//                   <Select
+//                     value={status}
+//                     onChange={setStatus}
+//                     options={["", ...STATUS]}
+//                     labels={{ "": "— Select —" }}
+//                     isInvalid={invalid.status}
+//                   />
+//                 </Field>
+
+//                 <Field label="Due On">
+//                   <input
+//                     type="date"
+//                     className="w-full h-9 text-sm px-3 rounded-2xl border-2 border-slate-300 focus:border-indigo-600"
+//                     value={dueOn}
+//                     onChange={(e) => setDueOn(e.target.value)}
+//                   />
+//                   {dueOn && <div className="mt-1 text-xs text-slate-600">Due: {new Date(dueOn).toLocaleDateString()}</div>}
+//                 </Field>
+
+//                 <Field label="Details">
+//                   <textarea
+//                     className="w-full min-h-[140px] text-sm px-3 py-2 rounded-2xl border-2 border-slate-300 focus:border-indigo-600"
+//                     value={remarks}
+//                     onChange={(e) => setRemarks(e.target.value)}
+//                     placeholder="Add any additional notes..."
+//                   />
+//                 </Field>
+//               </div>
+
+//               <div className="mt-4 flex flex-col sm:flex-row items-center justify-end gap-3">
+//                 <button
+//                   type="button"
+//                   onClick={clearForm}
+//                   className="w-full sm:w-auto px-4 py-1.5 rounded-2xl border-2 border-slate-300 hover:bg-slate-50 transition-colors"
+//                 >
+//                   Clear
+//                 </button>
+
+//                 {resubmitTarget && (
+//                   <button
+//                     type="button"
+//                     onClick={onClickResubmit}
+//                     className="w-full sm:w-auto px-5 py-1.5 rounded-2xl text-white bg-amber-600 hover:bg-amber-700 transition-colors"
+//                     title="Send this corrected entry back to SPOC for Re-Approval/Re-Rejection"
+//                     disabled={!canSubmitRow || !projectValid}
+//                   >
+//                     Resubmit Entry {resubmitCountdown ? `(${resubmitCountdown})` : ""}
+//                   </button>
+//                 )}
+
+//                 <button
+//                   type="submit"
+//                   disabled={!canSubmitRow || !projectValid || !!resubmitTarget}
+//                   className={`w-full sm:w-auto px-5 py-1.5 rounded-2xl text-white transition-colors ${canSubmitRow && projectValid && !resubmitTarget
+//                     ? "bg-indigo-700 hover:bg-indigo-800"
+//                     : "bg-slate-400 cursor-not-allowed"
+//                     }`}
+//                 >
+//                   {editSourceIndex !== -1 ? "Update Entry" : "Add to Today's Worklog"}
+//                 </button>
+//               </div>
+//             </form>
+
+//             {/* Today's Worklog */}
+//             <section className="mt-8 space-y-6">
+//               {loadingToday ? (
+//                 <Feedback message="Loading today's worklog..." />
+//               ) : todayRows.length > 0 ? (
+//                 <>
+//                   <EditableBlock
+//                     title="Today's Worklog"
+//                     rows={todayRows}
+//                     onCopyRow={copyRowToForm}
+//                     onStartEdit={startEditViaForm}
+//                     onDeleteRow={deleteRowAt}
+//                     lists={{ WORK_MODES, TASKS, STATUS, HOURS, UNITS }}
+//                     getAdminActionBadge={getAdminActionBadge}
+//                     getAdminActionRowClass={getAdminActionRowClass}
+//                   />
+//                   <div className="text-xs text-slate-600 text-center bg-blue-50 border border-blue-200 rounded-2xl px-3 py-2">
+//                     Your entries are saved in database and will auto-submit at 10:30 PM (in {autoSubmitCountdown})
+//                   </div>
+//                 </>
+//               ) : (
+//                 <Feedback message={submitMsg || "No entries for today yet."} />
+//               )}
+
+//               <div className="flex items-center justify-center">
+//                 <button
+//                   onClick={submitTodaysWorklog}
+//                   disabled={submitting || todayRows.length === 0}
+//                   className="px-5 py-1.5 rounded-2xl text-white bg-emerald-700 disabled:opacity-60 hover:bg-emerald-800 transition-colors"
+//                 >
+//                   {submitting ? "Submitting…" : "Submit Today's Worklog"}
+//                 </button>
+//               </div>
+
+//               {submitMsg && <Feedback message={submitMsg} />}
+//               {pastError && <Feedback message={pastError} />}
+//               {loadingPast && <Feedback message="Loading past 7 days worklog..." />}
+//               {!pastError && !loadingPast && pastRows.length === 0 && <Feedback message="No entries in the last 7 days." />}
+
+//               {pastRows.some(r => r.auditStatus === "Rejected" && withinDplus4(r.date)) && (
+//                 <div className="rounded-2xl border border-amber-200 bg-amber-50 p-3">
+//                   <div className="text-sm font-semibold text-amber-900 mb-2">Rejected entries you can still edit</div>
+//                   <div className="space-y-2">
+//                     {pastRows
+//                       .filter(r => r.auditStatus === "Rejected" && withinDplus4(r.date))
+//                       .map((r) => (
+//                         <div key={r.id} className="flex items-center justify-between bg-white rounded-xl border border-amber-200 px-3 py-2 text-xs">
+//                           <div className="flex-1">
+//                             <div className="font-medium text-slate-900">{r.projectId || r.projectName}</div>
+//                             <div className="text-slate-600">
+//                               {r.date} · {r.task} · {r.bookElement} · Ch {r.chapterNo || "-"}
+//                               {getAdminActionBadge(r)}
+//                             </div>
+//                           </div>
+//                           <div className="flex items-center gap-3">
+//                             <span className="text-amber-700">{countdownToDplus4(r.date)}</span>
+//                             <button
+//                               className="px-3 py-1 rounded-lg bg-indigo-600 text-white hover:bg-indigo-700"
+//                               onClick={() => {
+//                                 setWorkMode(r.workMode || "");
+//                                 setProjectId(r.projectId || "");
+//                                 setProjectQuery(r.projectId || r.projectName || "");
+//                                 setProjectName(r.projectName || "");
+//                                 setTask(r.task || "");
+//                                 setBookElement(r.bookElement || "");
+//                                 setChapterNumber(
+//                                   typeof r.chapterNo === "string"
+//                                     ? r.chapterNo.split(",").map((c) => c.trim()).filter(Boolean)
+//                                     : Array.isArray(r.chapterNo) ? r.chapterNo : []
+//                                 );
+//                                 setHoursSpent(r.hoursSpent !== undefined && r.hoursSpent !== null ? String(r.hoursSpent) : "");
+//                                 setUnitsCount(r.noOfUnits !== undefined && r.noOfUnits !== null ? String(r.noOfUnits) : "");
+//                                 setUnitsType(r.unitsType || "pages");
+//                                 setStatus(r.status || "");
+//                                 setDueOn(r.dueOn || "");
+//                                 setRemarks(r.remarks || "");
+//                                 setEditSourceIndex(-1);
+//                                 setResubmitTarget({ id: r.id, date: r.date, originalRow: r });
+//                                 window.scrollTo({ top: 0, behavior: "smooth" });
+//                               }}
+//                             >
+//                               Edit & Resubmit
+//                             </button>
+//                           </div>
+//                         </div>
+//                       ))}
+//                   </div>
+//                 </div>
+//               )}
+
+//               {pastRows.length > 0 && (
+//                 <DataBlock
+//                   title={`Past 7 Days Worklog (${pastRows.length} entries)`}
+//                   rows={pastRows}
+//                   subtle
+//                   hideEdit
 //                   getAdminActionBadge={getAdminActionBadge}
 //                   getAdminActionRowClass={getAdminActionRowClass}
 //                 />
-//                 <div className="text-xs text-slate-600 text-center bg-blue-50 border border-blue-200 rounded-2xl px-3 py-2">
-//                   Your entries are saved in database and will auto-submit at 10:30 PM (in {autoSubmitCountdown})
-//                 </div>
-//               </>
-//             ) : (
-//               <Feedback message={submitMsg || "No entries for today yet."} />
-//             )}
-
-//             <div className="flex items-center justify-center">
-//               <button
-//                 onClick={submitTodaysWorklog}
-//                 disabled={submitting || todayRows.length === 0}
-//                 className="px-5 py-1.5 rounded-2xl text-white bg-emerald-700 disabled:opacity-60 hover:bg-emerald-800 transition-colors"
-//               >
-//                 {submitting ? "Submitting…" : "Submit Today's Worklog"}
-//               </button>
-//             </div>
-
-//             {submitMsg && <Feedback message={submitMsg} />}
-//             {pastError && <Feedback message={pastError} />}
-//             {loadingPast && <Feedback message="Loading past 7 days worklog..." />}
-//             {!pastError && !loadingPast && pastRows.length === 0 && <Feedback message="No entries in the last 7 days." />}
-
-//             {/* 🔔 Rejected panel — placed ABOVE the Past 7 Days table as requested */}
-//             {pastRows.some(r => r.auditStatus === "Rejected" && withinDplus4(r.date)) && (
-//               <div className="rounded-2xl border border-amber-200 bg-amber-50 p-3">
-//                 <div className="text-sm font-semibold text-amber-900 mb-2">Rejected entries you can still edit</div>
-//                 <div className="space-y-2">
-//                   // In the Rejected panel section, update the entry display:
-//                   {pastRows
-//                     .filter(r => r.auditStatus === "Rejected" && withinDplus4(r.date))
-//                     .map((r) => (
-//                       <div key={r.id} className="flex items-center justify-between bg-white rounded-xl border border-amber-200 px-3 py-2 text-xs">
-//                         <div className="flex-1">
-//                           <div className="font-medium text-slate-900">{r.projectId || r.projectName}</div>
-//                           <div className="text-slate-600">
-//                             {r.date} · {r.task} · {r.bookElement} · Ch {r.chapterNo || "-"}
-//                             {getAdminActionBadge(r)}
-//                           </div>
-//                         </div>
-//                         <div className="flex items-center gap-3">
-//                           <span className="text-amber-700">{countdownToDplus4(r.date)}</span>
-//                           <button
-//                             className="px-3 py-1 rounded-lg bg-indigo-600 text-white hover:bg-indigo-700"
-//                             onClick={() => {
-//                               // Prefill the top form for resubmission
-//                               setWorkMode(r.workMode || "");
-//                               setProjectId(r.projectId || "");
-//                               setProjectQuery(r.projectId || r.projectName || "");
-//                               setProjectName(r.projectName || "");
-//                               setTask(r.task || "");
-//                               setBookElement(r.bookElement || "");
-//                               setChapterNumber(
-//                                 typeof r.chapterNo === "string"
-//                                   ? r.chapterNo.split(",").map((c) => c.trim()).filter(Boolean)
-//                                   : Array.isArray(r.chapterNo) ? r.chapterNo : []
-//                               );
-//                               setHoursSpent(r.hoursSpent !== undefined && r.hoursSpent !== null ? String(r.hoursSpent) : "");
-//                               setUnitsCount(r.noOfUnits !== undefined && r.noOfUnits !== null ? String(r.noOfUnits) : "");
-//                               setUnitsType(r.unitsType || "pages");
-//                               setStatus(r.status || "");
-//                               setDueOn(r.dueOn || "");
-//                               setRemarks(r.remarks || "");
-//                               setEditSourceIndex(-1);
-//                               setResubmitTarget({ id: r.id, date: r.date, originalRow: r });
-//                               window.scrollTo({ top: 0, behavior: "smooth" });
-//                             }}
-//                           >
-//                             Edit & Resubmit
-//                           </button>
-//                         </div>
-//                       </div>
-//                     ))}
-//                 </div>
-//               </div>
-//             )}
-
-//             {/* Past worklogs */}
-//             {pastRows.length > 0 && (
-//               <DataBlock
-//                 title={`Past 7 Days Worklog (${pastRows.length} entries)`}
-//                 rows={pastRows}
-//                 subtle
-//                 hideEdit
-//                 getAdminActionBadge={getAdminActionBadge}
-//                 getAdminActionRowClass={getAdminActionRowClass}
-//               />
-//             )}
-//           </section>
-//         </div>
-//       </main>
+//               )}
+//             </section>
+//           </div>
+//         </main>
+//       </div>
 //     </div>
 //   );
 // }
 
-// /* ==============================
-//    UI Helpers
-//    ============================== */
 // function Field({ label, children }) {
 //   return (
 //     <label className="block">
@@ -1544,10 +1535,7 @@
 //   );
 // }
 
-// /* ==============================
-//    Tables & Blocks
-//    ============================== */
-// function DataBlock({ title, rows, subtle = false, hideEdit = false, onStartEdit }) {
+// function DataBlock({ title, rows, subtle = false, hideEdit = false, onStartEdit, getAdminActionBadge, getAdminActionRowClass }) {
 //   return (
 //     <div className={`rounded-2xl border ${subtle ? "border-slate-200 bg-white" : "border-slate-300 bg-slate-50"} shadow-sm`}>
 //       <div className="px-3 py-2 border-b border-slate-200 flex items-center justify-between">
@@ -1615,9 +1603,7 @@
 //   );
 // }
 
-// function EditableBlock({ title, rows, onStartEdit, onDeleteRow, onCopyRow, lists }) {
-//   const { } = lists;
-
+// function EditableBlock({ title, rows, onStartEdit, onDeleteRow, onCopyRow, lists, getAdminActionBadge, getAdminActionRowClass }) {
 //   return (
 //     <div className="rounded-2xl border border-slate-300 bg-slate-50 shadow-sm">
 //       <div className="px-3 py-2 border-b border-slate-200 flex items-center justify-between">
@@ -1708,9 +1694,6 @@
 //   return <div className={`rounded-2xl border px-3 py-2 text-xs ${bgColor}`}>{message}</div>;
 // }
 
-// /* ==============================
-//    Data
-//    ============================== */
 // const TODAY_HEADERS = [
 //   "Work Mode",
 //   "Project Name",
@@ -1741,9 +1724,6 @@
 //   "Audit Status",
 // ];
 
-// /* ==============================
-//    Rejection window helpers
-//    ============================== */
 // function withinDplus4(dateStr) {
 //   if (!dateStr) return false;
 //   const D = new Date(`${dateStr}T00:00:00.000Z`);
@@ -1831,6 +1811,62 @@ const getAdminActionRowClass = (row) => {
   return '';
 };
 
+const TODAY_HEADERS = [
+  "Work Mode",
+  "Project Name",
+  "Task",
+  "Element",
+  "Sub-Element(Chapter No.)",
+  "Hours Spent",
+  "No. of Units",
+  "Unit Type",
+  "Status",
+  "Due On",
+  "Details",
+];
+
+const PAST_HEADERS = [
+  "Date",
+  "Work Mode",
+  "Project Name",
+  "Task",
+  "Element",
+  "Sub-Element(Chapter No.)",
+  "Hours Spent",
+  "No. of Units",
+  "Unit Type",
+  "Status",
+  "Due On",
+  "Details",
+  "Audit Status",
+];
+
+function withinDplus4(dateStr) {
+  if (!dateStr) return false;
+  const D = new Date(`${dateStr}T00:00:00.000Z`);
+  const deadline = new Date(D);
+  deadline.setUTCDate(D.getUTCDate() + 4);
+  deadline.setUTCHours(23, 59, 59, 999);
+  return new Date() <= deadline;
+}
+
+function countdownToDplus4(dateStr) {
+  if (!dateStr) return "";
+  const D = new Date(`${dateStr}T00:00:00.000Z`);
+  const deadline = new Date(D);
+  deadline.setUTCDate(D.getUTCDate() + 4);
+  deadline.setUTCHours(23, 59, 59, 999);
+  const now = new Date();
+  const ms = deadline - now;
+  if (ms <= 0) return "window closed";
+
+  const d = Math.floor(ms / (24 * 3600000));
+  const h = Math.floor((ms % (24 * 3600000)) / 3600000);
+  const m = Math.floor((ms % 3600000) / 60000);
+  const s = Math.floor((ms % 60000) / 1000);
+  return `${d}d ${h}h ${m}m ${s}s left`;
+}
+
 export default function EmployeeDashboard() {
   const navigate = useNavigate();
   const [user, setUser] = useState(null);
@@ -1858,14 +1894,22 @@ export default function EmployeeDashboard() {
   const [hoursSpent, setHoursSpent] = useState("");
   const [status, setStatus] = useState("");
   const [unitsCount, setUnitsCount] = useState("");
-  const [unitsType, setUnitsType] = useState("pages");
+  const [unitsType, setUnitsType] = useState("");
   const [dueOn, setDueOn] = useState("");
   const [remarks, setRemarks] = useState("");
   const [suggestions, setSuggestions] = useState([]);
+  const [recentProjects, setRecentProjects] = useState([]);
   const [showSuggest, setShowSuggest] = useState(false);
   const [searchBy, setSearchBy] = useState("name");
   const [loadingSuggestions, setLoadingSuggestions] = useState(false);
   const suggestRef = useRef(null);
+  const inputRef = useRef(null);
+
+  const [unitTypeDisabled, setUnitTypeDisabled] = useState(false);
+  const [unitTypeLookupLoading, setUnitTypeLookupLoading] = useState(false);
+  const [combinationBlocked, setCombinationBlocked] = useState(false);
+  const [blockedMessage, setBlockedMessage] = useState("");
+  const [skipUnitTypeLookup, setSkipUnitTypeLookup] = useState(false);
 
   const [todayRows, setTodayRows] = useState([]);
   const [pastRows, setPastRows] = useState([]);
@@ -1874,6 +1918,7 @@ export default function EmployeeDashboard() {
   const [pastError, setPastError] = useState(null);
   const [submitting, setSubmitting] = useState(false);
   const [submitMsg, setSubmitMsg] = useState(null);
+  const [duplicateMsg, setDuplicateMsg] = useState(null);
 
   const [editSourceIndex, setEditSourceIndex] = useState(-1);
   const [resubmitTarget, setResubmitTarget] = useState(null);
@@ -1949,14 +1994,94 @@ export default function EmployeeDashboard() {
     }
   }, [checkTokenValidity]);
 
+  const fetchUnitTypeForCombination = useCallback(async (selectedTask, selectedBookElement) => {
+    if (!selectedTask || !selectedBookElement) {
+      setUnitTypeDisabled(false);
+      setCombinationBlocked(false);
+      setBlockedMessage("");
+      if (!selectedTask && !selectedBookElement) {
+        setUnitsType("");
+      }
+      return;
+    }
+
+    if (skipUnitTypeLookup) {
+      console.log("Skipping unit type lookup");
+      return;
+    }
+
+    if (!checkTokenValidity()) return;
+
+    setUnitTypeLookupLoading(true);
+   
+    try {
+      console.log("Fetching unit type for:", { task: selectedTask, bookElement: selectedBookElement });
+     
+      const { data } = await axios.get("/worklogs/unit-type-lookup", {
+        params: {
+          task: selectedTask,
+          bookElement: selectedBookElement
+        }
+      });
+
+      console.log("Unit type lookup response:", data);
+
+      if (data.success && data.found) {
+        if (data.isNA) {
+          setCombinationBlocked(true);
+          setBlockedMessage(`The combination of "${selectedTask}" and "${selectedBookElement}" is not allowed. Please change either Task or Element.`);
+          setUnitsType("");
+          setUnitTypeDisabled(true);
+        } else {
+          const normalizedUnitType = data.unitType.toLowerCase();
+          setUnitsType(normalizedUnitType);
+          setUnitTypeDisabled(true);
+          setCombinationBlocked(false);
+          setBlockedMessage("");
+        }
+      } else {
+        // Only clear if we're not in skip mode
+        if (!skipUnitTypeLookup) {
+          setUnitsType("");
+        }
+        setUnitTypeDisabled(false);
+        setCombinationBlocked(false);
+        setBlockedMessage("");
+      }
+    } catch (error) {
+      if (error.response?.status === 401) {
+        checkTokenValidity();
+        return;
+      }
+      console.error("Failed to lookup unit type:", error);
+      if (!skipUnitTypeLookup) {
+        setUnitsType("");
+      }
+      setUnitTypeDisabled(false);
+      setCombinationBlocked(false);
+      setBlockedMessage("");
+    } finally {
+      setUnitTypeLookupLoading(false);
+    }
+  }, [checkTokenValidity, skipUnitTypeLookup]);
+
+  useEffect(() => {
+    // Don't fetch if we're in skip mode
+    if (skipUnitTypeLookup) return;
+   
+    fetchUnitTypeForCombination(task, bookElement);
+  }, [task, bookElement, fetchUnitTypeForCombination, skipUnitTypeLookup]);
+
   const WORK_MODES = ["In Office", "WFH", "On Duty", "Half Day", "OT Home", "OT Office", "Night"];
   const STATUS = ["In Progress", "Delayed", "Completed", "Not approved"];
   const HOURS = ["0.5", "1", "1.5", "2", "2.5", "3", "3.5", "4", "4.5", "5", "5.5", "6", "6.5", "7", "7.5", "8"];
   const UNITS = [
+    { label: "— Select —", value: "" },
     { label: "pages", value: "pages" },
     { label: "frames", value: "frames" },
     { label: "seconds", value: "seconds" },
     { label: "general", value: "general" },
+    { label: "count", value: "count" }
   ];
 
   const TASKS = useMemo(() => {
@@ -1977,7 +2102,7 @@ export default function EmployeeDashboard() {
     if (teamDropdowns.chapterNumbers && teamDropdowns.chapterNumbers.length > 0) {
       return teamDropdowns.chapterNumbers;
     }
-    return ["Title", "Syllabus", "Content", "Projects", "Papers", "Miscellaneous", "Appendix", "Full Book",
+    return ["Title", "Syllabus", "Content", "Projects", "Papers", "Miscellaneous", "Appendix", "Full book",
       ...Array.from({ length: 40 }, (_, i) => String(i + 1))
     ];
   }, [teamDropdowns.chapterNumbers]);
@@ -2140,9 +2265,27 @@ export default function EmployeeDashboard() {
           adminActionDate: r.admin_action_date || null
         }));
         setPastRows(mapped);
+       
+        // Extract recent projects for autocomplete
+        const projectMap = new Map();
+        mapped.forEach(row => {
+          if (row.projectId || row.projectName) {
+            const key = row.projectId || row.projectName;
+            if (!projectMap.has(key)) {
+              projectMap.set(key, {
+                id: row.projectId || row.projectName,
+                name: row.projectName || row.projectId,
+                dueOn: row.dueOn || null
+              });
+            }
+          }
+        });
+        setRecentProjects(Array.from(projectMap.values()).slice(0, 10));
+       
         if (mapped.length === 0) setPastError("No recent worklogs found.");
       } else {
         setPastRows([]);
+        setRecentProjects([]);
         setPastError("No recent worklogs found.");
       }
     } catch (err) {
@@ -2152,6 +2295,7 @@ export default function EmployeeDashboard() {
       }
       setPastError(`Failed to load recent worklogs: ${err?.response?.data?.message || err.message}`);
       setPastRows([]);
+      setRecentProjects([]);
     } finally {
       setLoadingPast(false);
     }
@@ -2203,7 +2347,6 @@ export default function EmployeeDashboard() {
           status: r.status,
           dueOn: r.due_on ? new Date(r.due_on).toISOString().slice(0, 10) : null,
           remarks: r.details || null,
-          
         }));
       }
 
@@ -2333,18 +2476,63 @@ export default function EmployeeDashboard() {
     navigate("/");
   };
 
-  const showFullBook = useMemo(() => ["FER", "FINAL", "COM"].includes(task), [task]);
-  const bookElements = useMemo(() => (showFullBook ? ["Full Book", ...BASE_BOOK_ELEMENTS] : BASE_BOOK_ELEMENTS), [showFullBook, BASE_BOOK_ELEMENTS]);
+  const showFullBook = useMemo(() => [].includes(task), [task]);
+  const bookElements = useMemo(() => (showFullBook ? ["Full book", ...BASE_BOOK_ELEMENTS] : BASE_BOOK_ELEMENTS), [showFullBook, BASE_BOOK_ELEMENTS]);
   const chapterNumbers = useMemo(
     () => (showFullBook ? BASE_CHAPTER_NUMBERS : BASE_CHAPTER_NUMBERS.filter((v) => v !== "Full Book")),
     [showFullBook, BASE_CHAPTER_NUMBERS]
   );
 
+  const totalHours = useMemo(() => {
+    return todayRows.reduce((sum, row) => {
+      const hours = parseFloat(row.hoursSpent) || 0;
+      return sum + hours;
+    }, 0);
+  }, [todayRows]);
+
+  const showInOfficeWarning = useMemo(() => {
+    const hasInOffice = todayRows.some(row => row.workMode === "In Office");
+    return hasInOffice && totalHours < 5;
+  }, [todayRows, totalHours]);
+
+  const isDuplicateEntry = useCallback((newEntry, existingRows, excludeIndex = -1) => {
+    return existingRows.some((row, index) => {
+      if (index === excludeIndex) return false;
+     
+      return (
+        row.workMode === newEntry.workMode &&
+        (row.projectId === newEntry.projectId || row.projectName === newEntry.projectName) &&
+        row.task === newEntry.task &&
+        row.bookElement === newEntry.bookElement &&
+        row.chapterNo === newEntry.chapterNo &&
+        String(row.hoursSpent) === String(newEntry.hoursSpent) &&
+        String(row.noOfUnits) === String(newEntry.noOfUnits) &&
+        row.unitsType === newEntry.unitsType &&
+        row.status === newEntry.status &&
+        row.dueOn === newEntry.dueOn &&
+        row.remarks === newEntry.remarks
+      );
+    });
+  }, []);
+
   useEffect(() => {
     let active = true;
     const q = projectQuery.trim();
+   
     if (!q) {
-      setSuggestions([]);
+      if (recentProjects.length > 0) {
+        setSuggestions(recentProjects);
+        setShowSuggest(false); // Don't auto-show when empty
+      } else {
+        setSuggestions([]);
+        setShowSuggest(false);
+      }
+      setSelectedSuggestionIndex(-1);
+      return;
+    }
+
+    // Don't search if we already have a selected project with matching ID
+    if (projectId && projectId === q) {
       setShowSuggest(false);
       return;
     }
@@ -2363,6 +2551,7 @@ export default function EmployeeDashboard() {
         }));
         setSuggestions(transformed);
         setShowSuggest(transformed.length > 0);
+        setSelectedSuggestionIndex(-1);
       } catch (err) {
         if (err.response?.status === 401) {
           checkTokenValidity();
@@ -2370,6 +2559,7 @@ export default function EmployeeDashboard() {
         }
         setSuggestions([]);
         setShowSuggest(false);
+        setSelectedSuggestionIndex(-1);
       } finally {
         setLoadingSuggestions(false);
       }
@@ -2380,16 +2570,21 @@ export default function EmployeeDashboard() {
       clearTimeout(t);
       setLoadingSuggestions(false);
     };
-  }, [projectQuery, searchBy, checkTokenValidity]);
+  }, [projectQuery, searchBy, checkTokenValidity, recentProjects, projectId]);
 
   useEffect(() => {
     function onClickOutside(e) {
       if (!suggestRef.current) return;
-      if (!suggestRef.current.contains(e.target)) setShowSuggest(false);
+      if (!suggestRef.current.contains(e.target)) {
+        setShowSuggest(false);
+        setSelectedSuggestionIndex(-1);
+      }
     }
     window.addEventListener("mousedown", onClickOutside);
     return () => window.removeEventListener("mousedown", onClickOutside);
   }, []);
+
+  const [selectedSuggestionIndex, setSelectedSuggestionIndex] = useState(-1);
 
   const selectProject = (p) => {
     setProjectId(p.id);
@@ -2397,6 +2592,7 @@ export default function EmployeeDashboard() {
     setProjectQuery(p.id);
     if (p.dueOn) setDueOn(p.dueOn);
     setShowSuggest(false);
+    setSelectedSuggestionIndex(-1);
   };
 
   const isEmpty = (v) => Array.isArray(v) ? v.length === 0 : (v === null || v === undefined || String(v).trim() === "");
@@ -2412,7 +2608,7 @@ export default function EmployeeDashboard() {
     Object.entries(required).map(([k, v]) => [k, isEmpty(v)])
   );
 
-  const canSubmitRow = Object.values(required).every((v) => !isEmpty(v));
+  const canSubmitRow = Object.values(required).every((v) => !isEmpty(v)) && !combinationBlocked;
 
   const clearForm = () => {
     setWorkMode("");
@@ -2425,13 +2621,18 @@ export default function EmployeeDashboard() {
     setHoursSpent("");
     setStatus("");
     setUnitsCount("");
-    setUnitsType("pages");
+    setUnitsType("");
     setDueOn("");
     setRemarks("");
     setSubmitMsg(null);
+    setDuplicateMsg(null);
     setEditSourceIndex(-1);
     setResubmitTarget(null);
     setResubmitCountdown("");
+    setUnitTypeDisabled(false);
+    setCombinationBlocked(false);
+    setBlockedMessage("");
+    setSkipUnitTypeLookup(false);
   };
 
   const onSubmit = async (e) => {
@@ -2439,6 +2640,12 @@ export default function EmployeeDashboard() {
     if (!canSubmitRow || !projectValid) return;
 
     if (resubmitTarget) return;
+
+    if (combinationBlocked) {
+      setDuplicateMsg(null);
+      setSubmitMsg(blockedMessage);
+      return;
+    }
 
     const newEntry = {
       workMode,
@@ -2455,6 +2662,13 @@ export default function EmployeeDashboard() {
       remarks,
     };
 
+    if (isDuplicateEntry(newEntry, todayRows, editSourceIndex)) {
+      setDuplicateMsg("This entry already exists in today's worklog. Please modify the entry or remove the duplicate.");
+      setSubmitMsg(null);
+      window.scrollTo({ top: 0, behavior: "smooth" });
+      return;
+    }
+
     try {
       if (editSourceIndex !== -1) {
         const currentRow = todayRows[editSourceIndex];
@@ -2470,19 +2684,26 @@ export default function EmployeeDashboard() {
           setTodayRows((prev) => [...prev, savedEntry]);
         }
       }
+      setDuplicateMsg(null);
       clearForm();
     } catch (error) {
+      setDuplicateMsg(null);
       setSubmitMsg(`Failed to save entry: ${error?.response?.data?.message || error.message}`);
     }
   };
 
   const copyRowToForm = (row) => {
+    // Set skip flag FIRST and keep it true longer
+    setSkipUnitTypeLookup(true);
+   
+    // Set all fields in a batch
     setWorkMode(row.workMode || "");
     setProjectId(row.projectId || "");
     setProjectQuery(row.projectId || row.projectName || "");
     setProjectName(row.projectName || "");
     setTask(row.task || "");
     setBookElement(row.bookElement || "");
+    setUnitsType(row.unitsType || "");  // Set unit type immediately with other fields
     setChapterNumber(
       typeof row.chapterNo === "string"
         ? row.chapterNo.split(",").map((c) => c.trim()).filter(Boolean)
@@ -2492,19 +2713,54 @@ export default function EmployeeDashboard() {
     );
     setHoursSpent(row.hoursSpent !== undefined && row.hoursSpent !== null ? String(row.hoursSpent) : "");
     setUnitsCount(row.noOfUnits !== undefined && row.noOfUnits !== null ? String(row.noOfUnits) : "");
-    setUnitsType(row.unitsType || "pages");
     setStatus(row.status || "");
     setDueOn(row.dueOn || "");
     setRemarks(row.remarks || "");
     setEditSourceIndex(-1);
     setResubmitTarget(null);
+    setUnitTypeDisabled(false);
+    setCombinationBlocked(false);
+    setBlockedMessage("");
+   
+    // Don't re-enable auto-fetch - let user manually change if needed
+    // Only reset skip flag when form is cleared or new task/bookElement selected
+   
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   const startEditViaForm = (idx, row) => {
-    copyRowToForm(row);
+    // Set skip flag to prevent auto-fetch when editing
+    setSkipUnitTypeLookup(true);
+   
+    // Set all fields in a batch
+    setWorkMode(row.workMode || "");
+    setProjectId(row.projectId || "");
+    setProjectQuery(row.projectId || row.projectName || "");
+    setProjectName(row.projectName || "");
+    setTask(row.task || "");
+    setBookElement(row.bookElement || "");
+    setUnitsType(row.unitsType || "");  // Set unit type immediately with other fields
+    setChapterNumber(
+      typeof row.chapterNo === "string"
+        ? row.chapterNo.split(",").map((c) => c.trim()).filter(Boolean)
+        : Array.isArray(row.chapterNo)
+          ? row.chapterNo
+          : []
+    );
+    setHoursSpent(row.hoursSpent !== undefined && row.hoursSpent !== null ? String(row.hoursSpent) : "");
+    setUnitsCount(row.noOfUnits !== undefined && row.noOfUnits !== null ? String(row.noOfUnits) : "");
+    setStatus(row.status || "");
+    setDueOn(row.dueOn || "");
+    setRemarks(row.remarks || "");
     setEditSourceIndex(idx);
     setResubmitTarget(null);
+    setUnitTypeDisabled(false);
+    setCombinationBlocked(false);
+    setBlockedMessage("");
+   
+    // Don't re-enable auto-fetch - let user manually change if needed
+    // Only reset skip flag when form is cleared or new task/bookElement selected
+   
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
@@ -2619,12 +2875,9 @@ export default function EmployeeDashboard() {
 
   return (
     <div className="min-h-screen bg-slate-100 text-slate-900 text-sm">
-      {/* Enhanced Responsive Navbar */}
       <nav className="fixed top-0 left-0 right-0 z-50 bg-slate-900 text-white shadow-lg">
         <div className="flex justify-between items-center w-full px-4 sm:px-6 h-16">
-          {/* Left side - Sidebar Toggle & Logo/Title */}
           <div className="flex items-center space-x-2">
-            {/* Sidebar toggle button for mobile/tablet only */}
             <button
               onClick={() => setSidebarOpen(!sidebarOpen)}
               className="mr-2 p-2 rounded-md text-slate-300 hover:text-white hover:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-white lg:hidden"
@@ -2641,7 +2894,6 @@ export default function EmployeeDashboard() {
             </h1>
           </div>
 
-          {/* Desktop menu */}
           <div className="hidden md:flex items-center space-x-4">
             <div className="flex items-center space-x-3">
               <img
@@ -2662,7 +2914,6 @@ export default function EmployeeDashboard() {
             </button>
           </div>
 
-          {/* Mobile menu button */}
           <div className="md:hidden">
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
@@ -2702,7 +2953,6 @@ export default function EmployeeDashboard() {
           </div>
         </div>
 
-        {/* Mobile menu */}
         {mobileMenuOpen && (
           <div className="md:hidden border-t border-slate-700">
             <div className="px-2 pt-2 pb-3 space-y-1">
@@ -2734,14 +2984,10 @@ export default function EmployeeDashboard() {
         )}
       </nav>
 
-      {/* Layout Container */}
       <div className="pt-16 flex">
-        {/* Mobile Sidebar Overlay and Sidebar */}
         {sidebarOpen && (
           <div className="fixed inset-0 z-40 lg:hidden">
-            {/* Backdrop */}
             <div className="fixed inset-0 bg-black bg-opacity-50" onClick={() => setSidebarOpen(false)} />
-            {/* Mobile Sidebar */}
             <aside className="fixed top-16 left-0 h-[calc(100vh-4rem)] w-80 bg-gray-800 text-white shadow-xl transform transition-transform duration-300 ease-in-out overflow-y-auto">
               <div className="p-6">
                 <div className="flex items-center justify-between mb-8">
@@ -2789,7 +3035,6 @@ export default function EmployeeDashboard() {
           </div>
         )}
 
-        {/* Desktop Sidebar - Hidden on mobile, visible on lg+ */}
         <aside className="hidden lg:block fixed top-16 left-0 h-[calc(100vh-4rem)] w-72 bg-gray-800 text-white shadow-xl overflow-y-auto">
           <div className="p-6">
             <div className="mb-8">
@@ -2818,9 +3063,8 @@ export default function EmployeeDashboard() {
           </div>
         </aside>
 
-        {/* Main content with proper margin for sidebar */}
         <main className={`flex-1 transition-all duration-300 ease-in-out lg:ml-72 overflow-y-auto`}>
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">{/* New Entry */}
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
             <form onSubmit={onSubmit} className="bg-white rounded-2xl shadow-xl p-4 sm:p-6 border border-slate-200">
               <div className="flex items-start justify-between mb-3">
                 <h2 className="text-base sm:text-lg font-semibold text-slate-800">
@@ -2836,7 +3080,27 @@ export default function EmployeeDashboard() {
                 </div>
               </div>
 
-              {/* Resubmit banner */}
+              {duplicateMsg && (
+                <div className="mb-4 rounded-xl border-2 border-red-400 bg-red-50 px-4 py-3 text-sm text-red-900 flex items-start shadow-md">
+                  <svg className="w-5 h-5 mr-2 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                  </svg>
+                  <div>
+                    <div className="font-semibold mb-1">Duplicate Entry Detected</div>
+                    <div>{duplicateMsg}</div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setDuplicateMsg(null)}
+                    className="ml-auto text-red-900 hover:text-red-700"
+                  >
+                    <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+                    </svg>
+                  </button>
+                </div>
+              )}
+
               {resubmitTarget && (
                 <div className="mb-3 rounded-xl border border-amber-300 bg-amber-50 px-3 py-2 text-xs text-amber-900">
                   You are editing a <b>Rejected</b> entry from <b>{resubmitTarget.date}</b>. You can resubmit until{" "}
@@ -2849,6 +3113,15 @@ export default function EmployeeDashboard() {
                   >
                     Cancel
                   </button>
+                </div>
+              )}
+
+              {combinationBlocked && (
+                <div className="mb-3 rounded-xl border border-red-300 bg-red-50 px-3 py-2 text-xs text-red-900 flex items-start">
+                  <svg className="w-4 h-4 mr-2 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                  </svg>
+                  <span>{blockedMessage}</span>
                 </div>
               )}
 
@@ -2867,20 +3140,51 @@ export default function EmployeeDashboard() {
                   <div className="flex gap-2 items-center">
                     <div className="relative flex-1" ref={suggestRef}>
                       <input
+                        ref={inputRef}
                         type="text"
                         placeholder="Start typing project name or ID…"
                         className={`w-full h-9 text-sm px-3 rounded-2xl border-2 ${invalid.projectId ? "border-red-500" : "border-slate-300"} focus:border-indigo-600`}
                         value={projectQuery}
                         onChange={(e) => {
-                          setProjectQuery(e.target.value);
-                          setProjectId("");
-                          setProjectName("");
-                          if (!e.target.value.trim()) setDueOn("");
+                          const newValue = e.target.value;
+                          setProjectQuery(newValue);
+                          // Only clear projectId if user is actually changing the input
+                          if (newValue !== projectId) {
+                            setProjectId("");
+                            setProjectName("");
+                          }
+                          if (!newValue.trim()) setDueOn("");
+                        }}
+                        onFocus={() => {
+                          // Only show recent projects when query is empty and no project is selected
+                          if (!projectQuery.trim() && !projectId && recentProjects.length > 0) {
+                            setSuggestions(recentProjects);
+                            setShowSuggest(true);
+                          }
                         }}
                         onBlur={() => {
-                          const exact = suggestions.find(s => s.id === projectQuery.trim());
-                          if (exact && !projectId) {
-                            selectProject(exact);
+                          setTimeout(() => {
+                            setShowSuggest(false);
+                            setSelectedSuggestionIndex(-1);
+                          }, 200);
+                        }}
+                        onKeyDown={(e) => {
+                          if (!showSuggest || suggestions.length === 0) return;
+                         
+                          if (e.key === "ArrowDown") {
+                            e.preventDefault();
+                            setSelectedSuggestionIndex((prev) =>
+                              prev < suggestions.length - 1 ? prev + 1 : prev
+                            );
+                          } else if (e.key === "ArrowUp") {
+                            e.preventDefault();
+                            setSelectedSuggestionIndex((prev) => prev > 0 ? prev - 1 : -1);
+                          } else if (e.key === "Enter" && selectedSuggestionIndex >= 0) {
+                            e.preventDefault();
+                            selectProject(suggestions[selectedSuggestionIndex]);
+                          } else if (e.key === "Escape") {
+                            setShowSuggest(false);
+                            setSelectedSuggestionIndex(-1);
                           }
                         }}
                       />
@@ -2891,15 +3195,27 @@ export default function EmployeeDashboard() {
                       )}
                       {showSuggest && suggestions.length > 0 && (
                         <ul className="absolute z-20 mt-2 max-h-64 w-full overflow-auto rounded-2xl border bg-white shadow-2xl">
-                          {suggestions.map((s) => (
+                          {!projectQuery.trim() && (
+                            <li className="px-4 py-2 text-xs font-semibold text-slate-500 bg-slate-50 border-b">
+                              Recently Used Projects
+                            </li>
+                          )}
+                          {suggestions.map((s, index) => (
                             <li
-                              key={s.id}
+                              key={`${s.id}-${index}`}
+                              onMouseDown={(e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                              }}
                               onClick={(e) => {
                                 e.preventDefault();
                                 e.stopPropagation();
                                 selectProject(s);
                               }}
-                              className="px-4 py-3 text-sm hover:bg-indigo-50 cursor-pointer border-b border-slate-100 last:border-b-0"
+                              onMouseEnter={() => setSelectedSuggestionIndex(index)}
+                              className={`px-4 py-3 text-sm cursor-pointer border-b border-slate-100 last:border-b-0 ${
+                                index === selectedSuggestionIndex ? 'bg-indigo-100' : 'hover:bg-indigo-50'
+                              }`}
                             >
                               <div className="font-medium text-slate-900">{s.id}</div>
                               <div className="text-xs text-slate-600 mt-1">{s.name}</div>
@@ -2920,30 +3236,43 @@ export default function EmployeeDashboard() {
                 <Field label="Task *">
                   <Select
                     value={task}
-                    onChange={setTask}
+                    onChange={(newTask) => {
+                      setTask(newTask);
+                      // Re-enable auto-fetch when user manually changes task
+                      if (skipUnitTypeLookup) {
+                        setSkipUnitTypeLookup(false);
+                      }
+                    }}
                     options={["", ...TASKS]}
                     labels={{ "": "— Select —" }}
                     isInvalid={invalid.task}
                   />
                 </Field>
 
-                <Field label="Book Element *">
+                <Field label="Element *">
                   <Select
                     value={bookElement}
-                    onChange={setBookElement}
+                    onChange={(newBookElement) => {
+                      setBookElement(newBookElement);
+                      // Re-enable auto-fetch when user manually changes book element
+                      if (skipUnitTypeLookup) {
+                        setSkipUnitTypeLookup(false);
+                      }
+                    }}
                     options={["", ...bookElements]}
                     labels={{ "": "— Select —" }}
                     isInvalid={invalid.bookElement}
                   />
                 </Field>
 
-                <Field label="Chapter No. *">
+                <Field label="Sub-Element(Chapter No.) *">
                   <MultiSelectChips
                     value={chapterNumber}
                     onChange={setChapterNumber}
                     options={chapterNumbers}
-                    placeholder="Select chapter(s)…"
+                    placeholder="Select Sub-Element…"
                     isInvalid={invalid.chapterNumber}
+                    bookElement={bookElement}
                   />
                 </Field>
 
@@ -2965,9 +3294,21 @@ export default function EmployeeDashboard() {
                         } focus:border-indigo-600`}
                       placeholder="e.g., 10"
                       value={unitsCount}
-                      onChange={(e) => setUnitsCount(e.target.value)}
+                      onChange={(e) => {
+                        const value = e.target.value;
+                        // Only allow positive numbers
+                        if (value === '' || (parseFloat(value) >= 0)) {
+                          setUnitsCount(value);
+                        }
+                      }}
+                      onKeyDown={(e) => {
+                        // Prevent negative sign, 'e', 'E', '+'
+                        if (['-', 'e', 'E', '+'].includes(e.key)) {
+                          e.preventDefault();
+                        }
+                      }}
                     />
-                    <div className="w-28">
+                    <div className="w-28 relative">
                       <Select
                         value={unitsType}
                         onChange={setUnitsType}
@@ -2977,7 +3318,16 @@ export default function EmployeeDashboard() {
                           return m;
                         }, {})}
                         isInvalid={invalid.unitsType}
+                        disabled={unitTypeDisabled}
                       />
+                      {unitTypeLookupLoading && (
+                        <div className="absolute right-2 top-2">
+                          <div className="animate-spin h-4 w-4 border-2 border-indigo-600 border-t-transparent rounded-full"></div>
+                        </div>
+                      )}
+                      {unitTypeDisabled && !unitTypeLookupLoading && !combinationBlocked && (
+                        <div className="mt-1 text-xs text-green-600">Auto-selected</div>
+                      )}
                     </div>
                   </div>
                 </Field>
@@ -3036,24 +3386,24 @@ export default function EmployeeDashboard() {
                 <button
                   type="submit"
                   disabled={!canSubmitRow || !projectValid || !!resubmitTarget}
-                  className={`w-full sm:w-auto px-5 py-1.5 rounded-2xl text-white transition-colors ${canSubmitRow && projectValid && !resubmitTarget
-                    ? "bg-indigo-700 hover:bg-indigo-800"
-                    : "bg-slate-400 cursor-not-allowed"
-                    }`}
+                  className={`w-full sm:w-auto px-5 py-1.5 rounded-2xl text-white transition-colors ${
+                    canSubmitRow && projectValid && !resubmitTarget
+                      ? "bg-indigo-700 hover:bg-indigo-800"
+                      : "bg-slate-400 cursor-not-allowed"
+                  }`}
                 >
                   {editSourceIndex !== -1 ? "Update Entry" : "Add to Today's Worklog"}
                 </button>
               </div>
             </form>
 
-            {/* Today's Worklog */}
             <section className="mt-8 space-y-6">
               {loadingToday ? (
                 <Feedback message="Loading today's worklog..." />
               ) : todayRows.length > 0 ? (
                 <>
                   <EditableBlock
-                    title="Today's Worklog"
+                    title={`Today's Worklog - Total Hours: ${totalHours.toFixed(1)}`}
                     rows={todayRows}
                     onCopyRow={copyRowToForm}
                     onStartEdit={startEditViaForm}
@@ -3065,6 +3415,18 @@ export default function EmployeeDashboard() {
                   <div className="text-xs text-slate-600 text-center bg-blue-50 border border-blue-200 rounded-2xl px-3 py-2">
                     Your entries are saved in database and will auto-submit at 10:30 PM (in {autoSubmitCountdown})
                   </div>
+                 
+                  {showInOfficeWarning && (
+                    <div className="rounded-2xl border border-orange-300 bg-orange-50 px-4 py-3 text-sm text-orange-900 flex items-start">
+                      <svg className="w-5 h-5 mr-2 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                      </svg>
+                      <div>
+                        <div className="font-semibold mb-1">Hours Check</div>
+                        <div>Your total hours are less than 5 hours. Are you sure you were in office? If you were on half day, please select "Half Day" as your work mode instead of "In Office".</div>
+                      </div>
+                    </div>
+                  )}
                 </>
               ) : (
                 <Feedback message={submitMsg || "No entries for today yet."} />
@@ -3118,7 +3480,7 @@ export default function EmployeeDashboard() {
                                 );
                                 setHoursSpent(r.hoursSpent !== undefined && r.hoursSpent !== null ? String(r.hoursSpent) : "");
                                 setUnitsCount(r.noOfUnits !== undefined && r.noOfUnits !== null ? String(r.noOfUnits) : "");
-                                setUnitsType(r.unitsType || "pages");
+                                setUnitsType(r.unitsType || "");
                                 setStatus(r.status || "");
                                 setDueOn(r.dueOn || "");
                                 setRemarks(r.remarks || "");
@@ -3163,7 +3525,7 @@ function Field({ label, children }) {
   );
 }
 
-function Select({ value, onChange, options, labels, isInvalid }) {
+function Select({ value, onChange, options, labels, isInvalid, disabled }) {
   const safeOptions = Array.isArray(options) ? options : [];
   const labelFor = (o) =>
     labels && typeof labels === "object" && Object.prototype.hasOwnProperty.call(labels, o) ? labels[o] : o;
@@ -3171,9 +3533,10 @@ function Select({ value, onChange, options, labels, isInvalid }) {
   return (
     <select
       className={`w-full h-9 text-sm px-2 rounded-2xl border-2 ${isInvalid ? "border-red-500" : "border-slate-300"
-        } focus:border-indigo-600`}
+        } focus:border-indigo-600 ${disabled ? "bg-slate-100 cursor-not-allowed" : ""}`}
       value={value}
       onChange={(e) => onChange(e.target.value)}
+      disabled={disabled}
     >
       {safeOptions.map((o, idx) => (
         <option key={idx} value={o}>
@@ -3184,7 +3547,7 @@ function Select({ value, onChange, options, labels, isInvalid }) {
   );
 }
 
-function MultiSelectChips({ value = [], onChange, options = [], placeholder = "Select one or more…", isInvalid = false }) {
+function MultiSelectChips({ value = [], onChange, options = [], placeholder = "Select one or more…", isInvalid = false, bookElement = "" }) {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
   const shellRef = useRef(null);
@@ -3201,10 +3564,17 @@ function MultiSelectChips({ value = [], onChange, options = [], placeholder = "S
   }, []);
 
   const deduped = useMemo(() => Array.from(new Set(options.map((o) => String(o)))), [options]);
+ 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
-    return deduped.filter((o) => !value.includes(o)).filter((o) => (q ? o.toLowerCase().includes(q) : true));
-  }, [deduped, value, query]);
+    let availableOptions = deduped.filter((o) => !value.includes(o));
+   
+    if (bookElement === "Full book") {
+      availableOptions = availableOptions.filter(o => isNaN(Number(o)));
+    }
+   
+    return availableOptions.filter((o) => (q ? o.toLowerCase().includes(q) : true));
+  }, [deduped, value, query, bookElement]);
 
   const guardOnce = () => {
     const now = Date.now();
@@ -3271,6 +3641,12 @@ function MultiSelectChips({ value = [], onChange, options = [], placeholder = "S
           onKeyDown={(e) => {
             if (e.key === "Backspace" && query === "" && value.length) {
               removeAt(value.length - 1);
+            } else if (e.key === "Enter" && query.trim()) {
+              e.preventDefault();
+              const exactMatch = filtered.find(opt => opt.toLowerCase() === query.trim().toLowerCase());
+              if (exactMatch) {
+                addItem(exactMatch);
+              }
             }
           }}
           className="flex-1 min-w-[80px] outline-none text-sm px-1 py-1 bg-transparent"
@@ -3284,7 +3660,9 @@ function MultiSelectChips({ value = [], onChange, options = [], placeholder = "S
           onMouseDown={(e) => e.preventDefault()}
         >
           {filtered.length === 0 ? (
-            <div className="px-3 py-2 text-sm text-slate-500">No matches</div>
+            <div className="px-3 py-2 text-sm text-slate-500">
+              {bookElement === "Full book" ? "Only non-numeric chapters allowed for Full book" : "No matches"}
+            </div>
           ) : (
             filtered.map((opt) => (
               <div
@@ -3456,7 +3834,7 @@ function EditableBlock({ title, rows, onStartEdit, onDeleteRow, onCopyRow, lists
 }
 
 function Feedback({ message }) {
-  const isError = message && (message.includes("Error") || message.includes("Failed") || message.includes("failed"));
+  const isError = message && (message.includes("Error") || message.includes("Failed") || message.includes("failed") || message.includes("not allowed") || message.includes("already exists"));
   const isSuccess = message && (message.includes("Successfully") || message.includes("submitted") || message.includes("Resubmitted"));
 
   let bgColor = "bg-blue-50 border-blue-200 text-blue-900";
@@ -3464,60 +3842,4 @@ function Feedback({ message }) {
   if (isSuccess) bgColor = "bg-emerald-50 border-emerald-200 text-emerald-900";
 
   return <div className={`rounded-2xl border px-3 py-2 text-xs ${bgColor}`}>{message}</div>;
-}
-
-const TODAY_HEADERS = [
-  "Work Mode",
-  "Project Name",
-  "Task",
-  "Book Element",
-  "Chapter No.",
-  "Hours Spent",
-  "No. of Units",
-  "Unit Type",
-  "Status",
-  "Due On",
-  "Details",
-];
-
-const PAST_HEADERS = [
-  "Date",
-  "Work Mode",
-  "Project Name",
-  "Task",
-  "Book Element",
-  "Chapter No.",
-  "Hours Spent",
-  "No. of Units",
-  "Unit Type",
-  "Status",
-  "Due On",
-  "Details",
-  "Audit Status",
-];
-
-function withinDplus4(dateStr) {
-  if (!dateStr) return false;
-  const D = new Date(`${dateStr}T00:00:00.000Z`);
-  const deadline = new Date(D);
-  deadline.setUTCDate(D.getUTCDate() + 4);
-  deadline.setUTCHours(23, 59, 59, 999);
-  return new Date() <= deadline;
-}
-
-function countdownToDplus4(dateStr) {
-  if (!dateStr) return "";
-  const D = new Date(`${dateStr}T00:00:00.000Z`);
-  const deadline = new Date(D);
-  deadline.setUTCDate(D.getUTCDate() + 4);
-  deadline.setUTCHours(23, 59, 59, 999);
-  const now = new Date();
-  const ms = deadline - now;
-  if (ms <= 0) return "window closed";
-
-  const d = Math.floor(ms / (24 * 3600000));
-  const h = Math.floor((ms % (24 * 3600000)) / 3600000);
-  const m = Math.floor((ms % 3600000) / 60000);
-  const s = Math.floor((ms % 60000) / 1000);
-  return `${d}d ${h}h ${m}m ${s}s left`;
 }

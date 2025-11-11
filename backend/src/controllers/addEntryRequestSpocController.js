@@ -250,6 +250,64 @@
 
 const prisma = require('../config/prisma'); 
 
+const getUnitTypeForCombination = async (req, res) => {
+  try {
+    const { task, bookElement } = req.query;
+
+    if (!task || !bookElement) {
+      return res.status(400).json({
+        success: false,
+        message: "Both task and bookElement are required"
+      });
+    }
+
+    // Find the unit type for this combination
+    const unitTypeRecord = await prisma.unitType.findFirst({
+      where: {
+        task_name: {
+          equals: task,
+          mode: "insensitive"
+        },
+        book_element: {
+          equals: bookElement,
+          mode: "insensitive"
+        }
+      },
+      select: {
+        unit_type: true
+      }
+    });
+
+    if (!unitTypeRecord) {
+      return res.json({
+        success: true,
+        found: false,
+        unitType: null,
+        isNA: false,
+        message: "No unit type defined for this combination"
+      });
+    }
+
+    const isNA = unitTypeRecord.unit_type?.toLowerCase() === 'n/a' || 
+                 unitTypeRecord.unit_type?.toLowerCase() === 'na';
+
+    return res.json({
+      success: true,
+      found: true,
+      unitType: unitTypeRecord.unit_type,
+      isNA: isNA
+    });
+
+  } catch (err) {
+    console.error("getUnitTypeForCombination error:", err);
+    return res.status(500).json({
+      success: false,
+      message: "Server error",
+      error: err.message
+    });
+  }
+};
+
 // Submit a new entry request
 const submitEntryRequest = async (req, res) => {
   try {
@@ -483,8 +541,81 @@ const getPastRequests = async (req, res) => {
   }
 };
 
+const getMonthlyRequestStats = async (req, res) => {
+  try {
+    const userName = req.user.name;
+    const monthlyLimit = 5; // Set the monthly limit
+
+    // Get current month's start and end dates in IST (Indian Standard Time)
+    const now = new Date();
+    
+    // Convert to IST (UTC+5:30)
+    const istOffset = 5.5 * 60 * 60 * 1000; // 5 hours 30 minutes in milliseconds
+    const nowIST = new Date(now.getTime() + istOffset);
+    
+    // Get start of month in IST
+    const startOfMonth = new Date(nowIST.getFullYear(), nowIST.getMonth(), 1);
+    // Convert back to UTC for database query
+    const startOfMonthUTC = new Date(startOfMonth.getTime() - istOffset);
+    
+    // Get end of month in IST
+    const endOfMonth = new Date(nowIST.getFullYear(), nowIST.getMonth() + 1, 0, 23, 59, 59, 999);
+    // Convert back to UTC for database query
+    const endOfMonthUTC = new Date(endOfMonth.getTime() - istOffset);
+
+    // Get all entry requests for the current month (both pending and approved)
+    const monthlyRequests = await prisma.todaysWorklog.findMany({
+      where: {
+        name: userName,
+        is_entry_request: true,
+        date: {
+          gte: startOfMonthUTC,
+          lte: endOfMonthUTC
+        },
+        request_status: {
+          in: ['Pending', 'Approved'] // Count both pending and approved requests
+        }
+      },
+      select: {
+        date: true,
+        request_status: true
+      }
+    });
+
+    // Count unique days (distinct dates) for the current month
+    const uniqueDays = new Set();
+    monthlyRequests.forEach(request => {
+      // Convert stored UTC date to IST for accurate day calculation
+      const dateInIST = new Date(request.date.getTime() + istOffset);
+      const dateStr = dateInIST.toISOString().split('T')[0]; // Get YYYY-MM-DD format
+      uniqueDays.add(dateStr);
+    });
+
+    const currentMonthDays = uniqueDays.size;
+    const isLimitReached = currentMonthDays >= monthlyLimit;
+
+    res.json({
+      success: true,
+      currentMonthDays,
+      monthlyLimit,
+      isLimitReached,
+      currentMonth: nowIST.toLocaleString('default', { month: 'long', year: 'numeric' })
+    });
+
+  } catch (error) {
+    console.error('Error fetching monthly stats:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch monthly statistics',
+      error: error.message
+    });
+  }
+};
+
 module.exports = {
   submitEntryRequest,
   getPendingRequests,
-  getPastRequests
+  getPastRequests,
+  getUnitTypeForCombination,
+  getMonthlyRequestStats
 };

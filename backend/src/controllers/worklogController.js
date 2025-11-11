@@ -130,6 +130,66 @@ function addDaysEOD(dateOnly, days) {
 //   }
 // };
 
+exports.getUnitTypeForCombination = async (req, res) => {
+  try {
+    const { task, bookElement } = req.query;
+
+    if (!task || !bookElement) {
+      return res.status(400).json({
+        success: false,
+        message: "Both task and bookElement are required"
+      });
+    }
+
+    // Find the unit type for this combination
+    const unitTypeRecord = await prisma.unitType.findFirst({
+      where: {
+        task_name: {
+          equals: task,
+          mode: "insensitive"
+        },
+        book_element: {
+          equals: bookElement,
+          mode: "insensitive"
+        }
+      },
+      select: {
+        unit_type: true
+      }
+    });
+
+    if (!unitTypeRecord) {
+      return res.json({
+        success: true,
+        found: false,
+        unitType: null,
+        isNA: false,
+        message: "No unit type defined for this combination"
+      });
+    }
+
+    const isNA = unitTypeRecord.unit_type?.toLowerCase() === 'n/a' || 
+                 unitTypeRecord.unit_type?.toLowerCase() === 'na';
+
+    return res.json({
+      success: true,
+      found: true,
+      unitType: unitTypeRecord.unit_type,
+      isNA: isNA
+    });
+
+  } catch (err) {
+    console.error("getUnitTypeForCombination error:", err);
+    return res.status(500).json({
+      success: false,
+      message: "Server error",
+      error: err.message
+    });
+  }
+};
+
+
+
 exports.submitWorklogs = async (req, res) => {
   try {
     const { entries } = req.body || {};
